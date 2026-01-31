@@ -2,9 +2,10 @@
 python -m mpremote cp main.py :
 python -m mpremote connect COM7 repl
 python -m mpremote reset
+
+run the following in powershell extension to compile and upload everything.
+.\push.ps1
 '''
-
-
 
 
 #then press reset or 
@@ -14,31 +15,41 @@ from drivers.lp5811_ledDriver import LP5811 # uses custom I2C protocol
 
 ######### Initialization of peripherals #########
 
-LP5811_ADDR = 0x6D
-# ADC
-adc = ADC(Pin(34))
-adc.atten(ADC.ATTN_11DB)
+def main():
+    LP5811_ADDR = 0x6D
+    # ADC
+    adc = ADC(Pin(34))
+    adc.atten(ADC.ATTN_11DB)
 
-# I2C
-i2c = I2C(0, scl=Pin(22), sda=Pin(21))
-print("I2C devices:", i2c.scan())
+    # I2C
+    i2c = I2C(0, scl=Pin(22), sda=Pin(21))
+    # print("I2C devices:", i2c.scan())
 
-# PWM
-speakerPwm = PWM(Pin(18), freq=1000)
-vibrationPwm = PWM(Pin(19), freq=1000)
+    lp = LP5811(i2c)
+    if not lp.ping():
+        print("LP5811 not detected (NACK)")
+        return
+    print("✅ LP5811 detected (ACK)")
 
-print("main.py running")
+    # PWM
+    speakerPwm = PWM(Pin(18), freq=1000)
+    vibrationPwm = PWM(Pin(19), freq=1000)
 
-led = Pin(2, Pin.OUT)
+    print("main.py running")
 
-while True:
-    try:
-        # Send a zero-length write (just address + ACK check)
-        i2c.writeto(LP5811_ADDR, b"")
-        print("ACK from 0x%02X" % LP5811_ADDR)
-        led.on()
-    except OSError as e:
-        print("NO ACK from 0x%02X" % LP5811_ADDR, e)
-        led.off()
+    onboardLed = Pin(2, Pin.OUT)
 
-    time.sleep(1)
+    while True:
+        # try:
+        #     # Send a zero-length write (just address + ACK check)
+        #     i2c.writeto(LP5811_ADDR, b"")
+        #     print("ACK from 0x%02X" % LP5811_ADDR)
+        #     onboardLed.on()
+        # except OSError as e:
+        #     print("NO ACK from 0x%02X" % LP5811_ADDR, e)
+        #     onboardLed.off()
+
+        time.sleep(1)
+
+if __name__ == "__main__":
+    main()

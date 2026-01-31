@@ -35,7 +35,7 @@ https://www.ti.com/product/LP5811
 from machine import I2C
 
 class LP5811:
-    def __init__(self, i2c: I2C, address=0xXX):
+    def __init__(self, i2c: I2C, address=0x50):
         self.i2c = i2c
         self.address = address
         

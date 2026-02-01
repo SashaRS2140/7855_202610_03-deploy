@@ -72,14 +72,12 @@ STOP_CMD_REG       = 0x012
 PAUSE_CMD_REG      = 0x013
 CONTINUE_CMD_REG   = 0x014
 
-
 # ============================================================
 # LED Enable Registers
 # ============================================================
 
 LED_EN1_REG = 0x020
 LED_EN2_REG = 0x021
-
 
 # ============================================================
 # Fault / Reset Registers
@@ -88,7 +86,6 @@ LED_EN2_REG = 0x021
 FAULT_CLR_REG = 0x022
 RESET_REG     = 0x023
 
-
 # ============================================================
 # Manual DC Registers
 # ============================================================
@@ -96,14 +93,12 @@ RESET_REG     = 0x023
 MANUAL_DC_GAP   = 0x001
 MANUAL_DC_START = 0x030
 
-
 # ============================================================
 # Manual PWM Registers
 # ============================================================
 
 MANUAL_PWM_GAP   = 0x001
 MANUAL_PWM_START = 0x040
-
 
 # ============================================================
 # Auto DC Registers
@@ -201,10 +196,10 @@ LED_D0 = 0x0D
 LED_D1 = 0x0E
 LED_D2 = 0x0F
 
-LED_A = LED_A0
-LED_B = LED_B0
-LED_C = LED_C0
-LED_D = LED_D0
+LED_A = LED0 #white
+LED_B = LED1 #blue
+LED_C = LED2 #green 
+LED_D = LED3 #red
 
 
 # ============================================================
@@ -227,6 +222,7 @@ AEU2 = 0x01
 AEU3 = 0x02
 
 from machine import I2C
+import time
 class LP5811:
     def __init__(self, i2c: I2C, chip_addr: int = 0b11011):
         """
@@ -240,7 +236,7 @@ class LP5811:
         """
         self.i2c = i2c
         self.chip_addr = chip_addr & 0x1F  # enforce 5-bit address
-
+        self._current_rgb = [0, 0, 0,0]  # Track current RGBW    values for fades
     # ------------------------------------------------------------------
     # Address construction
     # ------------------------------------------------------------------
@@ -294,106 +290,67 @@ class LP5811:
     # ------------------------------------------------------------------
 
     def ping(self) -> bool:
-        """
-        Check if the LP5811 ACKs by reading a known register.
-        """
+        # Check if the LP5811 ACKs by reading a known register.
         try:
             _ = self.read_reg(0x000)  # Chip Enable register
             return True
         except OSError:
             return False
-
+        
+    #initialization sequence for manual mode
     def init_manual(self):
-        """
-        Manual-mode initialization sequence.
-        Ported from LP5812_Init_Manual() reference implementation.
-        """
+        self.write_reg(CHIP_ENABLE_REGISTER, 0x01)   # Chip_Enable_Register
+        self.write_reg(DEV_CONFIG0_REGISTER, 0x00)   # Dev_Config0_Register current limit 25mA
+        
+        # lsd_threshold = 0.65Vcc, shut off if cathode voltage surpasses set amount. Also enabled short and open fault
+        self.write_reg(DEV_CONFIG12_REGISTER, 0x0F)   
+        self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)   # Update LED params
 
-        # --------------------------------------------------
-        # Enable the device
-        # --------------------------------------------------
-        self.write_reg(0x000, 0x01)   # Chip_Enable_Register
-
-        # --------------------------------------------------
-        # Burst write Dev_Config0 + Dev_Config1
-        # data[] = {0x00, 0x40}
-        # --------------------------------------------------
-        self.write_reg(0x001, 0x00)   # Dev_Config0_Register
-        self.write_reg(0x002, 0x40)   # Dev_Config1_Register
-
-        # --------------------------------------------------
-        # LSD threshold + fault behavior
-        # --------------------------------------------------
-        self.write_reg(0x00D, 0x0F)   # Dev_Config12_Register
-
-        # --------------------------------------------------
-        # Apply configuration (Update command)
-        # --------------------------------------------------
-        self.write_reg(0x010, 0x55)   # Update_CMD_REG
-
-        # --------------------------------------------------
-        # Check configuration / fault status
-        # --------------------------------------------------
-        status = self.read_reg(0x300)  # TSD_CONFIG_STATUS
+        #Check config error status. See if any fault had been tripped
+        status = self.read_reg(TSD_CONFIG_STATUS)  # TSD_CONFIG_STATUS
         if status != 0x00:
             raise RuntimeError("LP5811 config error: status=0x%02X" % status)
 
-        # --------------------------------------------------
-        # Enable LEDs
-        # LED_EN1 = 0xF0
-        # LED_EN2 = 0xFF
-        # --------------------------------------------------
-        self.write_reg(0x020, 0xF0)   # LED_EN1
-        self.write_reg(0x021, 0xFF)   # LED_EN2
+        # Enable all LEDs
+        self.write_reg(LED_EN1_REG, 0x0F)
 
-        # --------------------------------------------------
         # Set peak current for LEDs
-        # Manual_DC_START + 4 → +15
-        # --------------------------------------------------
         peak_current = 0xFF
-        for reg in range(0x030 + 4, 0x030 + 16):
+        for reg in range(MANUAL_DC_START , MANUAL_DC_START + 4):
             self.write_reg(reg, peak_current)
 
-        # --------------------------------------------------
         # Set PWM duty cycle for all LEDs
-        # Manual_PWM_START → +11
-        # --------------------------------------------------
         pwm_duty = 0x10
-        for reg in range(0x040, 0x040 + 12):
+        for reg in range(MANUAL_PWM_START, MANUAL_PWM_START + 4):
             self.write_reg(reg, pwm_duty)
 
         return True
 
-    def fade_leds_manual(self, start_register: int, resolution: int, delay_ms: int):
+    def fade_leds_manual(self, target_rgb: list, duration_ms: int, steps: int = 64):
         """
-        Fade LEDs up and down in manual PWM mode.
+        Fade LEDs from current RGB to target RGB using manual PWM.
 
-        start_register : first PWM register (e.g. MANUAL_PWM_START)
-        resolution     : PWM step size (e.g. 4, 8, 16)
-        delay_ms       : delay between steps in milliseconds
+        target_rgb  : [R, G, B] target values (0–255)
+        duration_ms : total fade time in milliseconds
+        steps       : number of fade steps
         """
 
-        import time
+        start_register = MANUAL_PWM_START
+        delay_ms = duration_ms // steps
 
-        # -----------------------------
-        # Fade in
-        # -----------------------------
-        pwm = 0
-        while pwm <= 0xFF:
-            for i in range(3):
-                self.write_reg(start_register + i, pwm)
-            time.sleep_ms(delay_ms)
-            pwm += resolution
+        start_rgb = self._current_rgb.copy()
 
-        # -----------------------------
-        # Fade out
-        # -----------------------------
-        pwm = 0xFF
-        while pwm >= 0:
-            for i in range(3):
-                self.write_reg(start_register + i, pwm)
+        for step in range(steps + 1):
+            for i in range(4):
+                value = start_rgb[i] + (target_rgb[i] - start_rgb[i]) * step // steps
+                self.write_reg(start_register + i, value)
+
             time.sleep_ms(delay_ms)
-            pwm -= resolution
+
+        # Save state
+        self._current_rgb = target_rgb.copy()
+
+
 
 # ----------------------------------------------------------------------
 # Example usage

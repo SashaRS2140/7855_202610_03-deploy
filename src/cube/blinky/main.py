@@ -6,7 +6,6 @@
 import time
 from machine import Pin
 
-
 print("main.py running")
 
 led = Pin(2, Pin.OUT)

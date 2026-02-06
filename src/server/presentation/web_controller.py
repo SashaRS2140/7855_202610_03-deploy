@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, current_app
 import os
 
-
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
 web_bp = Blueprint('web', __name__,
@@ -11,7 +10,6 @@ web_bp = Blueprint('web', __name__,
 def get_session_service():
     """Helper to access the service layer."""
     return current_app.session_service
-
 
 @web_bp.route("/")
 def home():
@@ -35,6 +33,55 @@ def login():
 
         return render_template("login.html", error="Invalid credentials")
     return render_template("login.html")
+
+@web_bp.route("/new_user", methods=["POST"])
+def new_user():
+    username = request.form.get("username")
+    password = request.form.get("password")
+
+    svc = get_session_service()
+
+    if not username or not password:
+        return render_template(
+            "signup.html",
+            error="Username and password are required."
+        )
+
+    if svc.get_user_profile(username):
+        return render_template(
+            "signup.html",
+            error="Username already exists."
+        )
+
+    svc.create_user(username, password)
+
+    # Auto-login after account creation
+    session["logged_in"] = True
+    session["username"] = username
+
+    return redirect(url_for("web.home"))
+
+@web_bp.route("/signup", methods=["GET"])
+def signup():
+    return render_template("signup.html")
+
+@web_bp.route("/delete/profile")
+def delete_profile():
+    if not session.get("logged_in"):
+        return redirect(url_for("web.login"))
+
+    get_session_service().delete_user_profile(session["username"])
+
+    return redirect(url_for("web.home"))
+
+@web_bp.route("/delete/user")
+def delete_user():
+    if not session.get("logged_in"):
+        return redirect(url_for("web.login"))
+
+    get_session_service().delete_user(session["username"])
+
+    return redirect(url_for("web.login"))
 
 # src/server/presentation/web_controller.py
 

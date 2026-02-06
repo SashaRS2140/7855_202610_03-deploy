@@ -19,12 +19,14 @@
 
     <div class="nav-links">
         <a href="{{ url_for('web.profile') }}">Edit My Profile</a> |
+        <a href="{{ url_for('web.delete_profile') }}">Delete Profile Information</a> |
+        <a href="{{ url_for('web.delete_user') }}">Delete Account</a> |
         <a href="{{ url_for('web.logout') }}">Logout</a>
     </div>
 
     <hr>
 
-    <h2>Registered Student Profiles</h2>
+    <h2>Registered CUBE Profiles</h2>
     {% if profiles %}
         <table>
             <thead>

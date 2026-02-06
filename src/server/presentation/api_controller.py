@@ -2,6 +2,10 @@ from flask import Blueprint, jsonify, request, current_app
 
 api_bp = Blueprint('api', __name__)
 
+##########################################################################
+###                             CUBE API                               ###
+##########################################################################
+
 def get_hw_service():
     return current_app.hw_service
 
@@ -16,3 +20,8 @@ def receive_telemetry():
 def get_config():
     """Endpoint for ESP32 to fetch settings."""
     return jsonify(get_hw_service().get_config())
+
+##########################################################################
+###                             JSON API                               ###
+##########################################################################
+

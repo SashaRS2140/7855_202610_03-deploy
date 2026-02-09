@@ -296,14 +296,18 @@ class LP5811:
             return True
         except OSError:
             return False
-        
+
+    #initialization sequence for manual mode
+    def init_auto(self):
+        print("Initializing LP5811 in AUTO mode...")
     #initialization sequence for manual mode
     def init_manual(self):
         self.write_reg(CHIP_ENABLE_REGISTER, 0x01)   # Chip_Enable_Register
-        self.write_reg(DEV_CONFIG0_REGISTER, 0x00)   # Dev_Config0_Register current limit 25mA
-        
+        self.write_reg(DEV_CONFIG0_REGISTER, 0x00)   # Dev_Config0_Register current limit 25mA, set 0x00
+
+        self.write_reg(DEV_CONFIG5_REGISTER, 0x0F)  # Enable exponential curve dimming mode for all LED's
         # lsd_threshold = 0.65Vcc, shut off if cathode voltage surpasses set amount. Also enabled short and open fault
-        self.write_reg(DEV_CONFIG12_REGISTER, 0x0F)   
+        self.write_reg(DEV_CONFIG12_REGISTER, 0x0D)   
         self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)   # Update LED params
 
         #Check config error status. See if any fault had been tripped

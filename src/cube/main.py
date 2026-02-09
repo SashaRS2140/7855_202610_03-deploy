@@ -39,14 +39,14 @@ def main():
 
     onboardLed = Pin(2, Pin.OUT)
 
-
     lp.init_manual()
     lp.write_reg(UPDATE_CMD_REG , UPDATE_CMD_VALUE)  # Enable device
     while True:
-        lp.fade_leds_manual([255, 0, 0 , 0], 2000)   # Fade to red in 2s
-        lp.fade_leds_manual([126, 0, 0, 0], 2000)   # Fade to red in 2s
-        lp.fade_leds_manual([0, 0, 0, 0], 2000)   # Fade to red in 2s
-
+        lp.fade_leds_manual([255, 0, 0 , 0], 4000)   # Fade to white in 5s
+        lp.fade_leds_manual([255, 0, 0 , 0], 4000)   # Fade to white in 5s
+        # lp.fade_leds_manual([126, 0, 0, 0], 2000)   # Fade to red in 2s
+        lp.fade_leds_manual([0, 0, 0, 0], 4000)   # Fade out in 2s
+        lp.fade_leds_manual([0, 0, 0, 0], 4000)   # Fade out in 2s
 
         # FORCE outputs OFF
         # for i in range(3):

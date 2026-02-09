@@ -7,16 +7,18 @@ web_bp = Blueprint('web', __name__,
                    template_folder='templates',
                    static_folder=static_dir)
 
+
 def get_session_service():
     """Helper to access the service layer."""
     return current_app.session_service
+
 
 @web_bp.route("/")
 def home():
     if not session.get("logged_in"):
         return redirect(url_for('web.login'))
 
-    profiles = get_session_service().get_dashboard_data()
+    profiles = get_session_service().get_all_profiles()
     return render_template("dashboard.html", username=session["username"], profiles=profiles)
 
 
@@ -34,6 +36,7 @@ def login():
         return render_template("login.html", error="Invalid credentials")
     return render_template("login.html")
 
+
 @web_bp.route("/new_user", methods=["POST"])
 def new_user():
     username = request.form.get("username")
@@ -47,7 +50,7 @@ def new_user():
             error="Username and password are required."
         )
 
-    if svc.get_user_profile(username):
+    if svc.get_profile(username):
         return render_template(
             "signup.html",
             error="Username already exists."
@@ -61,20 +64,23 @@ def new_user():
 
     return redirect(url_for("web.home"))
 
+
 @web_bp.route("/signup", methods=["GET"])
 def signup():
     return render_template("signup.html")
 
-@web_bp.route("/delete/profile")
+
+@web_bp.route("/delete/profile", methods=["GET","POST"])
 def delete_profile():
     if not session.get("logged_in"):
         return redirect(url_for("web.login"))
 
-    get_session_service().delete_user_profile(session["username"])
+    get_session_service().delete_profile(session["username"])
 
     return redirect(url_for("web.home"))
 
-@web_bp.route("/delete/user")
+
+@web_bp.route("/delete/user", methods=["GET","POST"])
 def delete_user():
     if not session.get("logged_in"):
         return redirect(url_for("web.login"))
@@ -83,7 +89,6 @@ def delete_user():
 
     return redirect(url_for("web.login"))
 
-# src/server/presentation/web_controller.py
 
 @web_bp.route("/logout")
 def logout():
@@ -99,9 +104,17 @@ def profile():
     username = session["username"]
 
     if request.method == "POST":
-        result = svc.update_user_profile(username, request.form)
-        if "error" in result:
-            return render_template("profile.html", error=result["error"], profile=request.form)
+        data = request.form
+        error = svc.validate_profile(data)
+        if error:
+            # Re-render form with error and submitted data
+            return render_template(
+                "profile.html",
+                error=error,
+                profile=data
+            )
+        # Valid -> normalize and save
+        normalized_profile = svc.normalize_profile(data)
+        svc.save_profile(username, normalized_profile)
         return redirect(url_for('web.home'))
-
-    return render_template("profile.html", profile=svc.get_user_profile(username))
+    return render_template("profile.html", profile=svc.get_profile(username))

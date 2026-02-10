@@ -28,7 +28,7 @@ class PiezoButton:
         threshold_low: int = 50,
         baseline_alpha: float = 0.01,
         settle_ms: int = 400,
-        double_tap_ms: int = 300,
+        double_tap_ms: int = 100,
     ):
         # ADC setup
         self.adc = ADC(Pin(pin))
@@ -49,21 +49,14 @@ class PiezoButton:
         # State
         self.baseline = self.adc.read()
         self.state = 0  # 0=IDLE, 1=ACTIVE, 2=WAIT_SETTLE
-        self.quiet_since = 0
+        self.quiet_since = 0 
 
         # Tap tracking
         self.last_tap_time = 0
         self.tap_count = 0
 
-    def buttonPress(self) -> int:
-        """
-        Poll ADC once.
 
-        Returns:
-            0 → no press
-            1 → single press
-            2 → double press
-        """
+    def buttonPress(self) -> int:
         sample = self.adc.read()
 
         # Baseline tracking
@@ -78,16 +71,8 @@ class PiezoButton:
             if delta > self.threshold_high:
                 self.state = 1
 
-        elif self.state == 1:  # ACTIVE
+        elif self.state == 1:  # ACTIVE (waiting for release)
             if delta < self.threshold_low:
-                # Tap detected
-                if time.ticks_diff(now, self.last_tap_time) < self.double_tap_ms:
-                    result = 2
-                    self.tap_count = 0
-                else:
-                    result = 1
-                    self.tap_count = 1
-
                 self.last_tap_time = now
                 self.quiet_since = now
                 self.state = 2
@@ -95,9 +80,17 @@ class PiezoButton:
         elif self.state == 2:  # WAIT_SETTLE
             if delta < self.threshold_low:
                 if time.ticks_diff(now, self.quiet_since) > self.settle_ms:
-                    self.state = 0
+                    self.state = 3  # go wait for second tap
             else:
                 self.quiet_since = now
+
+        elif self.state == 3:  # PENDING_SINGLE
+            if delta > self.threshold_high:
+                self.state = 1
+                result = 2  # DOUBLE TAP
+            elif time.ticks_diff(now, self.last_tap_time) > self.double_tap_ms:
+                self.state = 0
+                result = 1  # SINGLE TAP
         # ----------------------------------
 
         time.sleep_ms(self.dt_ms)

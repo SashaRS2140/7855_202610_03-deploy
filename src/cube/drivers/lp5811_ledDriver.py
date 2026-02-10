@@ -271,6 +271,23 @@ class LP5811:
 
         return data[0]
 
+
+    def start_cmd(self):
+        """Equivalent to Start_CMD()"""
+        self.write_reg(START_CMD_REG, START_CMD_VALUE)
+
+    def stop_cmd(self):
+        """Equivalent to Stop_CMD()"""
+        self.write_reg(STOP_CMD_REG, STOP_CMD_VALUE)
+
+    def pause_cmd(self):
+        """Equivalent to Pause_CMD()"""
+        self.write_reg(PAUSE_CMD_REG, PAUSE_CMD_VALUE)
+
+    def continue_cmd(self):
+        """Equivalent to Continue_CMD()"""
+        self.write_reg(CONTINUE_CMD_REG, CONTINUE_CMD_VALUE)
+
     # ------------------------------------------------------------------
     # Utility
     # ------------------------------------------------------------------
@@ -360,7 +377,7 @@ class LP5811:
         self.write_reg(LED_EN1_REG, 0x0F)
         # Set peak current for LEDs
         peak_current = 0xFF #CLASS VARIABLES
-        pwm_duty = 0x10 #CLASS VARIABLES
+        pwm_duty = 0x20 #CLASS VARIABLES
 
         # self.write_reg(AUTO_DC_START, peak_current)
         for i in range(4):#MAX current for all LED's
@@ -476,4 +493,4 @@ class LP5811:
 
         self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)   # Update LED params
         time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
-        self.write_reg(START_CMD_REG, START_CMD_VALUE)   # Update LED params
+        # self.write_reg(START_CMD_REG, START_CMD_VALUE)   # Update LED params

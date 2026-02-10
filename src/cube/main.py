@@ -12,8 +12,21 @@ run the following in powershell extension to compile and upload everything.
 import time
 from machine import ADC, I2C, Pin, PWM
 from drivers.lp5811_ledDriver import * # uses custom I2C protocol
+from drivers.piezoElectric import *
+from drivers.pomodoroTimer import *
+from drivers.alarm import *
+
 
 ######### Initialization of peripherals #########
+
+def on_done(alarm, lp):
+    print("Timer finished")
+    alarm.bell()
+    lp.stop_cmd() 
+
+
+def on_reminder():
+    print("Reminder!")
 
 def main():
     LP5811_ADDR = 0x6D
@@ -39,33 +52,47 @@ def main():
 
     onboardLed = Pin(2, Pin.OUT)
 
+    piezo = PiezoButton(pin=34)
 
-    lp.init_manual()
-    lp.write_reg(UPDATE_CMD_REG , UPDATE_CMD_VALUE)  # Enable device
+
+
+    timer = PomodoroTimer(
+        on_session_complete=lambda: on_done(alarm,lp),
+        on_reminder=on_reminder
+    )
+
+    # -------------------------------
+    # Configure timers
+    # -------------------------------
+
+
+    # timer.set_reminder(3) # optional: reminder every 3 seconds
+    alarm = Alarm(speaker_pin=18)
+
+
+
+
+
+    # lp.init_manual()
+    lp.init_auto()  # Start auto mode with default breathing pattern
+    lp.led_all_breathing([255,0,0,0])
+    # lp.write_reg(UPDATE_CMD_REG , UPDATE_CMD_VALUE)  # Enable device
     while True:
-        lp.fade_leds_manual([255, 0, 0 , 0], 2000)   # Fade to red in 2s
-        lp.fade_leds_manual([126, 0, 0, 0], 2000)   # Fade to red in 2s
-        lp.fade_leds_manual([0, 0, 0, 0], 2000)   # Fade to red in 2s
+        # lp.fade_leds_manual([255, 0, 0 , 0], 4000)   # Fade to white in 5s
+        # lp.fade_leds_manual([255, 0, 0 , 0], 4000)   # Fade to white in 5s
+        # lp.fade_leds_manual([0, 0, 0, 0], 4000)   # Fade out in 2s
+        # lp.fade_leds_manual([0, 0, 0, 0], 4000)   # Fade out in 2s
+        timer.process()     # MUST be called regularly
 
+        press = piezo.buttonPress()
+        if press == 1:
+            print("Single tap")
+            timer.set_time(15 )   
+            timer.start()
+            lp.start_cmd()
 
-        # FORCE outputs OFF
-        # for i in range(3):
-        #     lp.write_reg(MANUAL_PWM_START + i, 0)
-
-        # lp.fade_leds_manual([0, 255, 0], 500)    # Fade to green in 0.5s
-        # lp.fade_leds_manual([0, 0, 255], 2000)   # Fade to blue in 2s
-        # lp.fade_leds_manual([255, 255, 255], 1500)  # Fade to white
-        # lp.fade_leds_manual([255, 0, 0], 1000)  # Fade to red over 1 second
-        # try:
-        #     # Send a zero-length write (just address + ACK check)
-        #     i2c.writeto(LP5811_ADDR, b"")
-        #     print("ACK from 0x%02X" % LP5811_ADDR)
-        #     onboardLed.on()
-        # except OSError as e:
-        #     print("NO ACK from 0x%02X" % LP5811_ADDR, e)
-        #     onboardLed.off()
-
-        # time.sleep(1)
+        elif press == 2:
+            print("Double tap")
 
 if __name__ == "__main__":
     main()

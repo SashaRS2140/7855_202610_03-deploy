@@ -1,35 +1,73 @@
+from bcrypt import hashpw, checkpw, gensalt
+
 class SessionService:
     def __init__(self, repository):
         self.repo = repository
 
     def validate_user(self, username, password):
-        """Example login logic."""
-        # In a real app, check hashed passwords here.
-        # For now, we use your dummy check.
-        return username == "student" and password == "secret"
+        user = self.repo.get_user_data(username)
+        if not user:
+            return False
 
-    def get_dashboard_data(self):
+        return checkpw(
+            password.encode("utf-8"),
+            user["password_hash"].encode("utf-8")
+        )
+
+    def get_all_profiles(self):
         """Prepares data for the dashboard."""
-        return self.repo.get_all_profiles()
+        return self.repo.get_all_profile_data()
 
-    def get_user_profile(self, username):
-        return self.repo.get_profile(username) or {}
+    def get_profile(self, username):
+        return self.repo.get_profile_data(username) or {}
 
-    def update_user_profile(self, username, form_data):
-        """Validates and sanitizes input before saving."""
-        f_name = form_data.get("first_name", "")
-        l_name = form_data.get("last_name", "")
-        s_id = form_data.get("student_id", "")
+    def validate_profile(self, data):
+        # Check that all fields are provided and non-empty
+        first_name = data.get("first_name", "")
+        last_name = data.get("last_name", "")
+        student_id = data.get("student_id", "")
+        if not first_name or not last_name or not student_id:
+            return "All fields are required."
 
-        if not all([f_name, l_name, s_id]) or not s_id.strip().isdigit():
-            return {"error": "Invalid input: All fields required and ID must be numeric."}
+        student_id = str(student_id)
 
-        clean_data = {
-            "username": username,
-            "first_name": f_name.strip().capitalize(),
-            "last_name": l_name.strip().capitalize(),
-            "student_id": s_id.strip()
+        # Check that student_id is numeric
+        if not student_id.isdigit():
+            return "Student ID must be numeric."
+
+        return None
+
+    def normalize_profile(self, data):
+        first_name = data.get("first_name", "")
+        last_name = data.get("last_name", "")
+        student_id = data.get("student_id", "")
+
+        return {
+            "first_name": str(first_name).strip().capitalize(),
+            "last_name": str(last_name).strip().capitalize(),
+            "student_id": str(student_id).strip()
         }
 
-        self.repo.save_profile(clean_data)
-        return {"success": True}
+    def save_profile(self, username, profile_data):
+        self.repo.save_profile_data(username, profile_data)
+
+    def delete_profile(self, username):
+        self.repo.delete_profile_data(username)
+
+    def create_user(self, username, password):
+        password_hash = hashpw(
+            password.encode("utf-8"),
+            gensalt()
+        ).decode("utf-8")
+
+        self.repo.save_user_data({
+            "username": username,
+            "password_hash": password_hash
+        })
+
+    def get_user(self, username):
+        return self.repo.get_user_data(username) or {}
+
+    def delete_user(self, username):
+        self.repo.delete_profile_data(username)
+        self.repo.delete_user_data(username)

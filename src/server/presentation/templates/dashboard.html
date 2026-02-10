@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student App</title>
+    <title>CUBE App</title>
     <style>
         /* Basic Mobile Styles */
         body { font-family: sans-serif; padding: 20px; line-height: 1.5; }
@@ -19,12 +19,14 @@
 
     <div class="nav-links">
         <a href="{{ url_for('web.profile') }}">Edit My Profile</a> |
+        <a href="{{ url_for('web.delete_profile') }}">Delete Profile Information</a> |
+        <a href="{{ url_for('web.delete_user') }}">Delete Account</a> |
         <a href="{{ url_for('web.logout') }}">Logout</a>
     </div>
 
     <hr>
 
-    <h2>Registered Student Profiles</h2>
+    <h2>Registered CUBE Profiles</h2>
     {% if profiles %}
         <table>
             <thead>
@@ -39,9 +41,9 @@
                 {% for p in profiles %}
                 <tr>
                     <td><strong>{{ p.username }}</strong></td>
-                    <td>{{ p.first_name }}</td>
-                    <td>{{ p.last_name }}</td>
-                    <td>{{ p.student_id }}</td>
+                    <td>{{ p.profile.first_name }}</td>
+                    <td>{{ p.profile.last_name }}</td>
+                    <td>{{ p.profile.student_id }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

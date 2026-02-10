@@ -12,6 +12,9 @@ run the following in powershell extension to compile and upload everything.
 import time
 from machine import ADC, I2C, Pin, PWM
 from drivers.lp5811_ledDriver import * # uses custom I2C protocol
+from drivers.piezoElectric import *
+
+
 
 ######### Initialization of peripherals #########
 
@@ -39,14 +42,17 @@ def main():
 
     onboardLed = Pin(2, Pin.OUT)
 
-    lp.init_manual()
-    lp.write_reg(UPDATE_CMD_REG , UPDATE_CMD_VALUE)  # Enable device
+    piezo = PiezoButton(pin=34)
+
+    # lp.init_manual()
+    lp.init_auto()  # Start auto mode with default breathing pattern
+    lp.led_all_breathing([255,0,0,0])
+    # lp.write_reg(UPDATE_CMD_REG , UPDATE_CMD_VALUE)  # Enable device
     while True:
-        lp.fade_leds_manual([255, 0, 0 , 0], 4000)   # Fade to white in 5s
-        lp.fade_leds_manual([255, 0, 0 , 0], 4000)   # Fade to white in 5s
-        # lp.fade_leds_manual([126, 0, 0, 0], 2000)   # Fade to red in 2s
-        lp.fade_leds_manual([0, 0, 0, 0], 4000)   # Fade out in 2s
-        lp.fade_leds_manual([0, 0, 0, 0], 4000)   # Fade out in 2s
+        # lp.fade_leds_manual([255, 0, 0 , 0], 4000)   # Fade to white in 5s
+        # lp.fade_leds_manual([255, 0, 0 , 0], 4000)   # Fade to white in 5s
+        # lp.fade_leds_manual([0, 0, 0, 0], 4000)   # Fade out in 2s
+        # lp.fade_leds_manual([0, 0, 0, 0], 4000)   # Fade out in 2s
 
         # FORCE outputs OFF
         # for i in range(3):
@@ -64,8 +70,12 @@ def main():
         # except OSError as e:
         #     print("NO ACK from 0x%02X" % LP5811_ADDR, e)
         #     onboardLed.off()
+        press = piezo.buttonPress()
+        if press == 1:
+            print("Single tap")
 
-        # time.sleep(1)
+        elif press == 2:
+            print("Double tap")
 
 if __name__ == "__main__":
     main()

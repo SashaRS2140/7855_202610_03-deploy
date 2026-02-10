@@ -31,6 +31,8 @@ This driver manually constructs the address bytes and therefore does NOT
 use standard I2C memory helpers such as `writeto_mem()` or `readfrom_mem()`.
 
 """
+import time
+
 # ============================================================
 # LP5811 / LP5812 I2C Slave Addresses (5-bit addresses)
 # ============================================================
@@ -51,7 +53,6 @@ DEV_CONFIG0_REGISTER      = 0x001  # Max current & boost voltage
 DEV_CONFIG1_REGISTER      = 0x002  # Drive mode & PWM frequency
 DEV_CONFIG2_REGISTER      = 0x003
 DEV_CONFIG3_REGISTER      = 0x004
-DEV_CONFIG4_REGISTER      = 0x005
 DEV_CONFIG5_REGISTER      = 0x006
 DEV_CONFIG6_REGISTER      = 0x007
 DEV_CONFIG7_REGISTER      = 0x008
@@ -183,18 +184,6 @@ LED0  = 0x00
 LED1  = 0x01
 LED2  = 0x02
 LED3  = 0x03
-LED_A0 = 0x04
-LED_A1 = 0x05
-LED_A2 = 0x06
-LED_B0 = 0x07
-LED_B1 = 0x08
-LED_B2 = 0x09
-LED_C0 = 0x0A
-LED_C1 = 0x0B
-LED_C2 = 0x0C
-LED_D0 = 0x0D
-LED_D1 = 0x0E
-LED_D2 = 0x0F
 
 LED_A = LED0 #white
 LED_B = LED1 #blue
@@ -247,8 +236,6 @@ class LP5811:
 
         Format (7-bit):
         [101][A4 A3][R9 R8]
-
-        R/W bit is handled automatically by MicroPython.
         """
         r9_r8 = (reg >> 8) & 0x03
         return (self.chip_addr << 2) | r9_r8
@@ -272,7 +259,6 @@ class LP5811:
     def read_reg(self, reg: int) -> int:
         """
         Read one byte from a 10-bit LP5811 register.
-        Compatible with all MicroPython ports.
         """
         addr7 = self._build_addr7(reg)
         reg_lsb = reg & 0xFF
@@ -295,16 +281,103 @@ class LP5811:
             _ = self.read_reg(0x000)  # Chip Enable register
             return True
         except OSError:
-            return False
+                return False
+    def aeu_pause_time_set(self,
+                        led_num: int,
+                        pause_time_start: int,
+                        pause_time_end: int,
+                        playback_times: int,   # 0x0–0xF, 0xF = infinite
+                        aeu_select: int):       # 0–3
+        """
+        Configure AEU pause times and playback control for one LED.
 
-    #initialization sequence for manual mode
+        aeu_select:
+            0 = AEU1
+            1 = AEU1 + AEU2
+            2 = AEU1 + AEU2 + AEU3
+            3 = AEU1 + AEU2 + AEU3 (same as 2)
+        """
+
+        # ---- Pause time register ----
+        pause_time_value = ((pause_time_end & 0x0F) << 4) | (pause_time_start & 0x0F)
+        pause_reg = LED0_PAUSE_TIME + led_num * 26 #0X80
+        self.write_reg(pause_reg, pause_time_value)
+
+        # ---- Playback register ----
+        playback_value = ((aeu_select & 0x03) << 4) | (playback_times & 0x0F)
+        playback_reg = LED0_PLAYBACK_TIME + led_num * 26
+        self.write_reg(playback_reg, playback_value)
+
+    def aeu_set(self,
+                led_num: int,aeu_num: int,      # 0,1,2 → AEU1,2,3
+                pwm1: int,pwm2: int,pwm3: int,pwm4: int,pwm5: int,
+                t1: int,t2: int,t3: int,t4: int,# 0–15
+                pt: int):          # 0–15 (0xF = infinite)
+        """
+        Configure one AEU (animation engine unit) for one LED.
+        """
+
+        # ---- Base address for this LED + AEU ----
+        base_addr = LED0_AEU1_PWM1 + led_num * 26 + aeu_num * 8
+
+        # ---- Pack slope times ----
+        slope_time1 = ((t2 & 0x0F) << 4) | (t1 & 0x0F)
+        slope_time2 = ((t4 & 0x0F) << 4) | (t3 & 0x0F)
+
+        # ---- Write PWM points ----
+        self.write_reg(base_addr + 0, pwm1 & 0xFF)
+        self.write_reg(base_addr + 1, pwm2 & 0xFF)
+        self.write_reg(base_addr + 2, pwm3 & 0xFF)
+        self.write_reg(base_addr + 3, pwm4 & 0xFF)
+        self.write_reg(base_addr + 4, pwm5 & 0xFF)
+
+        # ---- Write slope times ----
+        self.write_reg(base_addr + 5, slope_time1)
+        self.write_reg(base_addr + 6, slope_time2)
+
+        # ---- Write playback time ----
+        self.write_reg(base_addr + 7, pt & 0x0F)
+
+
+
+    #initialization sequence for auto mode
     def init_auto(self):
-        print("Initializing LP5811 in AUTO mode...")
+        self.write_reg(CHIP_ENABLE_REGISTER, 0x01)   # Chip_Enable_Register
+        self.write_reg(DEV_CONFIG0_REGISTER, 0x00)   # Dev_Config0_Register current limit 25mA, set 0x00
+        self.write_reg(DEV_CONFIG1_REGISTER, 0x80)   # 24KHz pwm freq in direct drive mode
+        self.write_reg(DEV_CONFIG3_REGISTER, 0x0F)   # auto mode, on all LED's
+        self.write_reg(DEV_CONFIG5_REGISTER, 0x0F)   # Enable exponential curve dimming mode for all LED's
+        # lsd_threshold = 0.65Vcc, shut off if cathode voltage surpasses set amount. Also enabled short and open fault
+        self.write_reg(DEV_CONFIG12_REGISTER, 0x0D)   
+        time.sleep_ms(5)
+        self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)   # Update LED params
+
+        #Check config error status. See if any fault had been tripped
+        status = self.read_reg(TSD_CONFIG_STATUS)  # TSD_CONFIG_STATUS
+        if status != 0x00:
+            raise RuntimeError("LP5811 config error: status=0x%02X" % status)
+        # Enable all LEDs
+        self.write_reg(LED_EN1_REG, 0x0F)
+        # Set peak current for LEDs
+        peak_current = 0xFF #CLASS VARIABLES
+        pwm_duty = 0x10 #CLASS VARIABLES
+
+        # self.write_reg(AUTO_DC_START, peak_current)
+        for i in range(4):#MAX current for all LED's
+            self.write_reg(AUTO_DC_START + i, peak_current)
+
+        # programming fading settings
+        # self.write_reg(LED0_PAUSE_TIME, 0xBB) #4 second pause at beginning and ending
+        # self.write_reg(LED0_PLAYBACK_TIME, 0x0F) #use 1 AEU, infinite loop.
+
+        return True
+
     #initialization sequence for manual mode
     def init_manual(self):
         self.write_reg(CHIP_ENABLE_REGISTER, 0x01)   # Chip_Enable_Register
         self.write_reg(DEV_CONFIG0_REGISTER, 0x00)   # Dev_Config0_Register current limit 25mA, set 0x00
-
+        self.write_reg(DEV_CONFIG1_REGISTER, 0x80)   # 24KHz pwm freq in direct drive mode
+        self.write_reg(DEV_CONFIG3_REGISTER, 0x00)   # manual mode, on all LED's
         self.write_reg(DEV_CONFIG5_REGISTER, 0x0F)  # Enable exponential curve dimming mode for all LED's
         # lsd_threshold = 0.65Vcc, shut off if cathode voltage surpasses set amount. Also enabled short and open fault
         self.write_reg(DEV_CONFIG12_REGISTER, 0x0D)   
@@ -314,27 +387,25 @@ class LP5811:
         status = self.read_reg(TSD_CONFIG_STATUS)  # TSD_CONFIG_STATUS
         if status != 0x00:
             raise RuntimeError("LP5811 config error: status=0x%02X" % status)
-
         # Enable all LEDs
         self.write_reg(LED_EN1_REG, 0x0F)
-
         # Set peak current for LEDs
         peak_current = 0xFF
         for reg in range(MANUAL_DC_START , MANUAL_DC_START + 4):
             self.write_reg(reg, peak_current)
-
         # Set PWM duty cycle for all LEDs
         pwm_duty = 0x10
         for reg in range(MANUAL_PWM_START, MANUAL_PWM_START + 4):
             self.write_reg(reg, pwm_duty)
 
+        # self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)   # Update LED params
         return True
 
     def fade_leds_manual(self, target_rgb: list, duration_ms: int, steps: int = 64):
         """
         Fade LEDs from current RGB to target RGB using manual PWM.
 
-        target_rgb  : [R, G, B] target values (0–255)
+        target_rgb  : [W, R, G, B] target values (0–255)
         duration_ms : total fade time in milliseconds
         steps       : number of fade steps
         """
@@ -355,31 +426,54 @@ class LP5811:
         self._current_rgb = target_rgb.copy()
 
 
+    ##function to call for AUTOMODE
+    def led_dot_breathing(self,
+                        led_num: int,
+                        gs_start: int,
+                        gs_end: int,
+                        pause_times: list,
+                        duration_ms: list
+                        ):
+        """
+        Configure a 3-AEU breathing animation for one LED.
 
-# ----------------------------------------------------------------------
-# Example usage
-# ----------------------------------------------------------------------
+        led_num  : 0–3 (LED0–LED3)
+        gs_start : starting PWM value (0–255)
+        gs_end   : ending PWM value (0–255)
+        """
 
-if __name__ == "__main__":
-    i2c = I2C(
-        0,
-        scl=Pin(22),
-        sda=Pin(21),
-        freq=100_000
-    )
+        # Midpoint brightness
+        gs_mid = (gs_start + gs_end) // 2
 
-    lp = LP5811(i2c)
+        # Pause time + playback control
+        # Pause at start = 2, pause at end = 2
+        # Playback times = 0xF (infinite)
+        # AEU_select = 3 → use AEU1 + AEU2 + AEU3
+        self.aeu_pause_time_set(
+            led_num=led_num,
+            pause_time_start=pause_times[0],
+            pause_time_end=pause_times[1],
+            playback_times=0xF,#infinite playback
+            aeu_select=1
+        )
 
-    if lp.ping():
-        print("LP5811 detected!")
+        # ---- AEU1 ---
+        self.aeu_set(
+            led_num=led_num,
+            aeu_num=0,
+            pwm1=gs_start,pwm2=gs_mid,pwm3=gs_end,pwm4=gs_mid,pwm5=gs_start,
+            t1=duration_ms[0], t2=duration_ms[1], t3=duration_ms[2], t4=duration_ms[3],
+            pt=0x03 # infinite playback
+        )
+    
+    def led_all_breathing(self, RGBW:list , duration_ms:list = [0x08,0x08,0x08,0x08] , pause_times:list = [0x0B,0x0B]):
 
-        # Example writes (replace with real init sequence)
-        lp.write_reg(0x000, 0x01)  # Chip Enable
-        time.sleep(0.1)
+        # self.aeu_pause_time_set(LED_NUM, 2, 2, 15, 3);//LED_NUM, Pause_Time_start, Pause_Time_end, Playback_Times, AEU_select
+        self.led_dot_breathing(LED0, 0, RGBW[0], pause_times, duration_ms)
+        self.led_dot_breathing(LED1, 0, RGBW[1], pause_times, duration_ms)
+        self.led_dot_breathing(LED2, 0, RGBW[2], pause_times, duration_ms)
+        self.led_dot_breathing(LED3, 0, RGBW[3], pause_times, duration_ms)
 
-        lp.write_reg(0x020, 0xFF)  # Enable LEDs (example)
-        time.sleep(1)
-
-        lp.write_reg(0x020, 0x00)  # Disable LEDs
-    else:
-        print("LP5811 not detected.")
+        self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)   # Update LED params
+        time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
+        self.write_reg(START_CMD_REG, START_CMD_VALUE)   # Update LED params

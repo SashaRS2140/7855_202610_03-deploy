@@ -1,32 +1,23 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
 
-<link rel="stylesheet" href="{{ url_for('web.static', filename='style.css') }}">
+{% block title %}Dashboard - CUBE{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CUBE App</title>
-    <style>
-        /* Basic Mobile Styles */
-        body { font-family: sans-serif; padding: 20px; line-height: 1.5; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; font-size: 16px; }
-        table { display: block; overflow-x: auto; } /* Allows horizontal scroll for the table on small screens */
-    </style>
-</head>
-<body>
-    <h1>Welcome, {{ username }}!</h1>
-
-    <div class="nav-links">
-        <a href="{{ url_for('web.profile') }}">Edit My Profile</a> |
-        <a href="{{ url_for('web.delete_profile') }}">Delete Profile Information</a> |
-        <a href="{{ url_for('web.delete_user') }}">Delete Account</a> |
-        <a href="{{ url_for('web.logout') }}">Logout</a>
+{% block content %}
+    <div class="card">
+        <h1>Welcome, {{ username }}!</h1>
+        
+        <div class="nav-links-secondary">
+            <a href="{{ url_for('web.profile') }}">Edit Profile</a> •
+            <a href="{{ url_for('web.delete_profile') }}" 
+               onclick="return confirm('Are you sure you want to delete your profile details?')">Delete Info</a> •
+            <a href="{{ url_for('web.delete_user') }}" 
+               style="color: red;"
+               onclick="return confirm('WARNING: This will delete your account permanently.')">Delete Account</a>
+        </div>
     </div>
 
-    <hr>
-
     <h2>Registered CUBE Profiles</h2>
+    
     {% if profiles %}
         <table>
             <thead>
@@ -40,16 +31,17 @@
             <tbody>
                 {% for p in profiles %}
                 <tr>
-                    <td><strong>{{ p.username }}</strong></td>
-                    <td>{{ p.profile.first_name }}</td>
-                    <td>{{ p.profile.last_name }}</td>
-                    <td>{{ p.profile.student_id }}</td>
+                    <td data-label="Username"><strong>{{ p.username }}</strong></td>
+                    <td data-label="First Name">{{ p.profile.first_name }}</td>
+                    <td data-label="Last Name">{{ p.profile.last_name }}</td>
+                    <td data-label="Student ID">{{ p.profile.student_id }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <p><em>No profiles have been created yet. Be the first!</em></p>
+        <div class="card" style="text-align: center; color: #666;">
+            <p>No profiles found. Be the first to join!</p>
+        </div>
     {% endif %}
-</body>
-</html>
+{% endblock %}

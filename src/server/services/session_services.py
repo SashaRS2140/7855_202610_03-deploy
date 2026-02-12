@@ -55,6 +55,10 @@ class SessionService:
         self.repo.delete_profile_data(username)
 
     def create_user(self, username, password):
+        # Check if user already exists to prevent overwriting
+        if self.repo.get_user_data(username):
+            return False  # Or raise an error
+
         password_hash = hashpw(
             password.encode("utf-8"),
             gensalt()
@@ -64,6 +68,7 @@ class SessionService:
             "username": username,
             "password_hash": password_hash
         })
+        return True
 
     def get_user(self, username):
         return self.repo.get_user_data(username) or {}

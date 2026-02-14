@@ -3,6 +3,7 @@ from flask import Flask
 from .data.repository import Repository
 from .services.session_services import SessionService
 from .services.cube_services import CubeInterfaceService
+from .services.timer_sevice import CountdownTimer
 from .presentation.web_controller import web_bp
 from .presentation.api_controller import api_bp
 
@@ -21,6 +22,7 @@ def create_app():
     # 2. Initialize Service Layer (Injecting Repository)
     app.session_service = SessionService(repository)
     app.hw_service = CubeInterfaceService()
+    app.timer = CountdownTimer()
 
     # 3. Register Client Layer (Blueprints)
     app.register_blueprint(web_bp)

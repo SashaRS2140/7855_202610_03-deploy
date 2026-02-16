@@ -91,7 +91,8 @@ def api_profile():
             return jsonify({"error": "Profile not found"}), 404
         return jsonify({
             "username": profile_data.get("username"),
-            "profile": profile_data.get("profile")
+            "profile": profile_data.get("profile"),
+            "presets": profile_data.get("presets"),
         }), 200
 
     if request.method == "POST":
@@ -217,3 +218,119 @@ def api_login():
 def api_logout():
     session.clear()
     return jsonify({"message": "User successfully logged out"}), 200
+
+
+@api_bp.route("/profile/preset", methods=["POST", "PUT"])
+def api_update_preset():
+    svc = get_session_service()
+
+    username = session.get("username")
+
+    if not username:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    if not request.is_json:
+        return jsonify({"error": "Content-Type must be application/json"}), 415
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    task_name = data.get("task_name")
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    task_time = data.get("task_time")
+    if not task_time:
+        return jsonify({"error": "task time required"}), 400
+
+    preset_data = {
+        "task_time": task_time,
+    }
+
+    svc.update_task_preset(username, task_name, preset_data)
+
+    if request.method == "POST":
+        return jsonify({
+            "message": f"{task_name} task created successfully",
+            f"{task_name}": preset_data,
+        }), 201
+
+    # if "PUT"
+    return jsonify({
+        "message": f"{task_name} task updated successfully",
+        f"{task_name}": preset_data,
+    }), 200
+
+
+@api_bp.route("/profile/preset", methods=["GET"])
+def api_get_preset():
+    svc = get_session_service()
+
+    username = session.get("username")
+
+    if not username:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    if not request.is_json:
+        return jsonify({"error": "Content-Type must be application/json"}), 415
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    task_name = data.get("task_name")
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    if task_name == "all":
+        presets = svc.get_all_task_presets(username)
+
+        if not presets:
+            return jsonify({"error": "No presets configured."}), 404
+
+        return jsonify({"presets": presets}), 200
+
+    preset_data = svc.get_task_preset(username, task_name)
+
+    if not preset_data:
+        return jsonify({"error": "Preset not found"}), 404
+
+    return jsonify({f"{task_name}": preset_data}), 200
+
+
+@api_bp.route("/profile/preset", methods=["DELETE"])
+def api_delete_preset():
+    svc = get_session_service()
+
+    username = session.get("username")
+
+    if not username:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    if not request.is_json:
+        return jsonify({"error": "Content-Type must be application/json"}), 415
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    task_name = data.get("task_name")
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    preset_data = svc.get_task_preset(username, task_name)
+
+    if not preset_data:
+        return jsonify({"error": "Preset not found"}), 404
+
+    svc.delete_task_preset(username, task_name)
+
+    return jsonify({"message": f"{task_name} task preset information successfully deleted."}), 200
+
+
+
+
+
+
+

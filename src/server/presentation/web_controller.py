@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, current_app
 import os
 
-static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../static')
 
 web_bp = Blueprint('web', __name__,
                    template_folder='templates',

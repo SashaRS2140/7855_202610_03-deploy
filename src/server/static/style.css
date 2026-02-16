@@ -1,0 +1,328 @@
+/* --- 1. Variables & Reset --- */
+:root {
+    --bg-dark: #120E0F;       /* Deepest Black */
+    --bg-card: #161514;       /* Dark Grey Card */
+    --bg-input: #918E8E;      /* Input Field Grey */
+
+    --accent: #EA8000;
+    --accent-hover: #AF6000;/* The "Orange"*/
+    --accent-2: #D70022;
+    --accent-2-hover: #940017;
+
+    --text-white: #E0E0E0;
+    --text-muted: #CCCCCC;
+
+    --border: 0px solid #333;
+    --radius: 50px;
+  /* Font Family */
+  --font-family: Inter, sans-serif;
+
+  /* Type Scale */
+  --display-lg-size: 39.06px;
+  --display-lg-weight: 800;
+  --display-lg-line-height: 1.55;
+  --display-lg-letter-spacing: 0.015em;
+
+  --display-md-size: 34.94px;
+  --display-md-weight: 800;
+  --display-md-line-height: 1.55;
+  --display-md-letter-spacing: 0.015em;
+
+  --h1-size: 31.25px;
+  --h1-weight: 700;
+  --h1-line-height: 1.55;
+  --h1-letter-spacing: 0.02em;
+
+  --h2-size: 25px;
+  --h2-weight: 600;
+  --h2-line-height: 1.55;
+  --h2-letter-spacing: 0.02em;
+
+  --h3-size: 22.36px;
+  --h3-weight: 600;
+  --h3-line-height: 1.6;
+  --h3-letter-spacing: 0.025em;
+
+  --h4-size: 20px;
+  --h4-weight: 500;
+  --h4-line-height: 1.6;
+  --h4-letter-spacing: 0.025em;
+
+  --h5-size: 18.91px;
+  --h5-weight: 500;
+  --h5-line-height: 1.6;
+  --h5-letter-spacing: 0.03em;
+
+  --h6-size: 17.89px;
+  --h6-weight: 500;
+  --h6-line-height: 1.6;
+  --h6-letter-spacing: 0.03em;
+
+  --body-xl-size: 16.92px;
+  --body-xl-weight: 400;
+  --body-xl-line-height: 1.6;
+  --body-xl-letter-spacing: 0.03em;
+
+  --body-size: 16px;
+  --body-weight: 400;
+  --body-line-height: 1.6;
+  --body-letter-spacing: 0.03em;
+
+  --body-sm-size: 15.13px;
+  --body-sm-weight: 400;
+  --body-sm-line-height: 1.65;
+  --body-sm-letter-spacing: 0.03em;
+
+  --caption-lg-size: 14.31px;
+  --caption-lg-weight: 400;
+  --caption-lg-line-height: 1.65;
+  --caption-lg-letter-spacing: 0.03em;
+
+  --caption-size: 13.53px;
+  --caption-weight: 400;
+  --caption-line-height: 1.65;
+  --caption-letter-spacing: 0.03em;
+
+  --caption-sm-size: 12.8px;
+  --caption-sm-weight: 300;
+  --caption-sm-line-height: 1.65;
+  --caption-sm-letter-spacing: 0.03em;
+
+  --overline-size: 12.11px;
+  --overline-weight: 500;
+  --overline-line-height: 1.65;
+  --overline-letter-spacing: 0.03em;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif; /* Modern Font */
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- 2. Navigation --- */
+nav {
+    /* Remove the flex bar layout */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0; /* Prevents it from blocking content clicks */
+    z-index: 100;
+    padding: 0;
+}
+
+/* Floating Logo - Top Left */
+.nav-brand {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    z-index: 102; /* Above everything */
+}
+
+.logo-box {
+    background: var(--accent);
+    color: #000;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+/* Floating Burger - Top Right */
+.burger-btn {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: var(--text-white);
+    z-index: 1001;
+
+    /* Ensure the burger lines are visible */
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Burger lines styling (if not already defined elsewhere) */
+.burger-btn span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--text-white);
+    transition: 0.3s;
+}
+
+/* Remove old nav-links styles since we deleted the HTML */
+.nav-links { display: none; }
+
+
+.login-container {
+    flex: 1;
+    display: flex;
+    align-items: center;     /* Vertical Center */
+    justify-content: center; /* Horizontal Center */
+    padding: 20px;
+}
+
+.card {
+    position:relative;
+    background: var(--bg-card);
+    padding: 2.5rem;
+
+    /* CHANGE 1: Border Radius (Corners) */
+    border-radius: 60px; /* Increased from 12px for a rounder look */
+
+
+    box-shadow: 0 4px 20px rgba(0,0,0,0);
+    width: 100%;
+    max-width: 400px;
+    min-height: 400px;
+
+    /* CHANGE 2: The Buffer */
+    margin-top: 10vh; /* Pushes the card down by 10% of the viewport height */
+}
+
+/* --- Card Logo Positioning --- */
+.card-logo {
+    position: absolute;
+    top: 2rem;   /* Distance from top edge */
+    right: 2rem; /* Distance from right edge */
+    margin: 0;   /* Removes the margin used in the navbar */
+
+    /* Optional: Scale it down slightly if it feels too big for the card */
+    transform: scale(0.7);
+    transform-origin: top right;
+}
+
+/* --- 4. Typography --- */
+h1 { margin: 0 0 10px 0; font-size: 1.8rem; text-align: center; color: var(--text-white); }
+.subtitle { text-align: center; color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem; }
+
+/* --- 5. Forms --- */
+.form-group { margin-bottom: 1rem; }
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--accent); /* Orange Labels */
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border: 1px solid #333;
+    border-radius: var(--radius);
+    color: var(--bg-dark);
+    font-size: 1rem;
+    transition: 0.2s;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(255, 179, 0, 0.1);
+}
+
+/* --- 6. Buttons --- */
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--accent);
+    color: var(--bg-dark);
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.1s;
+    margin-top: 2rem;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-1px);
+}
+
+/* --- 7. Utilities --- */
+.alert { padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-size: 0.9rem; }
+.alert.error { background: rgba(255, 69, 58, 0.15); color: #FF453A; border: 1px solid #FF453A; }
+.footer-links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
+.footer-links a { color: var(--accent); text-decoration: none; }
+
+
+/* --- Updated CUBE Branding --- */
+.logo-container {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    margin-right: 20px;
+}
+
+/* The Red Square (Bottom Right) */
+.logo-sq-red {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    background: var(--accent-2); /* Red #D70022 */
+    z-index: 1;
+}
+
+/* The Orange Square (Top Left) */
+.logo-sq-orange {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    background: var(--accent); /* Orange #EA8000 */
+    z-index: 2;
+}
+
+/* --- The Popout Menu Overlay --- */
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    right: -100%; /* Hidden by default */
+    width: 250px;
+    height: 100%;
+    background: var(--bg-card);
+    z-index: 1000;
+    transition: right 0.3s ease-in-out; /* The Animation */
+    padding: 60px 20px;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+}
+
+.mobile-menu.active {
+    right: 0; /* Slide in */
+}
+
+
+
+/* Override Browser Autofill Yellow */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active{
+    /* Use a box-shadow to cover the yellow background */
+    -webkit-box-shadow: 0 0 0 30px var(--bg-input) inset !important;
+    /* Force text color */
+    -webkit-text-fill-color: var(--text-white) !important;
+    /* This ensures the font matches your inputs */
+    font-family: var(--font-family) !important;
+}

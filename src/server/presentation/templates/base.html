@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>{% block title %}CUBE App{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+
+    <link rel="stylesheet" href="{{ url_for('web.static', filename='style.css') }}">
+
+</head>
+<body hx-boost="true">
+
+  <nav>
+    <a href="/" class="nav-brand">
+        <div class="logo-container">
+            <div class="logo-sq-orange"></div>
+            <div class="logo-sq-red"></div>
+        </div>
+    </a>
+    <button class="burger-btn" onclick="toggleMenu()" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+</nav>
+
+    <div id="sideMenu" class="mobile-menu">
+        <a href="/" onclick="toggleMenu()">Home</a>
+        {% if session.get('logged_in') %}
+            <a href="{{ url_for('web.profile') }}" onclick="toggleMenu()">Profile</a>
+            <a href="{{ url_for('web.logout') }}" hx-boost="false">Logout</a>
+        {% else %}
+            <a href="{{ url_for('web.login') }}" onclick="toggleMenu()">Login</a>
+        {% endif %}
+    </div>
+
+    <main>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert-container">
+                {% for message in messages %}
+                    <div class="alert success">{{ message }}</div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer style="text-align: center; padding: 20px; color: #666;">
+        <p>CUBE INC</p>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            const burger = document.querySelector('.burger-btn');
+            menu.classList.toggle('active');
+            burger.classList.toggle('open');
+        }
+    </script>
+</body>
+</html>

@@ -1,36 +1,37 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
 
-<link rel="stylesheet" href="{{ url_for('web.static', filename='style.css') }}">
+{% block title %}Login - CUBE{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CUBE App</title>
-    <style>
-        /* Basic Mobile Styles */
-        body { font-family: sans-serif; padding: 20px; line-height: 1.5; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; font-size: 16px; }
-        table { display: block; overflow-x: auto; } /* Allows horizontal scroll for the table on small screens */
-    </style>
-</head>
-<body>
-    <h1>Login to The CUBE</h1>
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
-    <form method="POST" action="{{ url_for('web.login') }}">
-        <label for="username">Username:</label>
-        <input type="text" name="username" required><br><br>
+{% block content %}
+<div class="login-container">
 
-        <label for="password">Password:</label>
-        <input type="password" name="password" required><br><br>
+    <div class="card login-card">
+        <div class="logo-container card-logo">
+            <div class="logo-sq-orange"></div>
+            <div class="logo-sq-red"></div>
+        </div>
+        <h1>LOGIN</h1>
+        <p class="subtitle">ENTER THE CUBE -- CONTROL YOUR MIND</p>
 
-        <button type="submit">Login</button>
-    </form>
-        <p>
-        Don't have an account?
-        <a href="{{ url_for('web.signup') }}">Create one</a>
-    </p>
-</body>
-</html>
+        {% if error %}
+            <div class="alert error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('web.login') }}">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="username" required>
+            </div>
+
+            <div class="form-group">
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-primary">LOGIN</button>
+        </form>
+
+        <div class="footer-links">
+            <p>New User? <a href="{{ url_for('web.signup') }}">Create Account</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

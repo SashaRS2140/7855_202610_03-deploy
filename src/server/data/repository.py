@@ -4,6 +4,7 @@ from google.cloud.firestore import DELETE_FIELD
 
 
 # Initialize Firebase only once
+
 if not firebase_admin._apps:
     cred = credentials.Certificate("src/server/serviceAccountKey.json")
     firebase_admin.initialize_app(cred)

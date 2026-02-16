@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
 
-    <link rel="stylesheet" href="{{ url_for('web.static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('web.static', filename='css/style.css') }}">
 
 </head>
 <body hx-boost="true">
@@ -51,7 +51,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer style="text-align: center; padding: 20px; color: #666;">
+    <footer class="brand-footer">
         <p>CUBE INC</p>
     </footer>
 

@@ -263,6 +263,13 @@ input:focus {
 .footer-links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
 .footer-links a { color: var(--accent); text-decoration: none; }
 
+.brand-footer {
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: center;
+}
 
 /* --- Updated CUBE Branding --- */
 .logo-container {
@@ -326,3 +333,127 @@ input:-webkit-autofill:active{
     /* This ensures the font matches your inputs */
     font-family: var(--font-family) !important;
 }
+
+/* --- ------------------------------------------------------ --- */
+/* --- Dashboard Widget Styles --- */
+/* --- ------------------------------------------------------ --- */
+.task-widget-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding-top: 2rem;
+}
+
+.widget-header {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-white);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+/* The Black Card Background */
+.task-card {
+    background-color: var(--bg-card); /* Dark Grey */
+    border-radius: 40px;
+    padding: 40px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    margin-bottom: 40px;
+}
+
+/* 1. The Dropdown Pill */
+.task-selector-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.task-dropdown {
+    background-color: #E0E0E0; /* Light Grey Pill */
+    color: #000;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 12px 30px;
+    border-radius: 50px;
+    border: none;
+    text-align: center;
+    text-align-last: center;
+    appearance: none; /* Removes default browser arrow */
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* 2. Timer Row Layout */
+.timer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 10px;
+}
+
+.timer-digits {
+    font-size: 5rem; /* Huge Text */
+    font-weight: 800;
+    color: var(--text-white);
+    font-variant-numeric: tabular-nums; /* Keeps numbers from jumping */
+    line-height: 1;
+}
+
+.timer-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* 3. Buttons (Square with rounded corners) */
+.btn-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 18px; /* Soft square look */
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.1s;
+}
+
+.btn-icon:active, .btn-large:active {
+    transform: scale(0.95);
+}
+
+.btn-orange { background-color: var(--accent); }
+.btn-red    { background-color: var(--accent-2); }
+
+/* 4. Playback Controls (Bottom) */
+.playback-controls {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 2rem;
+}
+
+.btn-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 25px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+}
+

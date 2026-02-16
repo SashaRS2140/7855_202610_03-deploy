@@ -1,7 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response
 import os
+import json
+import time
 
-static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../static')
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
 web_bp = Blueprint('web', __name__,
                    template_folder='templates',
@@ -11,6 +13,9 @@ web_bp = Blueprint('web', __name__,
 def get_session_service():
     """Helper to access the service layer."""
     return current_app.session_service
+
+def get_timer_service():
+    return current_app.timer
 
 
 @web_bp.route("/")
@@ -130,3 +135,27 @@ def profile():
 
         return redirect(url_for("web.home"))
     return render_template("profile.html", profile=svc.get_profile(username))
+
+
+
+@web_bp.route("/task/timer")
+def stream_timer():
+    timer = get_timer_service()
+
+    def format_mmss(seconds):
+        minutes = seconds // 60
+        secs = seconds % 60
+        return f"{minutes:02d}:{secs:02d}"
+
+    def event_stream():
+        while True:
+            remaining = timer.get_remaining()  # stored in seconds
+            payload = {
+                "remaining_seconds": remaining,
+                "remaining_mmss": format_mmss(remaining)
+            }
+            yield f"data: {json.dumps(payload)}\n\n"
+            time.sleep(1)
+
+    return Response(event_stream(), mimetype="text/event-stream")
+

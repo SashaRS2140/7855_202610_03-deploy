@@ -12,6 +12,9 @@ def get_session_service():
 def get_hw_service():
     return current_app.hw_service
 
+def get_timer_service():
+    return current_app.timer
+
 
 ##########################################################################
 ###                             CUBE API                               ###
@@ -29,6 +32,43 @@ def receive_telemetry():
 def get_config():
     """Endpoint for ESP32 to fetch settings."""
     return jsonify(get_hw_service().get_config())
+
+@api_bp.route("/task/control", methods=["POST"])
+def task_control():
+    timer = get_timer_service()
+
+    if not request.is_json:
+        return jsonify({"error": "JSON required"}), 415
+
+    data = request.get_json()
+    action = data.get("action")
+
+    if action == "start":
+        seconds = data.get("seconds")
+        minutes = data.get("minutes")
+
+        if minutes is not None:
+            total_seconds = int(minutes) * 60 + int(seconds or 0)
+        elif seconds is not None:
+            total_seconds = int(seconds)
+        else:
+            return jsonify({"error": "Provide minutes or seconds"}), 400
+        timer.start(total_seconds)
+        return jsonify({"message": f"Timer started for {minutes}m {seconds}s"}), 200
+
+    if action == "pause":
+        timer.pause()
+        return jsonify({"message": "Timer paused"}), 200
+
+    if action == "resume":
+        timer.resume()
+        return jsonify({"message": "Timer resumed"}), 200
+
+    if action == "stop":
+        timer.stop()
+        return jsonify({"message": "Timer stopped"}), 200
+
+    return jsonify({"error": "Invalid action"}), 400
 
 
 ##########################################################################

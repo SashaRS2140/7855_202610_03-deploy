@@ -5,19 +5,36 @@
 {% block content %}
     <div class="card">
         <h1>Welcome, {{ username }}!</h1>
-        
+
         <div class="nav-links-secondary">
             <a href="{{ url_for('web.profile') }}">Edit Profile</a> •
-            <a href="{{ url_for('web.delete_profile') }}" 
+            <a href="{{ url_for('web.delete_profile') }}"
                onclick="return confirm('Are you sure you want to delete your profile details?')">Delete Info</a> •
-            <a href="{{ url_for('web.delete_user') }}" 
+            <a href="{{ url_for('web.delete_user') }}"
                style="color: red;"
                onclick="return confirm('WARNING: This will delete your account permanently.')">Delete Account</a>
         </div>
     </div>
 
-    <h2>Registered CUBE Profiles</h2>
-    
+    <hr>
+
+    <h2>Countdown Timer</h2>
+    <div id="timer">0</div>
+
+    <script>
+    const timerDiv = document.getElementById("timer");
+
+    const eventSource = new EventSource("/task/timer");
+
+    eventSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        timerDiv.textContent = data.remaining_mmss;
+    };
+    </script>
+
+    <hr>
+
+    <h3>Registered CUBE Profiles</h3>
     {% if profiles %}
         <table>
             <thead>

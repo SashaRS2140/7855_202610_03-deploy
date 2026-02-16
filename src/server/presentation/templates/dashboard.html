@@ -3,62 +3,43 @@
 {% block title %}Dashboard - CUBE{% endblock %}
 
 {% block content %}
-    <div class="card">
-        <h1>Welcome, {{ username }}!</h1>
+<div class="task-widget-container">
+    <h4 class="widget-header">CHOOSE TASK</h4>
 
-        <div class="nav-links-secondary">
-            <a href="{{ url_for('web.profile') }}">Edit Profile</a> •
-            <a href="{{ url_for('web.delete_profile') }}"
-               onclick="return confirm('Are you sure you want to delete your profile details?')">Delete Info</a> •
-            <a href="{{ url_for('web.delete_user') }}"
-               style="color: red;"
-               onclick="return confirm('WARNING: This will delete your account permanently.')">Delete Account</a>
+    <div class="task-card">
+
+        <div class="task-selector-wrapper">
+            <select class="task-dropdown" id="taskSelect">
+                <option value="meditation" selected>MEDITATION</option>
+                <option value="deep_work">DEEP WORK</option>
+                <option value="new">+ CREATE NEW TASK</option>
+            </select>
+        </div>
+
+        <div class="timer-row">
+            <div id="timer-display" class="timer-digits">11:11</div>
+
+            <div class="timer-controls">
+                <button class="btn-icon btn-orange" onclick="adjustTime(60)" aria-label="Increase Time">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+                </button>
+                <button class="btn-icon btn-red" onclick="adjustTime(-60)" aria-label="Decrease Time">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
+                </button>
+            </div>
         </div>
     </div>
 
-    <hr>
+    <div class="playback-controls">
+        <button class="btn-large btn-orange" id="startBtn">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </button>
 
-    <h2>Countdown Timer</h2>
-    <div id="timer">0</div>
+        <button class="btn-large btn-red" id="stopBtn">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12"></rect></svg>
+        </button>
+    </div>
 
-    <script>
-    const timerDiv = document.getElementById("timer");
-
-    const eventSource = new EventSource("/task/timer");
-
-    eventSource.onmessage = function(event) {
-        const data = JSON.parse(event.data);
-        timerDiv.textContent = data.remaining_mmss;
-    };
-    </script>
-
-    <hr>
-
-    <h3>Registered CUBE Profiles</h3>
-    {% if profiles %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Student ID</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in profiles %}
-                <tr>
-                    <td data-label="Username"><strong>{{ p.username }}</strong></td>
-                    <td data-label="First Name">{{ p.profile.first_name }}</td>
-                    <td data-label="Last Name">{{ p.profile.last_name }}</td>
-                    <td data-label="Student ID">{{ p.profile.student_id }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <div class="card" style="text-align: center; color: #666;">
-            <p>No profiles found. Be the first to join!</p>
-        </div>
-    {% endif %}
+    <div class="brand-footer">CUBE INC</div>
+</div>
 {% endblock %}

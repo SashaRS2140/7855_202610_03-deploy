@@ -1,5 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
+from google.cloud.firestore import DELETE_FIELD
+
 
 # Initialize Firebase only once
 
@@ -60,3 +62,44 @@ class Repository:
     def delete_user_data(self, username):
         """Deletes a user auth document."""
         self.users.document(username).delete()
+
+    def get_task_preset_data(self, username, task):
+        doc = self.profiles.document(username).get()
+        if not doc.exists:
+            return None
+
+        presets = doc.to_dict().get("presets")
+        if not presets:
+            return None
+
+        if not task in presets:
+            return None
+        return presets.get(task)
+
+    def get_all_task_presets_data(self, username):
+        doc = self.profiles.document(username).get()
+        if not doc.exists:
+            return None
+
+        presets = doc.to_dict().get("presets")
+        if not presets:
+            return None
+        return presets
+
+    def update_task_preset_data(self, username, task, preset_data):
+        doc_ref = self.profiles.document(username)
+        doc = doc_ref.get()
+
+        if doc.exists:
+            presets = doc.to_dict().get("presets", {})
+        else:
+            presets = {}
+
+        presets[task] = preset_data
+
+        doc_ref.set({"presets": presets}, merge=True)
+
+    def delete_task_preset_data(self, username, task):
+        self.profiles.document(username).update({
+            f"presets.{task}": DELETE_FIELD
+        })

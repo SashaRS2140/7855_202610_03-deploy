@@ -3,3 +3,5 @@ tinydb==4.8.2
 requests
 bcrypt
 firebase_admin
+numpy
+protobuf

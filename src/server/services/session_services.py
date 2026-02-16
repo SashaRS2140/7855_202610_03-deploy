@@ -76,3 +76,15 @@ class SessionService:
     def delete_user(self, username):
         self.repo.delete_profile_data(username)
         self.repo.delete_user_data(username)
+
+    def get_task_preset(self, username, task_name):
+        return self.repo.get_task_preset_data(username, task_name)
+
+    def get_all_task_presets(self, username):
+        return self.repo.get_all_task_presets_data(username)
+
+    def update_task_preset(self, username, task_name, preset_data):
+        self.repo.update_task_preset_data(username, task_name, preset_data)
+
+    def delete_task_preset(self, username, task_name):
+        self.repo.delete_task_preset_data(username, task_name)

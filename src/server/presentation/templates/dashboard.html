@@ -26,7 +26,23 @@
 
     <hr>
 
-    <h2>Registered CUBE Profiles</h2>
+    <h2>Countdown Timer</h2>
+    <div id="timer">0</div>
+
+    <script>
+    const timerDiv = document.getElementById("timer");
+
+    const eventSource = new EventSource("/task/timer");
+
+    eventSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        timerDiv.textContent = data.remaining_mmss;
+    };
+    </script>
+
+    <hr>
+
+    <h3>Registered CUBE Profiles</h3>
     {% if profiles %}
         <table>
             <thead>

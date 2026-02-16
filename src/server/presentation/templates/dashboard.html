@@ -10,14 +10,15 @@
 
         <div class="task-selector-wrapper">
             <select class="task-dropdown" id="taskSelect">
-                <option value="meditation" selected>MEDITATION</option>
-                <option value="deep_work">DEEP WORK</option>
-                <option value="new">+ CREATE NEW TASK</option>
+                 {% for task in tasks %}
+                     <option value="{{ task.id }}">{{ task.name }}</option>
+                 {% endfor %}
+                <option value="new_task_trigger">+ CREATE NEW TASK</option>
             </select>
         </div>
 
         <div class="timer-row">
-            <div id="timer-display" class="timer-digits">11:11</div>
+            <div id="timer-display" class="timer-digits">10:00</div>
 
             <div class="timer-controls">
                 <button class="btn-icon btn-orange" onclick="adjustTime(60)" aria-label="Increase Time">
@@ -40,6 +41,6 @@
         </button>
     </div>
 
-    <div class="brand-footer">CUBE INC</div>
+    <script src="{{ url_for('web.static', filename='js/dashboard.js') }}"></script>
 </div>
 {% endblock %}

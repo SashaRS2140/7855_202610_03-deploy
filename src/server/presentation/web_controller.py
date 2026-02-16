@@ -23,8 +23,14 @@ def home():
     if not session.get("logged_in"):
         return redirect(url_for('web.login'))
 
-    profiles = get_session_service().get_all_profiles()
-    return render_template("dashboard.html", username=session["username"], profiles=profiles)
+    # Mocking task data -- This will be grabbed from DB in future
+    # Example: tasks = get_session_service().get_user_tasks(session["username"])
+    tasks = [
+        {"id": 1, "name": "MEDITATION"},
+        {"id": 2, "name": "DEEP WORK"},
+        {"id": 3, "name": "READING"},
+    ]
+    return render_template("dashboard.html", username=session["username"], tasks=tasks)
 
 
 @web_bp.route("/login", methods=["GET", "POST"])

@@ -263,6 +263,13 @@ input:focus {
 .footer-links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
 .footer-links a { color: var(--accent); text-decoration: none; }
 
+.brand-footer {
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: center;
+}
 
 /* --- Updated CUBE Branding --- */
 .logo-container {
@@ -450,9 +457,3 @@ input:-webkit-autofill:active{
     color: white;
 }
 
-.brand-footer {
-    font-weight: 700;
-    color: var(--text-muted);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}

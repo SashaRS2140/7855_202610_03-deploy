@@ -88,3 +88,15 @@ class SessionService:
 
     def delete_task_preset(self, username, task_name):
         self.repo.delete_task_preset_data(username, task_name)
+
+    def set_current_task(self, username, task_name):
+        self.repo.set_current_task_data(username, task_name)
+
+    def get_current_task(self, username):
+        return self.repo.get_current_task_data(username)
+
+    def save_session(self, username, task, elapsed_time):
+        self.repo.save_session_data(username, task, elapsed_time)
+
+    def get_session(self, username):
+        return self.repo.get_session_data(username)

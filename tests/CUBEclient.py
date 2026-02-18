@@ -6,114 +6,187 @@ import json
 
 SERVER_URL = "http://127.0.0.1:5000/api/task/control"
 
+# ----- Dark Mode Colors -----
+BG_COLOR = "#1e1e1e"
+FG_COLOR = "#ffffff"
+ACCENT_COLOR = "#ff8c00"      # Orange
+ACCENT_DIM = "#a65a00"        # Dim orange for OFF
+BUTTON_BG = "#2d2d2d"
+BUTTON_ACTIVE = "#3a3a3a"
+TEXT_BG = "#252526"
+ALERT_COLOR = "#ff3333"
+
 class CubeSimulatorGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("The CUBE Simulator")
+        self.root.configure(bg=BG_COLOR)
 
-        # Track local state: "stopped", "running", "paused"
+        # ---- Cube Identity ----
+        self.cube_uuid = "bryce_r"
+
+        # ---- State ----
         self.state = "stopped"
+        self.elapsed_seconds = 0
+        self.timer_job = None
+        self.task_time_seconds = 0
+        self.alert_active = False
+
+        # ===== LED Indicator =====
+        led_frame = tk.Frame(root, bg=BG_COLOR)
+        led_frame.pack(anchor="nw", padx=10, pady=5)
+
+        tk.Label(led_frame, text="LED", bg=BG_COLOR, fg=FG_COLOR, font=("Helvetica", 10, "bold")).pack(anchor="w")
+
+        self.led_canvas = tk.Canvas(led_frame, width=60, height=60, highlightthickness=0, bg=BG_COLOR)
+        self.led_canvas.pack()
+        self.led_rect = self.led_canvas.create_rectangle(5, 5, 55, 55, fill=ACCENT_DIM, outline="")
+        self.led_text = self.led_canvas.create_text(30, 30, text="OFF", fill=FG_COLOR, font=("Helvetica", 10, "bold"))
+
+        # Alert label (hidden initially)
+        self.alert_label = tk.Label(root, text="", bg=BG_COLOR, fg=ALERT_COLOR, font=("Helvetica", 12, "bold"))
+        self.alert_label.pack(anchor="nw", padx=10)
 
         # ===== Title Banner =====
         banner = tk.Label(
             root,
             text="The CUBE Simulator",
             font=("Helvetica", 20, "bold"),
-            pady=10
+            pady=10,
+            bg=BG_COLOR,
+            fg=FG_COLOR
         )
         banner.pack()
 
-        # ===== Time Input (Minutes + Seconds) =====
-        input_frame = tk.Frame(root)
-        input_frame.pack(pady=5)
+        # ===== Task Info Display =====
+        info_frame = tk.Frame(root, bg=BG_COLOR)
+        info_frame.pack(pady=5)
 
-        tk.Label(input_frame, text="Minutes:").grid(row=0, column=0, padx=5)
-        self.minutes_entry = tk.Entry(input_frame, width=5)
-        self.minutes_entry.grid(row=0, column=1, padx=5)
+        tk.Label(info_frame, text="Task:", bg=BG_COLOR, fg=FG_COLOR).grid(row=0, column=0, padx=5, sticky="e")
+        self.task_name_var = tk.StringVar(value="Unknown")
+        tk.Label(info_frame, textvariable=self.task_name_var, width=20, anchor="w",
+                 bg=BG_COLOR, fg=ACCENT_COLOR, font=("Helvetica", 11, "bold")).grid(row=0, column=1, padx=5)
 
-        tk.Label(input_frame, text="Seconds:").grid(row=0, column=2, padx=5)
-        self.seconds_entry = tk.Entry(input_frame, width=5)
-        self.seconds_entry.grid(row=0, column=3, padx=5)
+        tk.Label(info_frame, text="Time:", bg=BG_COLOR, fg=FG_COLOR).grid(row=1, column=0, padx=5, sticky="e")
+        self.task_time_var = tk.StringVar(value="00:00")
+        tk.Label(info_frame, textvariable=self.task_time_var, width=20, anchor="w",
+                 bg=BG_COLOR, fg=ACCENT_COLOR, font=("Helvetica", 11, "bold")).grid(row=1, column=1, padx=5)
+
+        # ===== Count Up Timer Display =====
+        tk.Label(info_frame, text="Elapsed:", bg=BG_COLOR, fg=FG_COLOR).grid(row=2, column=0, padx=5, sticky="e")
+        self.elapsed_var = tk.StringVar(value="00:00")
+        tk.Label(info_frame, textvariable=self.elapsed_var, width=20, anchor="w",
+                 bg=BG_COLOR, fg=ACCENT_COLOR, font=("Helvetica", 11, "bold")).grid(row=2, column=1, padx=5)
 
         # ===== Buttons =====
-        button_frame = tk.Frame(root)
+        button_frame = tk.Frame(root, bg=BG_COLOR)
         button_frame.pack(pady=10)
 
-        self.start_button = tk.Button(button_frame, text="Start", width=10, command=self.on_start)
-        self.start_button.grid(row=0, column=0, padx=5)
+        tk.Button(button_frame, text="Start", width=10, command=self.on_start,
+                  bg=BUTTON_BG, fg=FG_COLOR, activebackground=BUTTON_ACTIVE,
+                  activeforeground=FG_COLOR, relief="flat").grid(row=0, column=0, padx=5)
 
-        self.pause_button = tk.Button(button_frame, text="Pause", width=10, command=self.on_pause)
-        self.pause_button.grid(row=0, column=1, padx=5)
+        tk.Button(button_frame, text="Stop", width=10, command=self.on_stop,
+                  bg=BUTTON_BG, fg=FG_COLOR, activebackground=BUTTON_ACTIVE,
+                  activeforeground=FG_COLOR, relief="flat").grid(row=0, column=1, padx=5)
 
-        self.stop_button = tk.Button(button_frame, text="Stop", width=10, command=self.on_stop)
-        self.stop_button.grid(row=0, column=2, padx=5)
+        tk.Button(button_frame, text="Reset", width=10, command=self.on_reset,
+                  bg=BUTTON_BG, fg=FG_COLOR, activebackground=BUTTON_ACTIVE,
+                  activeforeground=FG_COLOR, relief="flat").grid(row=0, column=2, padx=5)
 
         # ===== Display Window =====
-        self.display = scrolledtext.ScrolledText(root, width=60, height=15)
+        self.display = scrolledtext.ScrolledText(
+            root, width=60, height=15,
+            bg=TEXT_BG, fg=FG_COLOR, insertbackground=FG_COLOR,
+            relief="flat", borderwidth=0
+        )
         self.display.pack(pady=10)
 
         self.log("Client ready.")
 
+        # Auto-fetch config
+        self.on_reset()
+
+    # ---------- LED Control ----------
+    def set_led(self, on: bool):
+        if on:
+            self.led_canvas.itemconfig(self.led_rect, fill=ACCENT_COLOR)
+            self.led_canvas.itemconfig(self.led_text, text="ON")
+        else:
+            self.led_canvas.itemconfig(self.led_rect, fill=ACCENT_DIM)
+            self.led_canvas.itemconfig(self.led_text, text="OFF")
+
+    # ---------- Timer Logic ----------
+    def start_timer(self):
+        if self.timer_job is None:
+            self._tick()
+
+    def _tick(self):
+        self.elapsed_seconds += 1
+        self.update_elapsed_display()
+
+        # Check alert condition
+        if self.task_time_seconds and self.elapsed_seconds >= self.task_time_seconds and not self.alert_active:
+            self.alert_label.config(text="ALERT!")
+            self.alert_active = True
+
+        self.timer_job = self.root.after(1000, self._tick)
+
+    def stop_timer(self):
+        if self.timer_job is not None:
+            self.root.after_cancel(self.timer_job)
+            self.timer_job = None
+
+    def reset_timer(self):
+        self.stop_timer()
+        self.elapsed_seconds = 0
+        self.update_elapsed_display()
+        self.alert_label.config(text="")
+        self.alert_active = False
+
+    def update_elapsed_display(self):
+        m = self.elapsed_seconds // 60
+        s = self.elapsed_seconds % 60
+        self.elapsed_var.set(f"{m:02d}:{s:02d}")
+
     # ---------- Button Handlers ----------
-
     def on_start(self):
-        if self.state == "paused":
-            payload = {"action": "resume"}
-            self.send_request(payload)
-            self.state = "running"
-        else:
-            # Handle empty fields
-            minutes_str = self.minutes_entry.get().strip()
-            seconds_str = self.seconds_entry.get().strip()
-
-            minutes = 0
-            seconds = 0
-
-            if minutes_str:
-                if not minutes_str.isdigit():
-                    self.log("Minutes must be a number between 0-60.")
-                    return
-                minutes = int(minutes_str)
-                if not (0 <= minutes <= 60):
-                    self.log("Minutes must be between 0 and 60.")
-                    return
-
-            if seconds_str:
-                if not seconds_str.isdigit():
-                    self.log("Seconds must be a number between 0-60.")
-                    return
-                seconds = int(seconds_str)
-                if not (0 <= seconds <= 60):
-                    self.log("Seconds must be between 0 and 60.")
-                    return
-
-            if minutes == 0 and seconds == 0:
-                self.log("Please enter a non-zero time.")
-                return
-
-            payload = {
-                "action": "start",
-                "minutes": minutes,
-                "seconds": seconds
-            }
-            self.send_request(payload)
-            self.state = "running"
-
-    def on_pause(self):
         if self.state == "running":
-            payload = {"action": "pause"}
-            self.send_request(payload)
-            self.state = "paused"
-        else:
-            self.log("Cannot pause: Timer not running.")
+            return
+
+        payload = {"action": "start", "cube_uuid": self.cube_uuid}
+        self.send_request(payload)
+
+        self.state = "running"
+        self.set_led(True)
+        self.start_timer()
 
     def on_stop(self):
-        payload = {"action": "stop"}
+        if self.state != "running":
+            return
+
+        payload = {
+            "action": "stop",
+            "cube_uuid": self.cube_uuid,
+            "elapsed_seconds": self.elapsed_seconds
+        }
         self.send_request(payload)
+
         self.state = "stopped"
+        self.set_led(False)
+        self.stop_timer()
+
+    def on_reset(self):
+        if self.state == "running":
+            return
+
+        payload = {"action": "reset", "cube_uuid": self.cube_uuid}
+        self.send_request(payload)
+
+        self.reset_timer()
+        self.set_led(False)
 
     # ---------- Networking ----------
-
     def send_request(self, payload):
         threading.Thread(target=self._request_worker, args=(payload,), daemon=True).start()
 
@@ -122,14 +195,27 @@ class CubeSimulatorGUI:
             response = requests.post(SERVER_URL, json=payload)
             if response.headers.get("Content-Type", "").startswith("application/json"):
                 data = response.json()
+                self.root.after(0, self.handle_server_response, data)
                 self.log(f"Server: {json.dumps(data)}")
             else:
                 self.log(f"Server returned non-JSON: {response.text}")
         except Exception as e:
             self.log(f"Request error: {e}")
 
-    # ---------- Display ----------
+    def handle_server_response(self, data):
+        task_name = data.get("task_name")
+        task_time = data.get("task_time")
 
+        if task_name is not None:
+            self.task_name_var.set(task_name)
+
+        if isinstance(task_time, int):
+            self.task_time_seconds = task_time
+            minutes = task_time // 60
+            seconds = task_time % 60
+            self.task_time_var.set(f"{minutes:02d}:{seconds:02d}")
+
+    # ---------- Display ----------
     def log(self, message):
         self.display.insert(tk.END, message + "\n")
         self.display.see(tk.END)

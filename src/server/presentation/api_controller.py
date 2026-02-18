@@ -17,7 +17,7 @@ def get_timer_service():
 
 
 ##########################################################################
-###                             CUBE API                               ###
+###                        CUBE REST API                               ###
 ##########################################################################
 
 @api_bp.route("/esp/telemetry", methods=["POST"])
@@ -36,43 +36,44 @@ def get_config():
 @api_bp.route("/task/control", methods=["POST"])
 def task_control():
     timer = get_timer_service()
+    sess_svc = get_session_service()
 
     if not request.is_json:
         return jsonify({"error": "JSON required"}), 415
 
     data = request.get_json()
+    cube_uuid = data.get("cube_uuid")
+    username = cube_uuid  # treat cube as session owner for now
+
     action = data.get("action")
+    elapsed_time = data.get("elapsed_seconds")
+
+    current_task = sess_svc.get_current_task(username)
+    if not current_task:
+        return jsonify({"error": "Current task not set"}), 400
+
+    task_data = sess_svc.get_task_preset(username, current_task)
 
     if action == "start":
-        seconds = data.get("seconds")
-        minutes = data.get("minutes")
-
-        if minutes is not None:
-            total_seconds = int(minutes) * 60 + int(seconds or 0)
-        elif seconds is not None:
-            total_seconds = int(seconds)
-        else:
-            return jsonify({"error": "Provide minutes or seconds"}), 400
-        timer.start(total_seconds)
-        return jsonify({"message": f"Timer started for {minutes}m {seconds}s"}), 200
-
-    if action == "pause":
-        timer.pause()
-        return jsonify({"message": "Timer paused"}), 200
-
-    if action == "resume":
-        timer.resume()
-        return jsonify({"message": "Timer resumed"}), 200
+        timer.start(task_data.get("task_time"))
+        return jsonify({"message": f"{current_task} task started. "}), 200
 
     if action == "stop":
         timer.stop()
-        return jsonify({"message": "Timer stopped"}), 200
+        sess_svc.save_session(username, current_task, elapsed_time)
+        return jsonify({"message": "Task stopped"}), 200
+
+    if action == "reset":
+        return jsonify({"message": "Task reset",
+                        "task_name": current_task,
+                        "task_time": task_data.get("task_time")
+                        }), 200
 
     return jsonify({"error": "Invalid action"}), 400
 
 
 ##########################################################################
-###                             JSON API                               ###
+###                             REST API                               ###
 ##########################################################################
 
 @api_bp.route("/profile", methods=["GET", "POST", "DELETE"])
@@ -93,6 +94,7 @@ def api_profile():
             "username": profile_data.get("username"),
             "profile": profile_data.get("profile"),
             "presets": profile_data.get("presets"),
+            "current task": profile_data.get("current_task"),
         }), 200
 
     if request.method == "POST":
@@ -329,6 +331,71 @@ def api_delete_preset():
     return jsonify({"message": f"{task_name} task preset information successfully deleted."}), 200
 
 
+@api_bp.route("/task/current", methods=["PUT"])
+def api_set_task():
+    svc = get_session_service()
+
+    username = session.get("username")
+
+    if not username:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    if not request.is_json:
+        return jsonify({"error": "Content-Type must be application/json"}), 415
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    task_name = data.get("task_name")
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    preset_data = svc.get_task_preset(username, task_name)
+
+    if not preset_data:
+        return jsonify({"error": "Preset not found"}), 404
+
+    svc.set_current_task(username, task_name)
+
+    return jsonify({"message": f"{task_name} task has been set as the current task."}), 200
+
+
+@api_bp.route("/task/current", methods=["GET"])
+def api_get_task():
+    svc = get_session_service()
+
+    username = session.get("username")
+
+    if not username:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    current_task = svc.get_current_task(username)
+
+    if not current_task:
+        return jsonify({"error": "Current task not set"}), 400
+
+    return jsonify({"message": f"The current task is the {current_task} task."}), 200
+
+@api_bp.route("/session/latest", methods=["GET"])
+def api_get_latest_session():
+    svc = get_session_service()
+
+    username = session.get("username")
+
+    if not username:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    latest_session = svc.get_session(username)
+    task = latest_session.get("task")
+    time = latest_session.get("elapsed_time")
+
+    if not latest_session:
+        return jsonify({"error": "No recorded session history."}), 400
+
+    return jsonify({"task": task,
+                    "time": time,
+                    }), 200
 
 
 

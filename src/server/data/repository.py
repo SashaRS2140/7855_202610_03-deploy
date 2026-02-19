@@ -103,3 +103,48 @@ class Repository:
         self.profiles.document(username).update({
             f"presets.{task}": DELETE_FIELD
         })
+
+    def set_current_task_data(self, username, task_name):
+        doc_ref = self.profiles.document(username)
+        doc_ref.set({"current_task": task_name}, merge=True)
+
+    def get_current_task_data(self, username):
+        doc = self.profiles.document(username).get()
+        if not doc.exists:
+            return None
+
+        current_task = doc.to_dict().get("current_task")
+        if not current_task:
+            return None
+        return current_task
+
+    # CURRENTLY UNUSED #
+    def set_cube_uuid_data(self, username, cube_uuid):
+        doc_ref = self.profiles.document(username)
+        doc_ref.set({"cube_uuid": cube_uuid}, merge=True)
+
+    # CURRENTLY UNUSED #
+    def get_cube_uuid_data(self, username):
+        doc = self.profiles.document(username).get()
+        if not doc.exists:
+            return None
+
+        current_task = doc.to_dict().get("current_task")
+        if not current_task:
+            return None
+        return current_task
+
+    def save_session_data(self, username, task, elapsed_time):
+        doc_ref = self.profiles.document(username)
+        data = {"task": task, "elapsed_time": elapsed_time}
+        doc_ref.set({"session_history": data}, merge=True)
+
+    def get_session_data(self, username):
+        doc = self.profiles.document(username).get()
+        if not doc.exists:
+            return None
+
+        session_history = doc.to_dict().get("session_history")
+        if not session_history:
+            return None
+        return session_history

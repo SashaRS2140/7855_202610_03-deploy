@@ -1,42 +1,35 @@
 import time
 import threading
 
-class CountdownTimer:
+class CountupTimer:
     def __init__(self):
         self.lock = threading.Lock()
-        self.duration = 0
-        self.end_time = None
-        self.paused = True
-        self.remaining = 0
+        self.start_time = None
+        self.target_duration = 0  # seconds
+        self.running = False
 
-    def start(self, seconds):
+    def start(self):
         with self.lock:
-            self.duration = seconds
-            self.end_time = time.time() + seconds
-            self.paused = False
+            if not self.running:
+                self.start_time = time.time()
+                self.running = True
 
-    def pause(self):
+    def reset(self, seconds):
         with self.lock:
-            if not self.paused and self.end_time:
-                self.remaining = max(0, self.end_time - time.time())
-                self.paused = True
-
-    def resume(self):
-        with self.lock:
-            if self.paused:
-                self.end_time = time.time() + self.remaining
-                self.paused = False
+            self.target_duration = seconds
+            self.start_time = time.time()
 
     def stop(self):
         with self.lock:
-            self.paused = True
-            self.end_time = None
-            self.remaining = 0
+            self.running = False
+            self.start_time = None
 
-    def get_remaining(self):
+    def get_elapsed(self):
         with self.lock:
-            if self.paused:
-                return int(self.remaining)
-            if self.end_time:
-                return max(0, int(self.end_time - time.time()))
-            return 0
+            if not self.running or not self.start_time:
+                return 0
+            return int(time.time() - self.start_time)
+
+    def get_target(self):
+        with self.lock:
+            return self.target_duration

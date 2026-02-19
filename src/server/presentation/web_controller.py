@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response
+from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash
 import os
 import json
 import time
@@ -155,11 +155,26 @@ def stream_timer():
 
     def event_stream():
         while True:
-            remaining = timer.get_remaining()  # stored in seconds
+            elapsed = timer.get_elapsed()
+            target = timer.get_target()
+
+            if elapsed < target:
+                # countdown phase
+                display_seconds = target - elapsed
+                mode = "countdown"
+            else:
+                # overtime phase (count up past zero)
+                display_seconds = elapsed - target
+                mode = "overtime"
+
             payload = {
-                "remaining_seconds": remaining,
-                "remaining_mmss": format_mmss(remaining)
+                "display_seconds": display_seconds,
+                "display_mmss": format_mmss(display_seconds),
+                "mode": mode,
+                "elapsed": elapsed,
+                "target": target
             }
+
             yield f"data: {json.dumps(payload)}\n\n"
             time.sleep(1)
 

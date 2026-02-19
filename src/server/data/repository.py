@@ -63,6 +63,21 @@ class Repository:
         """Deletes a user auth document."""
         self.users.document(username).delete()
 
+    def get_profile_field_data(self, username, field):
+        doc = self.profiles.document(username).get()
+        if not doc.exists:
+            return None
+
+        field_data = doc.to_dict().get(field)
+        if not field_data:
+            return None
+        return field_data
+
+
+
+
+
+
     def get_task_preset_data(self, username, task):
         doc = self.profiles.document(username).get()
         if not doc.exists:

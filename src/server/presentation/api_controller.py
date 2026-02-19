@@ -53,20 +53,37 @@ def task_control():
         return jsonify({"error": "Current task not set"}), 400
 
     task_data = sess_svc.get_task_preset(username, current_task)
+    task_time = task_data.get("task_time")
+    tt_min = task_time // 60
+    tt_sec = task_time % 60
 
     if action == "start":
-        timer.start(task_data.get("task_time"))
-        return jsonify({"message": f"{current_task} task started. "}), 200
+        timer.start()
+        return jsonify({"message": f"{current_task} task started"}), 200
 
     if action == "stop":
         timer.stop()
         sess_svc.save_session(username, current_task, elapsed_time)
-        return jsonify({"message": "Task stopped"}), 200
+        if elapsed_time <= task_time:
+            min = elapsed_time // 60
+            sec = elapsed_time % 60
+            return jsonify({"message": f"{current_task} task stopped. "
+                                       f"{min}m:{sec}s of session time logged."
+                            }), 200
+        else:
+            extra_time = elapsed_time - task_time
+            min = extra_time // 60
+            sec = extra_time % 60
+            return jsonify({"message": f"{current_task} task stopped. "
+                                       f"{tt_min}m:{tt_sec}s of session time + "
+                                       f"{min}m:{sec}s of extra session time logged."
+                            }), 200
 
     if action == "reset":
-        return jsonify({"message": "Task reset",
+        timer.reset(task_time)
+        return jsonify({"message": f"{current_task} task reset",
                         "task_name": current_task,
-                        "task_time": task_data.get("task_time")
+                        "task_time": task_time
                         }), 200
 
     return jsonify({"error": "Invalid action"}), 400
@@ -189,6 +206,10 @@ def api_user():
 def api_login():
     svc = get_session_service()
 
+    if session.get("logged_in"):
+        username = session.get("username")
+        return jsonify({"error": f"{username} is already logged in"}), 400
+
     # Check Content-Type header
     if not request.is_json:
         return jsonify({"error": "Content-Type must be application/json"}), 415
@@ -209,10 +230,7 @@ def api_login():
     if svc.validate_user(username, password):
         session["logged_in"] = True
         session["username"] = username
-        return jsonify({
-            "message": "User successfully logged in",
-            "username": username
-        }), 200
+        return jsonify({"message": f"{username} successfully logged in"}), 200
     return jsonify({"error": "Invalid password"}), 400
 
 
@@ -220,6 +238,29 @@ def api_login():
 def api_logout():
     session.clear()
     return jsonify({"message": "User successfully logged out"}), 200
+
+
+# GENERIC PROFILE GET WITH PATHS #
+@api_bp.route("/profile/<username>", methods=["GET"])
+def api_get_from_profile(username):
+    svc = get_session_service()
+
+    path = request.args.get("path")  # e.g. "field2.subfield2-1"
+
+    data = svc.get_profile(username)
+    if not data:
+        return jsonify({"error": "Profile not found"}), 404
+
+    # No path → return whole document
+    if not path:
+        return jsonify(data), 200
+
+    value, err = svc.get_nested_value(data, path)
+    if err:
+        return jsonify({"error": err}), 404
+
+    final_key = path.split(".")[-1]
+    return jsonify({final_key: value}), 200
 
 
 @api_bp.route("/profile/preset", methods=["POST", "PUT"])
@@ -376,6 +417,7 @@ def api_get_task():
         return jsonify({"error": "Current task not set"}), 400
 
     return jsonify({"message": f"The current task is the {current_task} task."}), 200
+
 
 @api_bp.route("/session/latest", methods=["GET"])
 def api_get_latest_session():

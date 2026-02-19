@@ -101,27 +101,3 @@ class SessionService:
     def get_session(self, username):
         return self.repo.get_session_data(username)
 
-
-    def get_nested_value(self, data: dict, path: str):
-        keys = path.split(".")
-        current = data
-
-        for key in keys:
-            if not isinstance(current, dict):
-                return None, f"'{key}' is not a dict level"
-            if key not in current:
-                return None, f"'{key}' not found"
-            current = current[key]
-
-        return current, None
-
-
-
-    def get_from_profile(self, username, fields):
-        data = {}
-        for field in fields:
-            data[field] = self.repo.get_profile_field_data(username, field)
-            #if isinstance(data.get(field), dict):
-
-        return data
-

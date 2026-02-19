@@ -63,21 +63,6 @@ class Repository:
         """Deletes a user auth document."""
         self.users.document(username).delete()
 
-    def get_profile_field_data(self, username, field):
-        doc = self.profiles.document(username).get()
-        if not doc.exists:
-            return None
-
-        field_data = doc.to_dict().get(field)
-        if not field_data:
-            return None
-        return field_data
-
-
-
-
-
-
     def get_task_preset_data(self, username, task):
         doc = self.profiles.document(username).get()
         if not doc.exists:
@@ -133,10 +118,12 @@ class Repository:
             return None
         return current_task
 
+    # CURRENTLY UNUSED #
     def set_cube_uuid_data(self, username, cube_uuid):
         doc_ref = self.profiles.document(username)
         doc_ref.set({"cube_uuid": cube_uuid}, merge=True)
 
+    # CURRENTLY UNUSED #
     def get_cube_uuid_data(self, username):
         doc = self.profiles.document(username).get()
         if not doc.exists:

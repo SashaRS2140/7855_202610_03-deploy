@@ -241,6 +241,19 @@ def api_logout():
 
 
 # GENERIC PROFILE GET WITH PATHS #
+def get_nested_value(data: dict, path: str):
+    keys = path.split(".")
+    current = data
+
+    for key in keys:
+        if not isinstance(current, dict):
+            return None, f"'{key}' is not a dict level"
+        if key not in current:
+            return None, f"'{key}' not found"
+        current = current[key]
+
+    return current, None
+
 @api_bp.route("/profile/<username>", methods=["GET"])
 def api_get_from_profile(username):
     svc = get_session_service()
@@ -255,7 +268,7 @@ def api_get_from_profile(username):
     if not path:
         return jsonify(data), 200
 
-    value, err = svc.get_nested_value(data, path)
+    value, err = get_nested_value(data, path)
     if err:
         return jsonify({"error": err}), 404
 

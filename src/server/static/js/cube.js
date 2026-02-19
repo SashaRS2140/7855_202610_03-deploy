@@ -4,24 +4,32 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-document.addEventListener("DOMContentLoaded", function() {
+/**
+ * Mounts the Glowing Cube into a specific DOM element.
+ * @param {HTMLElement} container - The div where the canvas should be injected.
+ * @returns {Object} - An API to control the cube (setColor, destroy, etc.)
+ */
+export function mountGlowingCube(container) {
+    if (!container) return;
 
-    const container = document.getElementById('canvas-container');
+    // 1. SETUP
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // 1. SCENE SETUP
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050505);
+    scene.background = new THREE.Color(0x161514);
 
     const camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100);
     camera.position.set(0, 0, 14);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: false });
+    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
+
+    // Clear previous canvas if any
+    container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
     // 2. POST-PROCESSING
@@ -35,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function() {
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
 
-    // 3. OUTER SHELL
+    // 3. OBJECTS
     const shellGeometry = new RoundedBoxGeometry(3.2, 3.2, 3.2, 16, 0.5);
     const shellMaterial = new THREE.MeshPhysicalMaterial({
         color: 0xffffff,
@@ -45,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function() {
         roughness: 0.5,
         ior: 2.5,
         thickness: 2.0,
-        attenuationColor: 0xffaa00, // Initial Color
+        attenuationColor: 0xffaa00,
         attenuationDistance: 2.0,
         specularIntensity: 1.0,
         transparent: true,
@@ -54,117 +62,100 @@ document.addEventListener("DOMContentLoaded", function() {
     const shellCube = new THREE.Mesh(shellGeometry, shellMaterial);
     scene.add(shellCube);
 
-    // 4. LIGHTS (Grouped for easy color updating)
     const lightsGroup = new THREE.Group();
     scene.add(lightsGroup);
 
-    function createRimLight(x, y, z) {
-        const light = new THREE.DirectionalLight(0xffaa00, 2);
-        light.position.set(x, y, z);
-        lightsGroup.add(light);
-        return light;
+    // Helper to create lights
+    function addLight(x, y, z) {
+        const l = new THREE.DirectionalLight(0xffaa00, 2);
+        l.position.set(x, y, z);
+        lightsGroup.add(l);
     }
+    addLight(0, 10, 0); addLight(0, -10, 0); addLight(-10, 0, 0); addLight(10, 0, 0);
 
-    const topLight = createRimLight(0, 10, 0);
-    const bottomLight = createRimLight(0, -10, 0);
-    const leftLight = createRimLight(-10, 0, 0);
-    const rightLight = createRimLight(10, 0, 0);
-
-    // 5. INNER CORE
-    const coreGeometry = new RoundedBoxGeometry(2.2, 2.2, 2.2, 16, 0.4);
     const coreMaterial = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
-    const coreCube = new THREE.Mesh(coreGeometry, coreMaterial);
+    const coreCube = new THREE.Mesh(new RoundedBoxGeometry(2.2, 2.2, 2.2, 16, 0.4), coreMaterial);
     shellCube.add(coreCube);
 
     const coreLight = new THREE.PointLight(0xffaa00, 15, 20);
     shellCube.add(coreLight);
 
-    // ---------------------------------------------------------
-    // NEW: COLOR PICKER LOGIC
-    // ---------------------------------------------------------
-    const colorPicker = document.getElementById('cube-color');
-
-    if (colorPicker) {
-        colorPicker.addEventListener('input', (event) => {
-            const hexColor = event.target.value;
-            const newColor = new THREE.Color(hexColor);
-
-            // 1. Update Shell Tint
-            shellMaterial.attenuationColor.set(newColor);
-
-            // 2. Update Core Appearance
-            coreMaterial.color.set(newColor);
-            coreLight.color.set(newColor);
-
-            // 3. Update All Rim Lights
-            lightsGroup.children.forEach(light => {
-                if(light.isLight) light.color.set(newColor);
-            });
-        });
-    }
-
-    // 6. INTERACTION LOGIC
+    // 4. STATE
     let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
+    let isBreathing = true;
+    let isActive = true; // Controls the animation loop
+    let previousPosition = { x: 0, y: 0 };
     let targetRotationX = 0;
     let targetRotationY = 0;
     let mouseX = 0;
     let mouseY = 0;
-    const windowHalfX = window.innerWidth / 2;
-    const windowHalfY = window.innerHeight / 2;
 
-    document.addEventListener('mousemove', (e) => {
-        const rect = container.getBoundingClientRect();
-        // Calculate mouse relative to container, not window, for better reusability
-        mouseX = (e.clientX - rect.left - (rect.width/2)) * 0.0001;
-        mouseY = (e.clientY - rect.top - (rect.height/2)) * 0.0001;
+    // 5. EVENT HANDLERS
+    // Defined inside scope to access variables, but named for removal later
+    const onStart = (x, y) => {
+        isDragging = true;
+        previousPosition = { x, y };
+    };
 
+    const onMove = (x, y) => {
         if (isDragging) {
-            const deltaMove = {
-                x: e.clientX - previousMousePosition.x,
-                y: e.clientY - previousMousePosition.y
-            };
-            targetRotationY += deltaMove.x * 0.005;
-            targetRotationX += deltaMove.y * 0.005;
+            const deltaX = x - previousPosition.x;
+            const deltaY = y - previousPosition.y;
+            // Upside down check
+            const rotateDirection = Math.cos(targetRotationX) > 0 ? 1 : -1;
+            targetRotationY += (deltaX * 0.005) * rotateDirection;
+            targetRotationX += deltaY * 0.005;
+            previousPosition = { x, y };
         }
-        previousMousePosition = { x: e.clientX, y: e.clientY };
-    });
+        // Parallax
+        const rect = container.getBoundingClientRect();
+        mouseX = (x - rect.left - (rect.width/2)) * 0.0001;
+        mouseY = (y - rect.top - (rect.height/2)) * 0.0001;
+    };
 
-    container.addEventListener('mousedown', () => { isDragging = true; }); // Listen on container only
-    window.addEventListener('mouseup', () => { isDragging = false; }); // Listen on window to catch drags outside
+    const onEnd = () => { isDragging = false; };
 
-    // 7. BREATHING LOGIC
-    let isBreathing = true;
-    const toggleBtn = document.getElementById('toggle-breath');
-    if(toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            isBreathing = !isBreathing;
-            toggleBtn.innerText = isBreathing ? "Turn Breathing OFF" : "Turn Breathing ON";
-        });
-    }
+    // Listeners
+    const handleMouseDown = (e) => onStart(e.clientX, e.clientY);
+    const handleMouseMove = (e) => onMove(e.clientX, e.clientY);
+    const handleMouseUp = onEnd;
 
-    // 8. ANIMATION LOOP
+    const handleTouchStart = (e) => onStart(e.touches[0].clientX, e.touches[0].clientY);
+    const handleTouchMove = (e) => {
+        if(e.cancelable) e.preventDefault();
+        onMove(e.touches[0].clientX, e.touches[0].clientY);
+    };
+    const handleTouchEnd = onEnd;
+
+    // Attach to Container (mostly) and Window (for drag release)
+    container.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+
+    // 6. ANIMATION LOOP
     const clock = new THREE.Clock();
 
     function animate() {
+        if (!isActive) return; // Stop loop if destroyed
+
         requestAnimationFrame(animate);
         const time = clock.getElapsedTime();
 
-        // Smooth Rotation
         const dragFactor = 0.05;
-        const finalTargetX = targetRotationX + (mouseY * 20);
-        const finalTargetY = targetRotationY + (mouseX * 20);
-        shellCube.rotation.x += (finalTargetX - shellCube.rotation.x) * dragFactor;
-        shellCube.rotation.y += (finalTargetY - shellCube.rotation.y) * dragFactor;
+        shellCube.rotation.x += ((targetRotationX + mouseY * 20) - shellCube.rotation.x) * dragFactor;
+        shellCube.rotation.y += ((targetRotationY + mouseX * 20) - shellCube.rotation.y) * dragFactor;
 
-        // Breathing
         let targetScale = 1.0;
-        let targetIntensity = 15;
+        let targetIntensity = 1;
 
         if (isBreathing) {
-            const pulse = Math.sin(time * 2);
-            targetScale = 0.9 + (pulse * 0.05);
-            targetIntensity = 15 + (pulse * 5); // Reduced intensity swing slightly for stability
+            const pulse = Math.sin(time * 1);
+            targetScale = 0.9 + (pulse * 0.15);
+            targetIntensity = -1 + (pulse * 25);
         }
 
         coreCube.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
@@ -172,24 +163,50 @@ document.addEventListener("DOMContentLoaded", function() {
 
         composer.render();
     }
-
     animate();
 
-    // 9. ROBUST RESIZING (Best Practice for Scalability)
-    // Using ResizeObserver handles cases where the div changes size (e.g. sidebar open),
-    // not just when the whole window resizes.
+    // 7. RESIZE OBSERVER
     const resizeObserver = new ResizeObserver(entries => {
         for (let entry of entries) {
-            const newWidth = entry.contentRect.width;
-            const newHeight = entry.contentRect.height;
-
-            camera.aspect = newWidth / newHeight;
+            const w = entry.contentRect.width;
+            const h = entry.contentRect.height;
+            camera.aspect = w / h;
             camera.updateProjectionMatrix();
-
-            renderer.setSize(newWidth, newHeight);
-            composer.setSize(newWidth, newHeight);
+            renderer.setSize(w, h);
+            composer.setSize(w, h);
         }
     });
-
     resizeObserver.observe(container);
-});
+
+    // 8. PUBLIC API (The "Remote Control")
+    return {
+        setColor: (hexColor) => {
+            const c = new THREE.Color(hexColor);
+            shellMaterial.attenuationColor.set(c);
+            coreMaterial.color.set(c);
+            coreLight.color.set(c);
+            lightsGroup.children.forEach(l => l.color.set(c));
+        },
+        toggleBreathing: () => {
+            isBreathing = !isBreathing;
+            return isBreathing; // Return state so UI can update text
+        },
+        destroy: () => {
+            isActive = false; // Stop animation loop
+            resizeObserver.disconnect();
+
+            // Remove Listeners
+            container.removeEventListener('mousedown', handleMouseDown);
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+            container.removeEventListener('touchstart', handleTouchStart);
+            container.removeEventListener('touchmove', handleTouchMove);
+            window.removeEventListener('touchend', handleTouchEnd);
+
+            // Clean up Three.js memory
+            renderer.dispose();
+            composer.dispose();
+            container.innerHTML = '';
+        }
+    };
+}

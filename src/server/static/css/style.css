@@ -95,7 +95,13 @@
 }
 
 * { box-sizing: border-box; }
-
+/*force the main content to fill the screen space, pushing the footer down */
+main {
+    flex: 1;
+    width: 100%;
+    display: flex;         /* Optional: helps center content internally if needed */
+    flex-direction: column;
+}
 body {
     margin: 0;
     padding: 0;
@@ -170,39 +176,76 @@ nav {
     display: flex;
     align-items: center;     /* Vertical Center */
     justify-content: center; /* Horizontal Center */
-    padding: 20px;
+    padding: 10px;
 }
 
 .card {
-    position:relative;
+    /* Keep your existing bg, border-radius, etc. */
     background: var(--bg-card);
-    padding: 2.5rem;
-
-    /* CHANGE 1: Border Radius (Corners) */
-    border-radius: 60px; /* Increased from 12px for a rounder look */
-
-
+    border-radius: 60px;
     box-shadow: 0 4px 20px rgba(0,0,0,0);
     width: 100%;
     max-width: 400px;
-    min-height: 400px;
+    min-height: 500px;
+    margin-top: 10vh;
+    position: relative;
 
-    /* CHANGE 2: The Buffer */
-    margin-top: 10vh; /* Pushes the card down by 10% of the viewport height */
+    /* --- NEW FLEX SETTINGS --- */
+    display: flex;
+    flex-direction: column;
+
+    /* Reduced top padding to push H1/Subtitle up */
+    padding: 1.5rem 2.5rem 0.5rem 2.5rem;
+}
+
+/* Add this new rule to make the form fill the empty vertical space */
+.card form {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* This pushes the button down */
+}
+
+/* Update in style.css */
+.form-group {
+    margin-bottom: 4rem; /* Increased from 1rem */
 }
 
 /* --- Card Logo Positioning --- */
 .card-logo {
     position: absolute;
-    top: 2rem;   /* Distance from top edge */
-    right: 2rem; /* Distance from right edge */
-    margin: 0;   /* Removes the margin used in the navbar */
+    /* Reduced from 2rem to move it higher and further right */
+    top: 0;
+    right: 20px;
+    margin: 0;
 
-    /* Optional: Scale it down slightly if it feels too big for the card */
-    transform: scale(0.7);
+    transform: scale(0.9);
     transform-origin: top right;
 }
 
+/* Layer 1: The Content */
+.card-content-layer {
+    position: relative;
+    z-index: 2; /* Sits on top of the cube */
+    width: 100%;
+    height: 100%;
+    min-height: 600px; /* Match parent height */
+
+    padding: 30px; /* Bring back the padding here */
+
+    display: flex;
+    flex-direction: column;
+
+    /* CRITICAL: Allows you to drag the cube in the empty space */
+    pointer-events: none;
+}
+
+/* Re-enable clicks for your interactive elements */
+.card-content-layer button,
+.card-content-layer select,
+.card-content-layer .timer-digits,
+.card-content-layer .color-trigger {
+    pointer-events: auto;
+}
 /* --- 4. Typography --- */
 h1 { margin: 0 0 10px 0; font-size: 1.8rem; text-align: center; color: var(--text-white); }
 .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem; }
@@ -239,8 +282,13 @@ input:focus {
 
 /* --- 6. Buttons --- */
 .btn-primary {
-    width: 100%;
-    padding: 14px;
+    width: 75%;
+    /* Reduced padding makes the button shorter */
+    padding: 15px;
+
+    /* Top: 2rem (space from inputs) | Left/Right: Auto (Centers it) | Bottom: 1rem */
+    margin: 2rem auto auto auto;
+
     background-color: var(--accent);
     color: var(--bg-dark);
     border: none;
@@ -248,8 +296,7 @@ input:focus {
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    transition: transform 0.1s;
-    margin-top: 2rem;
+    display: block; /* Ensures margins work correctly */
 }
 
 .btn-primary:hover {
@@ -260,7 +307,13 @@ input:focus {
 /* --- 7. Utilities --- */
 .alert { padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center; font-size: 0.9rem; }
 .alert.error { background: rgba(255, 69, 58, 0.15); color: #FF453A; border: 1px solid #FF453A; }
-.footer-links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
+.footer-links {
+    /* Pushes this section to the very bottom of the flex card */
+    margin-top: auto;
+
+    text-align: center;
+    font-size: 0.9rem;
+}
 .footer-links a { color: var(--accent); text-decoration: none; }
 
 .brand-footer {
@@ -357,10 +410,14 @@ input:-webkit-autofill:active{
 }
 
 /* The Black Card Background */
+
 .task-card {
+    position: relative; /* Anchor for the absolute cube */
+    overflow: hidden;   /* Clips the cube to the rounded corners */
+    min-height: 500px;  /* Ensure enough height for everything */
     background-color: var(--bg-card); /* Dark Grey */
     border-radius: 40px;
-    padding: 40px;
+    padding: 0;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -396,25 +453,101 @@ input:-webkit-autofill:active{
 
 /* 2. Timer Row Layout */
 .timer-row {
-    display: flex;
+    display: grid;
+    /* 1fr space on left | Auto-sized Timer in middle | 1fr space on right */
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     width: 100%;
     padding: 0 10px;
+    margin-bottom: 20px; /* Optional: adds space between timer and gap */
 }
 
+/* Force the timer text to be in the center column */
 .timer-digits {
-    font-size: 5rem; /* Huge Text */
+    grid-column: 2;
+    text-align: left;
+    letter-spacing: -4px;
+    font-size: 5rem;
     font-weight: 800;
+    
     color: var(--text-white);
-    font-variant-numeric: tabular-nums; /* Keeps numbers from jumping */
+    font-variant-numeric: tabular-nums;
     line-height: 1;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.9);
 }
 
+/* Force the buttons to the right column */
 .timer-controls {
+    grid-column: 3;
+    justify-self: end; /* Pushes buttons to the far right edge */
+
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
+}
+
+/* Ensure the Timer Display itself is clickable */
+#timer-display {
+    pointer-events: auto !important; /* Force clicks to work */
+    cursor: pointer;
+    z-index: 10; /* Bring it above the invisible spacer */
+    position: relative;
+}
+
+
+/* --- New Timer Input Style --- */
+.timer-input {
+    pointer-events: auto !important;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--accent); /* Orange underline when editing */
+    color: inherit;      /* Inherits white from parent */
+    font-size: inherit;  /* Inherits the big 5rem font */
+    font-weight: inherit;
+    font-family: inherit;
+    text-align: center;
+    outline: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* --- Add to style.css --- */
+
+/* Visual cue when editing */
+.timer-digits.editing {
+    color: var(--accent); /* Turn orange when editing */
+    border-bottom: 2px solid var(--accent);
+}
+
+/* A fake blinking cursor to show it's active */
+.timer-digits.editing::after {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 60px; /* Match font height roughly */
+    background-color: var(--accent);
+    margin-left: 10px;
+    animation: blink 1s infinite;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* The invisible input that captures mobile keyboard taps */
+.hidden-timer-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0; /* Invisible */
+    cursor: default;
+    z-index: 20; /* Sits on top of the text */
+    font-size: 1px; /* Prevent zooming on iOS */
 }
 
 /* 3. Buttons (Square with rounded corners) */
@@ -440,8 +573,14 @@ input:-webkit-autofill:active{
 
 /* 4. Playback Controls (Bottom) */
 .playback-controls {
+    /* Added relative positioning to act as an anchor */
+    position: relative;
+
     display: flex;
+    justify-content: center; /* Centers the Start/Stop buttons */
+    align-items: center;
     gap: 30px;
+    width: 100%;
     margin-bottom: 2rem;
 }
 
@@ -457,3 +596,217 @@ input:-webkit-autofill:active{
     color: white;
 }
 
+/* --- ------------------------------------------------------ --- */
+/* --- CUBE CONTAINERS --- */
+/* --- ------------------------------------------------------ --- */
+ /* Container for the whole section */
+.hero-section {
+    position: relative;
+    width: 100%;
+    height: 80vh;
+    background: var(--bg-card);
+    overflow: hidden; /* Keep 3D scene inside bounds */
+}
+
+/* The 3D Canvas Layer */
+.cube-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Lowest layer */
+}
+
+#cube-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; /* Sits behind everything */
+}
+
+/* The UI Layer */
+.content-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2; /* Above the cube */
+
+    /* CRITICAL: Let clicks pass through empty areas to the cube */
+    pointer-events: none;
+
+    /* Layout your text/buttons */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Re-enable clicks on buttons/inputs */
+.content-overlay button,
+.content-overlay input,
+.content-overlay h1 {
+    pointer-events: auto; /* Buttons are clickable */
+}
+
+/* The Cube Area */
+.cube-stage {
+    position: relative;
+    width: 100%;
+    height: 250px; /* Fixed height for the top third */
+
+    /* Optional: Add a subtle background to distinguish the stage */
+    /* background: radial-gradient(circle at center, #2a2a2a 0%, var(--bg-card) 70%); */
+
+    margin-bottom: 20px;
+    z-index: 1;
+}
+
+/* --- Custom Color Picker Styles --- */
+
+/* Wrapper to position the popup relative to the button */
+.color-picker-wrapper {
+    position: absolute;
+    right: 20px; /* Pins it to the far right edge */
+    top: 50%;
+    transform: translateY(-50%); /* Perfectly centers it vertically */
+}
+
+
+/* The Trigger Button (Circle) */
+.color-trigger {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #ffaa00; /* Default Color */
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.color-trigger:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* The Popup Menu */
+.color-menu {
+    position: absolute;
+    bottom: 70px; /* Positions it above the button */
+    left: 50%;
+    transform: translateX(-50%) scale(0.9); /* Center horizontally + start slightly smaller */
+
+    width: 140px;
+    background-color: var(--bg-card); /* Matches your dark theme */
+    padding: 15px;
+    border-radius: 20px;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 Columns */
+    gap: 10px;
+
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+
+    /* Hiding/Showing Animation States */
+    opacity: 0;
+    pointer-events: none; /* Click-through when hidden */
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy pop effect */
+    z-index: 100;
+}
+
+/* Active State (Visible) */
+.color-menu.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) scale(1);
+    bottom: 80px; /* Slight float up animation */
+}
+
+/* The Little Triangle pointing down */
+.color-menu::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 12px;
+    height: 12px;
+    background-color: var(--bg-card);
+    border-right: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Individual Color Swatches */
+.swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.swatch:hover {
+    transform: scale(1.3);
+    z-index: 2; /* Bring to front on hover */
+}
+
+/* --- Glass Button Style (for your Toggle Breath button) --- */
+.btn-glass {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-family: var(--font-family);
+    cursor: pointer;
+    border-radius: 30px;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+}
+
+.btn-glass:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* --- Mobile Full Screen Overrides --- */
+@media (max-width: 768px) {
+
+    /* 1. Remove outer spacing */
+    .task-widget-container {
+        padding: 0;
+        margin: 0;
+        max-width: 100%;
+        height: 100vh; /* Force full height */
+    }
+
+    /* 2. Stretch the card to fill the screen */
+    .task-card {
+        min-height: 100vh;
+        border-radius: 0; /* Remove rounded corners */
+        margin: 0;
+    }
+
+    /* 3. Adjust content padding for "Notch" phones */
+    .card-content-layer {
+        padding-top: max(30px, env(safe-area-inset-top));
+        padding-bottom: max(30px, env(safe-area-inset-bottom));
+        justify-content: space-between;
+    }
+
+    /* Optional: Make the timer text slightly smaller on mobile if it wraps */
+    .timer-digits {
+        font-size: 4rem;
+    }
+
+
+
+    .btn-large {
+        margin-bottom: 25px;
+    }
+}

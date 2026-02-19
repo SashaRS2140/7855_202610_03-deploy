@@ -1,40 +1,38 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
 
-<link rel="stylesheet" href="{{ url_for('web.static', filename='style.css') }}">
+{% block title %}Sign Up - CUBE{% endblock %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CUBE App</title>
-    <style>
-        /* Basic Mobile Styles */
-        body { font-family: sans-serif; padding: 20px; line-height: 1.5; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; font-size: 16px; }
-        table { display: block; overflow-x: auto; } /* Allows horizontal scroll for the table on small screens */
-    </style>
-</head>
+{% block content %}
+<div class="login-container">
 
-<body>
-    <h1>Create Account</h1>
+    <div class="card">
+        <div class="logo-container card-logo">
+            <div class="logo-sq-orange"></div>
+            <div class="logo-sq-red"></div>
+        </div>
 
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
+        <h1>CREATE ACCOUNT</h1>
+        <p class="subtitle">JOIN THE CUBE</p>
 
-    <form method="POST" action="{{ url_for('web.new_user') }}">
-        <label for="username">Username:</label>
-        <input type="text" name="username" required><br><br>
+        {% if error %}
+            <div class="alert error">{{ error }}</div>
+        {% endif %}
 
-        <label for="password">Password:</label>
-        <input type="password" name="password" required><br><br>
+        <form method="POST" action="{{ url_for('web.new_user') }}">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="username" required>
+            </div>
 
-        <button type="submit">Create Account</button>
-    </form>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="password" required>
+            </div>
 
-    <p>
-        Already have an account?
-        <a href="{{ url_for('web.login') }}">Log in</a>
-    </p>
-</body>
-</html>
+            <button type="submit" class="btn-primary">SIGN UP</button>
+        </form>
+
+        <div class="footer-links">
+            <p>Already have an account? <a href="{{ url_for('web.login') }}">Log in</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

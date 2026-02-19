@@ -3,36 +3,20 @@
 {% block title %}Customizable Cube{% endblock %}
 
 {% block content %}
-<div style="position: relative; width: 100%; height: 80vh; background: #000;">
-    <div id="canvas-container" style="width: 100%; height: 100%;"></div>
+<div class="hero-section">
+    <div id="cube-wrapper" class="cube-background"></div>
+    <div class="content-overlay">
+        <h1>Welcome</h1>
 
-    <div style="position: absolute; top: 20px; left: 20px; color: white; pointer-events: none; z-index: 10;">
-        <h1>Glowing Cube</h1>
-        <p>Interactive Color & Motion</p>
-    </div>
+        <div style="display: flex; gap: 20px; align-items: center; margin-top: 20px;">
 
-    <div style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; align-items: center; z-index: 20;">
+            <div class="color-picker-wrapper">
+                <button id="color-trigger" class="color-trigger"></button>
 
-        <input type="color" id="cube-color" value="#ffaa00" style="
-            border: none;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
-            background: none;
-        ">
+                <div id="color-menu" class="color-menu"></div>
 
-        <button id="toggle-breath" style="
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            font-family: sans-serif;
-            cursor: pointer;
-            border-radius: 30px;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;">
-            Turn Breathing OFF
-        </button>
+            <button id="btn-breath" class="btn-glass">Toggle Breath</button>
+        </div>
     </div>
 </div>
 
@@ -45,5 +29,71 @@
   }
 </script>
 
-<script type="module" src="{{ url_for('web.static', filename='js/cube.js') }}"></script>
+<script type="module">
+    import { mountGlowingCube } from './static/js/cube.js';
+
+    // 1. CONFIG: Edit your colors here!
+    // You can add as many or as few as you like.
+    const palette = [
+        "#ffaa00",
+        "#d65200",
+        "#ff69b4",
+        "#ff92f0",
+        "#ff00ff", // Magenta
+        "#6f00d6",
+        "#0000ff", // Blue
+        "#60ffff",
+        "#00ff00", // Green
+
+
+    ];
+
+    // 2. Initialize Cube
+    const container = document.getElementById('cube-wrapper');
+    if (container) {
+        const cubeAPI = mountGlowingCube(container);
+        const menu = document.getElementById('color-menu');
+        const triggerBtn = document.getElementById('color-trigger');
+
+        // 3. GENERATE BUTTONS DYNAMICALLY
+        // This loop creates the HTML for you based on the 'palette' list above
+        palette.forEach(color => {
+            const btn = document.createElement('button');
+            btn.className = 'swatch';          // Apply your CSS class
+            btn.style.backgroundColor = color; // Set visual color
+            btn.dataset.color = color;         // Store color data
+
+            // Add click listener immediately
+            btn.addEventListener('click', () => {
+                cubeAPI.setColor(color);
+                triggerBtn.style.backgroundColor = color;
+                menu.classList.remove('active'); // Close menu
+            });
+
+            menu.appendChild(btn);
+        });
+
+        // 4. Toggle Menu Open/Close (Same as before)
+        triggerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && e.target !== triggerBtn) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // 5. Breathing Toggle (Same as before)
+        const btnBreath = document.getElementById('btn-breath');
+        if (btnBreath) {
+            btnBreath.addEventListener('click', () => {
+                const isNowBreathing = cubeAPI.toggleBreathing();
+                btnBreath.innerText = isNowBreathing ? "Stop Breathing" : "Start Breathing";
+            });
+        }
+    }
+</script>
 {% endblock %}

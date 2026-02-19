@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response
+from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash
 import os
 import json
 import time

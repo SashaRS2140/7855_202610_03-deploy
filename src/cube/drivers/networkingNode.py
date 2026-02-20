@@ -20,10 +20,8 @@ class NetworkingNode:
         self.port = port
         self.wlan = network.WLAN(network.STA_IF)
 
-    # -----------------------------
     # WiFi Connection
-    # -----------------------------
-    def connect_wifi(self, timeout=15):
+    def connect_wifi(self, timeout=10):
         if not self.wlan.active():
             self.wlan.active(True)
 
@@ -44,9 +42,7 @@ class NetworkingNode:
             print("WiFi lost. Reconnecting...")
             self.connect_wifi()
 
-    # -----------------------------
     # HTTP GET
-    # -----------------------------
     def get_state(self):
         self.ensure_connection()
 
@@ -61,9 +57,7 @@ class NetworkingNode:
             print("GET error:", e)
             return None
 
-    # -----------------------------
     # HTTP POST
-    # -----------------------------
     def send_command(self, mode):
         self.ensure_connection()
 

@@ -4,7 +4,7 @@ import requests
 import threading
 import json
 
-SERVER_URL = "http://127.0.0.1:5000/api/task/control"
+SERVER_URL = "http://10.0.0.133:5000/api/task/control"
 
 # ----- Dark Mode Colors -----
 BG_COLOR = "#1e1e1e"
@@ -19,7 +19,7 @@ ALERT_COLOR = "#ff3333"
 class CubeSimulatorGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("The CUBE Simulator")
+        self.root.title("THE CUBE SIMULATOR")
         self.root.configure(bg=BG_COLOR)
 
         # ---- Cube Identity ----

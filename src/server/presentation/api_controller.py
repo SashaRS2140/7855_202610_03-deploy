@@ -296,6 +296,8 @@ def api_update_preset():
     if not task_name:
         return jsonify({"error": "task name required"}), 400
 
+    task_name = task_name.strip().upper()
+
     task_time = data.get("task_time")
     if not task_time:
         return jsonify({"error": "task time required"}), 400

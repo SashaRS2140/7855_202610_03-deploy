@@ -23,14 +23,18 @@ def home():
     if not session.get("logged_in"):
         return redirect(url_for('web.login'))
 
-    # Mocking task data -- This will be grabbed from DB in future
-    # Example: tasks = get_session_service().get_user_tasks(session["username"])
-    tasks = [
-        {"id": 1, "name": "MEDITATION"},
-        {"id": 2, "name": "DEEP WORK"},
-        {"id": 3, "name": "READING"},
-    ]
-    return render_template("dashboard.html", username=session["username"], tasks=tasks)
+    username = session.get("username")
+
+    svc = get_session_service()
+
+    presets =svc.get_all_task_presets(username)
+
+    tasks = []
+    index = 0
+    for preset in presets:
+        tasks.append({"id": ++index, "name": preset})
+
+    return render_template("dashboard.html", username=username, tasks=tasks)
 
 
 @web_bp.route("/login", methods=["GET", "POST"])
@@ -130,14 +134,12 @@ def profile():
                 profile=data
             )
 
-
         # Valid -> normalize and save
         normalized_profile = svc.normalize_profile(data)
         svc.save_profile(username, normalized_profile)
 
         # Success Response
         flash("You have successfully updated your profile.")
-
 
         return redirect(url_for("web.home"))
     return render_template("profile.html", profile=svc.get_profile(username))

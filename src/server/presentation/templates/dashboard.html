@@ -4,43 +4,65 @@
 
 {% block content %}
 <div class="task-widget-container">
-    <h4 class="widget-header">CHOOSE TASK</h4>
 
     <div class="task-card">
 
-        <div class="task-selector-wrapper">
-            <select class="task-dropdown" id="taskSelect">
-                 {% for task in tasks %}
-                     <option value="{{ task.id }}">{{ task.name }}</option>
-                 {% endfor %}
-                <option value="new_task_trigger">+ CREATE NEW TASK</option>
-            </select>
-        </div>
+        <div id="cube-wrapper"></div>
 
-        <div class="timer-row">
-            <div id="timer-display" class="timer-digits">10:00</div>
+        <div class="card-content-layer">
 
-            <div class="timer-controls">
-                <button class="btn-icon btn-orange" onclick="adjustTime(60)" aria-label="Increase Time">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
-                </button>
-                <button class="btn-icon btn-red" onclick="adjustTime(-60)" aria-label="Decrease Time">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
-                </button>
+            <div class="task-selector-wrapper">
+                <select class="task-dropdown" id="taskSelect">
+                     {% for task in tasks %}
+                         <option value="{{ task.id }}">{{ task.name }}</option>
+                     {% endfor %}
+                    <option value="new_task_trigger">+ CREATE NEW TASK</option>
+                </select>
             </div>
+
+            <div class="timer-row">
+                <div id="timer-display" class="timer-digits">10:00</div>
+
+                <div class="timer-controls">
+                    <button class="btn-icon btn-glass" onclick="adjustTime(60)">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+                    </button>
+                    <button class="btn-icon btn-glass" onclick="adjustTime(-60)">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div style="flex: 1; min-height: 200px;"></div>
+
+            <div class="playback-controls">
+                <button class="btn-large btn-glass" id="startBtn">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                </button>
+
+                <button class="btn-large btn-glass" id="stopBtn">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12"></rect></svg>
+                </button>
+
+                <div class="color-picker-wrapper">
+                    <button id="color-trigger" class="color-trigger" style="background-color: #ffaa00;"></button>
+                    <div id="color-menu" class="color-menu"></div>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div class="playback-controls">
-        <button class="btn-large btn-orange" id="startBtn">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-        </button>
+   <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.173.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.173.0/examples/jsm/"
+        }
+      }
+    </script>
 
-        <button class="btn-large btn-red" id="stopBtn">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12"></rect></svg>
-        </button>
-    </div>
-
-    <script src="{{ url_for('web.static', filename='js/dashboard.js') }}"></script>
+    <script type="module" src="{{ url_for('web.static', filename='js/dashboard.js') }}"></script>
 </div>
+
 {% endblock %}

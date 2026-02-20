@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Customizable Cube{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div id="cube-wrapper" class="cube-background"></div>
+    <div class="content-overlay">
+        <h1>Welcome</h1>
+
+        <div style="display: flex; gap: 20px; align-items: center; margin-top: 20px;">
+
+            <div class="color-picker-wrapper">
+                <button id="color-trigger" class="color-trigger"></button>
+
+                <div id="color-menu" class="color-menu"></div>
+
+            <button id="btn-breath" class="btn-glass">Toggle Breath</button>
+        </div>
+    </div>
+</div>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.173.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.173.0/examples/jsm/"
+    }
+  }
+</script>
+
+<script type="module">
+    import { mountGlowingCube } from './static/js/cube.js';
+
+    // 1. CONFIG: Edit your colors here!
+    // You can add as many or as few as you like.
+    const palette = [
+        "#ffaa00",
+        "#d65200",
+        "#ff69b4",
+        "#ff92f0",
+        "#ff00ff", // Magenta
+        "#6f00d6",
+        "#0000ff", // Blue
+        "#60ffff",
+        "#00ff00", // Green
+
+
+    ];
+
+    // 2. Initialize Cube
+    const container = document.getElementById('cube-wrapper');
+    if (container) {
+        const cubeAPI = mountGlowingCube(container);
+        const menu = document.getElementById('color-menu');
+        const triggerBtn = document.getElementById('color-trigger');
+
+        // 3. GENERATE BUTTONS DYNAMICALLY
+        // This loop creates the HTML for you based on the 'palette' list above
+        palette.forEach(color => {
+            const btn = document.createElement('button');
+            btn.className = 'swatch';          // Apply your CSS class
+            btn.style.backgroundColor = color; // Set visual color
+            btn.dataset.color = color;         // Store color data
+
+            // Add click listener immediately
+            btn.addEventListener('click', () => {
+                cubeAPI.setColor(color);
+                triggerBtn.style.backgroundColor = color;
+                menu.classList.remove('active'); // Close menu
+            });
+
+            menu.appendChild(btn);
+        });
+
+        // 4. Toggle Menu Open/Close (Same as before)
+        triggerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && e.target !== triggerBtn) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // 5. Breathing Toggle (Same as before)
+        const btnBreath = document.getElementById('btn-breath');
+        if (btnBreath) {
+            btnBreath.addEventListener('click', () => {
+                const isNowBreathing = cubeAPI.toggleBreathing();
+                btnBreath.innerText = isNowBreathing ? "Stop Breathing" : "Start Breathing";
+            });
+        }
+    }
+</script>
+{% endblock %}

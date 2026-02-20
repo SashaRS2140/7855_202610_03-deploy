@@ -180,3 +180,11 @@ def stream_timer():
 
     return Response(event_stream(), mimetype="text/event-stream")
 
+
+@web_bp.route("/test")
+def test_cube():
+    # If you want this protected, keep the login check:
+    if not session.get("logged_in"):
+        return redirect(url_for('web.login'))
+
+    return render_template("test.html")

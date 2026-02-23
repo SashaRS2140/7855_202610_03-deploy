@@ -151,7 +151,7 @@ class CubeSimulatorGUI:
 
     # ---------- Button Handlers ----------
     def on_start(self):
-        if self.state == "running":
+        if self.state != "reset":
             return
 
         payload = {"action": "start", "cube_uuid": self.cube_uuid}
@@ -185,6 +185,7 @@ class CubeSimulatorGUI:
 
         self.reset_timer()
         self.set_led(False)
+        self.state = "reset"
 
     # ---------- Networking ----------
     def send_request(self, payload):

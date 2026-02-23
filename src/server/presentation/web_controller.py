@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash, jsonify
 import os
 import json
 import time
@@ -143,6 +143,41 @@ def profile():
 
         return redirect(url_for("web.home"))
     return render_template("profile.html", profile=svc.get_profile(username))
+
+
+@web_bp.route("/task/current", methods=["POST"])
+def set_task():
+    svc = get_session_service()
+    timer = get_timer_service()
+
+    username = session.get("username")
+
+    if not username:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    if not request.is_json:
+        return jsonify({"error": "Content-Type must be application/json"}), 415
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    task_name = data.get("task_name")
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    preset_data = svc.get_task_preset(username, task_name)
+
+    if not preset_data:
+        return jsonify({"error": "Preset not found"}), 404
+
+    svc.set_current_task(username, task_name)
+
+    task_time = preset_data.get("task_time")
+
+    timer.reset(task_time)
+
+    return jsonify({"current_task": task_name}), 200
 
 
 @web_bp.route("/home/color", methods=["GET", "POST"])

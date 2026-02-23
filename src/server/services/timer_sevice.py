@@ -22,7 +22,6 @@ class CountupTimer:
     def stop(self):
         with self.lock:
             self.running = False
-            self.start_time = None
 
     def get_elapsed(self):
         with self.lock:

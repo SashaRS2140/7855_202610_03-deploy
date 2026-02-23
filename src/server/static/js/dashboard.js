@@ -170,19 +170,19 @@ const taskSelect = document.getElementById("taskSelect");
 
 if (taskSelect) {
     taskSelect.addEventListener("change", async (e) => {
-        const selectedTaskId = e.target.value;
+        const selectedTask = e.target.value;
 
         // Ignore special trigger option
-        if (selectedTaskId === "new_task_trigger") {
+        if (selectedTask === "new_task_trigger") {
             return;
         }
 
         // Send selected task to server as current task
         try {
-            await fetch("/api/task/current", {
+            await fetch("/task/current", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ task_name: selectedTaskId })
+                body: JSON.stringify({ task_name: selectedTask })
             });
         } catch (err) {
             console.error("Failed to set current task:", err);

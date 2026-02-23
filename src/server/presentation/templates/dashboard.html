@@ -14,7 +14,7 @@
             <div class="task-selector-wrapper">
                 <select class="task-dropdown" id="taskSelect">
                      {% for task in tasks %}
-                         <option value="{{ task.id }}">{{ task.name }}</option>
+                         <option value="{{ task.name }}">{{ task.name }}</option>
                      {% endfor %}
                     <option value="new_task_trigger">+ CREATE NEW TASK</option>
                 </select>

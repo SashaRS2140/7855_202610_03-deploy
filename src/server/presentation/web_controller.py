@@ -145,6 +145,10 @@ def profile():
     return render_template("profile.html", profile=svc.get_profile(username))
 
 
+@web_bp.route("/home/color", methods=["GET", "POST"])
+def update_color():
+    pass
+
 
 @web_bp.route("/task/timer")
 def stream_timer():

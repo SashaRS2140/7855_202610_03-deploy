@@ -58,6 +58,32 @@ function connectTimerStream() {
 }
 
 
+async function syncCurrentTask() {
+    if (!taskSelect) return;
+
+    try {
+        const res = await fetch("/api/task/current");
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const current = data.current_task;
+
+        if (!current) return;
+
+        // Match option by value (task.id assumed to equal stored name)
+        const option = [...taskSelect.options].find(
+            opt => opt.value.toUpperCase() === current
+        );
+
+        if (option) {
+            taskSelect.value = option.value;
+        }
+    } catch (err) {
+        console.error("Failed to sync current task:", err);
+    }
+}
+
+
 // ======================================================
 // 2. EDIT INPUT (ATM / MICROWAVE STYLE)
 // ======================================================
@@ -140,6 +166,31 @@ if (timerDisplay) {
 }
 
 
+const taskSelect = document.getElementById("taskSelect");
+
+if (taskSelect) {
+    taskSelect.addEventListener("change", async (e) => {
+        const selectedTaskId = e.target.value;
+
+        // Ignore special trigger option
+        if (selectedTaskId === "new_task_trigger") {
+            return;
+        }
+
+        // Send selected task to server as current task
+        try {
+            await fetch("/api/task/current", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ task_name: selectedTaskId })
+            });
+        } catch (err) {
+            console.error("Failed to set current task:", err);
+        }
+    });
+}
+
+
 // ======================================================
 // 3. PLAYBACK CONTROLS (SERVER-DRIVEN TIMER)
 // ======================================================
@@ -217,3 +268,4 @@ if (colorMenu && colorTrigger) {
 // ======================================================
 
 connectTimerStream();
+syncCurrentTask();

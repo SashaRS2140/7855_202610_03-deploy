@@ -50,7 +50,7 @@ class CubeSimulatorGUI:
         # ===== Title Banner =====
         banner = tk.Label(
             root,
-            text="The CUBE Simulator",
+            text="THE CUBE SIMULATOR",
             font=("Helvetica", 20, "bold"),
             pady=10,
             bg=BG_COLOR,

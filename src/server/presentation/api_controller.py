@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify, request, current_app, session
 from bcrypt import hashpw, checkpw, gensalt
+import re
 
 api_bp = Blueprint('api', __name__)
+
+HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 
 def get_session_service():
@@ -302,8 +305,20 @@ def api_update_preset():
     if not task_time:
         return jsonify({"error": "task time required"}), 400
 
+    task_color = data.get("task_color")
+    if not task_color:
+        return jsonify({"error": "task color required"}), 400
+
+    if not isinstance(task_color, str) or not HEX_COLOR_RE.fullmatch(task_color):
+        return jsonify({
+            "error": "task_color must be a valid hex RGB string (e.g., '#0000ff')"
+        }), 400
+
+    task_color = task_color.lower()
+
     preset_data = {
         "task_time": task_time,
+        "task_color": task_color,
     }
 
     svc.update_task_preset(username, task_name, preset_data)
@@ -387,7 +402,7 @@ def api_delete_preset():
     return jsonify({"message": f"{task_name} task preset information successfully deleted."}), 200
 
 
-@api_bp.route("/task/current", methods=["PUT"])
+@api_bp.route("/task/current", methods=["PUT", "POST"])
 def api_set_task():
     svc = get_session_service()
 
@@ -414,7 +429,7 @@ def api_set_task():
 
     svc.set_current_task(username, task_name)
 
-    return jsonify({"message": f"{task_name} task has been set as the current task."}), 200
+    return jsonify({"current_task": task_name}), 200
 
 
 @api_bp.route("/task/current", methods=["GET"])
@@ -431,7 +446,7 @@ def api_get_task():
     if not current_task:
         return jsonify({"error": "Current task not set"}), 400
 
-    return jsonify({"message": f"The current task is the {current_task} task."}), 200
+    return jsonify({"current_task": current_task}), 200
 
 
 @api_bp.route("/session/latest", methods=["GET"])

@@ -435,6 +435,44 @@ input:-webkit-autofill:active{
     margin-bottom: 30px;
 }
 
+.new-task-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Mimics the .task-dropdown style perfectly */
+.task-dropdown-input {
+    background-color: #E0E0E0;
+    color: #000;
+    font-family: var(--font-family);
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 12px 20px;
+    border-radius: 50px;
+    border: 2px solid transparent;
+    text-align: center;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    width: 200px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.task-dropdown-input:focus {
+    border-color: var(--accent); /* Orange border when typing */
+}
+
+/* Smaller glass buttons to fit next to the input */
+.btn-small {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    padding: 0;
+}
+
 .task-dropdown {
     background-color: #E0E0E0; /* Light Grey Pill */
     color: #000;
@@ -518,6 +556,23 @@ input:-webkit-autofill:active{
 .timer-digits.editing {
     color: var(--accent); /* Turn orange when editing */
     border-bottom: 2px solid var(--accent);
+}
+
+
+/* --- Utility & State Classes --- */
+.hidden {
+    display: none !important;
+}
+
+/* Flash animation for successful saves */
+@keyframes success-flash {
+    0% { color: var(--text-white); text-shadow: 0 4px 15px rgba(0,0,0,0.9); }
+    50% { color: #00ff00; text-shadow: 0 0 20px #00ff00; } /* Neon Green */
+    100% { color: var(--text-white); text-shadow: 0 4px 15px rgba(0,0,0,0.9); }
+}
+
+.flash-success {
+    animation: success-flash 1s ease-out;
 }
 
 /* A fake blinking cursor to show it's active */

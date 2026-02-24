@@ -27,12 +27,12 @@ def home():
 
     svc = get_session_service()
 
-    presets =svc.get_all_task_presets(username)
+    presets = svc.get_all_task_presets(username) or []
 
     tasks = []
     index = 0
-    for preset in presets:
-        tasks.append({"id": ++index, "name": preset})
+    for index, preset in enumerate(presets, start=1):
+        tasks.append({"id": index, "name": preset})
 
     return render_template("dashboard.html", username=username, tasks=tasks)
 

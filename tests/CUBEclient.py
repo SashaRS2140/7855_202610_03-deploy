@@ -4,7 +4,7 @@ import requests
 import threading
 import json
 
-SERVER_URL = "http://127.0.0.1:5000/api/task/control"
+SERVER_URL = "http://10.0.0.133:5000/api/task/control"
 
 # ----- Dark Mode Colors -----
 BG_COLOR = "#1e1e1e"
@@ -19,7 +19,7 @@ ALERT_COLOR = "#ff3333"
 class CubeSimulatorGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("The CUBE Simulator")
+        self.root.title("THE CUBE SIMULATOR")
         self.root.configure(bg=BG_COLOR)
 
         # ---- Cube Identity ----
@@ -50,7 +50,7 @@ class CubeSimulatorGUI:
         # ===== Title Banner =====
         banner = tk.Label(
             root,
-            text="The CUBE Simulator",
+            text="THE CUBE SIMULATOR",
             font=("Helvetica", 20, "bold"),
             pady=10,
             bg=BG_COLOR,
@@ -151,7 +151,7 @@ class CubeSimulatorGUI:
 
     # ---------- Button Handlers ----------
     def on_start(self):
-        if self.state == "running":
+        if self.state != "reset":
             return
 
         payload = {"action": "start", "cube_uuid": self.cube_uuid}
@@ -185,6 +185,7 @@ class CubeSimulatorGUI:
 
         self.reset_timer()
         self.set_led(False)
+        self.state = "reset"
 
     # ---------- Networking ----------
     def send_request(self, payload):

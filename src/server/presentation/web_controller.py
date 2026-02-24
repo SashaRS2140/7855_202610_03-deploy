@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash, jsonify
 import os
 import json
 import time
@@ -23,14 +23,18 @@ def home():
     if not session.get("logged_in"):
         return redirect(url_for('web.login'))
 
-    # Mocking task data -- This will be grabbed from DB in future
-    # Example: tasks = get_session_service().get_user_tasks(session["username"])
-    tasks = [
-        {"id": 1, "name": "MEDITATION"},
-        {"id": 2, "name": "DEEP WORK"},
-        {"id": 3, "name": "READING"},
-    ]
-    return render_template("dashboard.html", username=session["username"], tasks=tasks)
+    username = session.get("username")
+
+    svc = get_session_service()
+
+    presets =svc.get_all_task_presets(username)
+
+    tasks = []
+    index = 0
+    for preset in presets:
+        tasks.append({"id": ++index, "name": preset})
+
+    return render_template("dashboard.html", username=username, tasks=tasks)
 
 
 @web_bp.route("/login", methods=["GET", "POST"])
@@ -130,7 +134,6 @@ def profile():
                 profile=data
             )
 
-
         # Valid -> normalize and save
         normalized_profile = svc.normalize_profile(data)
         svc.save_profile(username, normalized_profile)
@@ -138,10 +141,48 @@ def profile():
         # Success Response
         flash("You have successfully updated your profile.")
 
-
         return redirect(url_for("web.home"))
     return render_template("profile.html", profile=svc.get_profile(username))
 
+
+@web_bp.route("/task/current", methods=["POST"])
+def set_task():
+    svc = get_session_service()
+    timer = get_timer_service()
+
+    username = session.get("username")
+
+    if not username:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    if not request.is_json:
+        return jsonify({"error": "Content-Type must be application/json"}), 415
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    task_name = data.get("task_name")
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    preset_data = svc.get_task_preset(username, task_name)
+
+    if not preset_data:
+        return jsonify({"error": "Preset not found"}), 404
+
+    svc.set_current_task(username, task_name)
+
+    task_time = preset_data.get("task_time")
+
+    timer.reset(task_time)
+
+    return jsonify({"current_task": task_name}), 200
+
+
+@web_bp.route("/home/color", methods=["GET", "POST"])
+def update_color():
+    pass
 
 
 @web_bp.route("/task/timer")

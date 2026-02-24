@@ -11,6 +11,10 @@ from drivers.pomodoroTimer import PomodoroTimer
 from drivers.alarm import Alarm
 from drivers.networkingNode import NetworkingNode  # adjust import to your actual path/name
 
+MODE_PAUSE   = 0
+MODE_RUNNING = 1
+MODE_CONFIG  = 2
+MODE_ERROR   = 3
 
 class CubeController:
     def __init__(self):
@@ -49,6 +53,9 @@ class CubeController:
             secrets.SERVER_IP,
             secrets.SERVER_PORT,
         )
+        # THE DIFFERENT MODES ARE PAUSE and RUNNING
+        self.mode = MODE_PAUSE
+        self.stopWatchPresetTime = 20 * 60  # 20 minutes in seconds
 
     # ---------- Callbacks ----------
     def on_session_complete(self):
@@ -79,16 +86,43 @@ class CubeController:
     def handle_single_tap(self):
         print("Single tap")
 
-        self.timer.set_time(20*60)
-        self.timer.start()
 
-        # LED breathing
-        self.lp.init_auto()
-        self.lp.led_all_breathing([255, 0, 0, 0])
-        self.lp.start_cmd()
+        self.toggle_mode()
+
+        # Send REST command
+        success = self.network.send_command(self.mode)
+        if success:
+            print(str(self.mode) + " Command sent successfully")
+        else:
+            print(str(self.mode) + " Failed to send command")
+
+        if self.mode == MODE_RUNNING:# then STOP
+            self.lp.stop_cmd()
+            self.timer.pause()
+        elif self.mode == MODE_PAUSE: # then START
+            # LED breathing
+            self.timer.set_time(self.stopWatchPresetTime)
+            self.timer.start()
+            self.lp.init_auto()
+            self.lp.led_all_breathing([255, 0, 0, 0])
+            self.lp.start_cmd()
+
+
 
     def handle_double_tap(self):
-        print("Double tap")
+        # Send REST command
+        success = self.network.send_command("RESET")
+        if success:
+            print("Command sent successfully")
+        else:
+            print("Failed to send command")
+
+    def toggle_mode(self):
+        if self.mode == MODE_PAUSE:
+            self.mode = MODE_RUNNING
+        else:
+            self.mode = MODE_PAUSE
+
 
     # ---------- Main loop ----------
     def run(self):
@@ -97,10 +131,10 @@ class CubeController:
         if not self.init_lp5811():
             return
 
-        # self.init_network()
+        self.init_network()
 
         while True:
-            self.timer.process()  # MUST be called regularly
+            self.timer.process() 
 
             press = self.piezo.buttonPress()
             if press == 1:
@@ -108,7 +142,6 @@ class CubeController:
             elif press == 2:
                 self.handle_double_tap()
 
-            # small yield (optional)
             time.sleep_ms(5)
 
 

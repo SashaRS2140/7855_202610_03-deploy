@@ -471,7 +471,7 @@ class LP5811:
             pause_time_start=pause_times[0],
             pause_time_end=pause_times[1],
             playback_times=0xF,#infinite playback
-            aeu_select=1
+            aeu_select=0
         )
 
         # ---- AEU1 ---
@@ -483,7 +483,7 @@ class LP5811:
             pt=0x03 # infinite playback
         )
     
-    def led_all_breathing(self, RGBW:list , duration_ms:list = [0x08,0x08,0x08,0x08] , pause_times:list = [0x0B,0x0B]):
+    def led_all_breathing(self, RGBW:list , duration_ms:list = [0x08,0x08,0x08,0x08] , pause_times:list = [0x08,0x08]):
 
         # self.aeu_pause_time_set(LED_NUM, 2, 2, 15, 3);//LED_NUM, Pause_Time_start, Pause_Time_end, Playback_Times, AEU_select
         self.led_dot_breathing(LED0, 0, RGBW[0], pause_times, duration_ms)

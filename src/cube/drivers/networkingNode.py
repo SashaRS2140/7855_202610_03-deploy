@@ -21,7 +21,7 @@ class NetworkingNode:
         self.wlan = network.WLAN(network.STA_IF)
 
     # WiFi Connection
-    def connect_wifi(self, timeout=10):
+    def connect_wifi(self, timeout=5):
         if not self.wlan.active():
             self.wlan.active(True)
 

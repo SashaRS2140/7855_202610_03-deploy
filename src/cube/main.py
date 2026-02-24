@@ -1,5 +1,5 @@
 # main.py (MicroPython / ESP32)
-
+# .\push.ps1
 import time
 from machine import ADC, I2C, Pin, PWM
 
@@ -28,11 +28,11 @@ class CubeController:
         self.i2c = I2C(0, scl=Pin(22), sda=Pin(21))
         self.lp = LP5811(self.i2c)
 
-        # PWM outputs (optional; Alarm may create its own PWM, but leaving these here if you use them elsewhere)
+        # PWM outputs
         self.speaker_pwm = PWM(Pin(18), freq=1000)
         self.vibration_pwm = PWM(Pin(19), freq=1000)
 
-        # Inputs / helpers
+        # Inputs
         self.piezo = PiezoButton(pin=34)
         self.alarm = Alarm(speaker_pin=18)
 
@@ -79,7 +79,7 @@ class CubeController:
     def handle_single_tap(self):
         print("Single tap")
 
-        self.timer.set_time(20 * 60)
+        self.timer.set_time(20*60)
         self.timer.start()
 
         # LED breathing
@@ -89,7 +89,6 @@ class CubeController:
 
     def handle_double_tap(self):
         print("Double tap")
-        # add whatever you want here
 
     # ---------- Main loop ----------
     def run(self):
@@ -98,7 +97,7 @@ class CubeController:
         if not self.init_lp5811():
             return
 
-        self.init_network()
+        # self.init_network()
 
         while True:
             self.timer.process()  # MUST be called regularly

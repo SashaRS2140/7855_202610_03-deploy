@@ -18,7 +18,6 @@ buttonPress() returns:
 import time
 from machine import ADC, Pin
 
-
 class PiezoButton:
     def __init__(
         self,
@@ -26,9 +25,9 @@ class PiezoButton:
         fs_hz: int = 1000,
         threshold_high: int = 400,
         threshold_low: int = 50,
-        baseline_alpha: float = 0.01,
-        settle_ms: int = 400,
-        double_tap_ms: int = 100,
+        baseline_alpha: float = 0.5,
+        settle_ms: int = 30,
+        double_tap_ms: int = 1000
     ):
         # ADC setup
         self.adc = ADC(Pin(pin))
@@ -52,46 +51,56 @@ class PiezoButton:
         self.quiet_since = 0 
 
         # Tap tracking
-        self.last_tap_time = 0
         self.tap_count = 0
-
+        self.doubleTap = 0
+        self.last_double_tap_time = 0
 
     def buttonPress(self) -> int:
         sample = self.adc.read()
 
-        # Baseline tracking
+        # Baseline tracking. LOW PASS FILTER. REMOVES NOISE AND DRIFT
         self.baseline = (1 - self.alpha) * self.baseline + self.alpha * sample
-        delta = abs(sample - self.baseline)
+        delta = abs(sample - self.baseline) # DELTA IS BIG IF THERE'S A SUDDEN JUMP IN VALUE
 
+
+        # print(self.state, delta)
+        # print(f"Sample: {sample}, Baseline: {self.baseline:.2f}, Delta: {delta:.2f}, State: {self.state}")
         now = time.ticks_ms()
         result = 0
 
         # ---------- STATE MACHINE ----------
         if self.state == 0:  # IDLE
             if delta > self.threshold_high:
-                self.state = 1
+                self.state = 1  # tap started
 
         elif self.state == 1:  # ACTIVE (waiting for release)
             if delta < self.threshold_low:
-                self.last_tap_time = now
                 self.quiet_since = now
-                self.state = 2
+                self.state = 2  # wait for settle
 
-        elif self.state == 2:  # WAIT_SETTLE
+        elif self.state == 2:  # WAIT_SETTLE ( wait for signal to settle down)
             if delta < self.threshold_low:
-                if time.ticks_diff(now, self.quiet_since) > self.settle_ms:
-                    self.state = 3  # go wait for second tap
+                diffTime = time.ticks_diff(now, self.quiet_since)
+                if diffTime > self.settle_ms:
+                    print(str(self.doubleTap) + " taps, " + str(diffTime) + " ms\n")
+                    self.state = 0
+                    result = 1  # SINGLE TAP
+                    self.doubleTap += 1 
+                    print("Double Tap Count: " + str(self.doubleTap))
+                    self.last_double_tap_time = now  #start timer for double tap
             else:
+                # vibration still happening
                 self.quiet_since = now
-
-        elif self.state == 3:  # PENDING_SINGLE
-            if delta > self.threshold_high:
-                self.state = 1
-                result = 2  # DOUBLE TAP
-            elif time.ticks_diff(now, self.last_tap_time) > self.double_tap_ms:
-                self.state = 0
-                result = 1  # SINGLE TAP
         # ----------------------------------
+
+        #for double tap detection
+        if time.ticks_diff(now, self.last_double_tap_time) >= self.double_tap_ms:
+            if self.doubleTap >= 2:
+                print("Double Tap Detected!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" + str(self.doubleTap) )
+                result = 2  # DOUBLE TAP
+            self.doubleTap = 0  # reset tap count if too much time has passed
+            
+
 
         time.sleep_ms(self.dt_ms)
         return result

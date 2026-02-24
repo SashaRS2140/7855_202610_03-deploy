@@ -13,8 +13,9 @@ export function mountGlowingCube(container) {
     if (!container) return;
 
     // 1. SETUP
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    // Prevent 0x0 dimension crashes by forcing a minimum of 1 pixel
+    const width = Math.max(1, container.clientWidth);
+    const height = Math.max(1, container.clientHeight);
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x161514);
@@ -168,8 +169,8 @@ export function mountGlowingCube(container) {
     // 7. RESIZE OBSERVER
     const resizeObserver = new ResizeObserver(entries => {
         for (let entry of entries) {
-            const w = entry.contentRect.width;
-            const h = entry.contentRect.height;
+            const w = Math.max(1, entry.contentRect.width);
+            const h = Math.max(1, entry.contentRect.height);
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h);
@@ -186,6 +187,9 @@ export function mountGlowingCube(container) {
             coreMaterial.color.set(c);
             coreLight.color.set(c);
             lightsGroup.children.forEach(l => l.color.set(c));
+        },
+        setBreathing: (state) => {
+        isBreathing = Boolean(state);
         },
         toggleBreathing: () => {
             isBreathing = !isBreathing;

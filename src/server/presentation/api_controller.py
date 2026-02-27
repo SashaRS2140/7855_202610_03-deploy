@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app, session
-from bcrypt import hashpw, checkpw, gensalt
 import re
+from server.services.session_services import require_json_content_type, validate_profile, normalize_profile
 
 api_bp = Blueprint('api', __name__)
 
@@ -41,8 +41,9 @@ def task_control():
     timer = get_timer_service()
     sess_svc = get_session_service()
 
-    if not request.is_json:
-        return jsonify({"error": "JSON required"}), 415
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
 
     data = request.get_json()
     cube_uuid = data.get("cube_uuid")
@@ -119,8 +120,9 @@ def api_profile():
 
     if request.method == "POST":
         # Check Content-Type header
-        if not request.is_json:
-            return jsonify({"error": "Content-Type must be application/json"}), 415
+        content_error = require_json_content_type()
+        if content_error:
+            return content_error
 
         # Parse JSON payload
         try:
@@ -129,12 +131,12 @@ def api_profile():
             return jsonify({"error": "Invalid JSON"}), 400
 
         # Validate the data
-        error = svc.validate_profile(data)
+        error = validate_profile(data)
         if error:
             return jsonify({"error": error}), 400
 
         # Valid -> normalize and save
-        normalized_profile = svc.normalize_profile(data)
+        normalized_profile = normalize_profile(data)
         svc.save_profile(username, normalized_profile)
 
         return jsonify({
@@ -167,8 +169,9 @@ def api_user():
         if username:
             return jsonify({"error": "Must be logged off to create new account"}), 400
 
-        if not request.is_json:
-            return jsonify({"error": "Content-Type must be application/json"}), 415
+        content_error = require_json_content_type()
+        if content_error:
+            return content_error
 
         data = request.get_json()
         if not data:
@@ -214,8 +217,9 @@ def api_login():
         return jsonify({"error": f"{username} is already logged in"}), 400
 
     # Check Content-Type header
-    if not request.is_json:
-        return jsonify({"error": "Content-Type must be application/json"}), 415
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
 
     data = request.get_json()
     if not data:
@@ -288,8 +292,9 @@ def api_update_preset():
     if not username:
         return jsonify({"error": "Unauthorized"}), 401
 
-    if not request.is_json:
-        return jsonify({"error": "Content-Type must be application/json"}), 415
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
 
     data = request.get_json()
     if not data:
@@ -345,8 +350,9 @@ def api_get_preset():
     if not username:
         return jsonify({"error": "Unauthorized"}), 401
 
-    if not request.is_json:
-        return jsonify({"error": "Content-Type must be application/json"}), 415
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
 
     data = request.get_json()
     if not data:
@@ -381,8 +387,9 @@ def api_delete_preset():
     if not username:
         return jsonify({"error": "Unauthorized"}), 401
 
-    if not request.is_json:
-        return jsonify({"error": "Content-Type must be application/json"}), 415
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
 
     data = request.get_json()
     if not data:
@@ -411,8 +418,9 @@ def api_set_task():
     if not username:
         return jsonify({"error": "Unauthorized"}), 401
 
-    if not request.is_json:
-        return jsonify({"error": "Content-Type must be application/json"}), 415
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
 
     data = request.get_json()
     if not data:

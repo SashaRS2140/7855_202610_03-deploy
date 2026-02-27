@@ -1,4 +1,56 @@
+import os
+from flask import jsonify, request
 from bcrypt import hashpw, checkpw, gensalt
+
+
+##########################################################################
+###                        HELPER FUNCTIONS                            ###
+##########################################################################
+
+
+WEB_API_KEY = os.environ.get("FIREBASE_WEB_API_KEY")
+
+
+def require_json_content_type():
+    """Ensure the request is JSON; returns an error response tuple if not."""
+    if not request.is_json:
+        return jsonify({"error": "Content-Type must be application/json"}), 415
+    return None
+
+
+def validate_profile(data):
+    # Check that all fields are provided and non-empty
+    first_name = data.get("first_name", "")
+    last_name = data.get("last_name", "")
+    student_id = data.get("student_id", "")
+    if not first_name or not last_name or not student_id:
+        return "All fields are required."
+
+    student_id = str(student_id)
+
+    # Check that student_id is numeric
+    if not student_id.isdigit():
+        return "Student ID must be numeric."
+
+    return None
+
+
+def normalize_profile(data):
+    first_name = data.get("first_name", "")
+    last_name = data.get("last_name", "")
+    student_id = data.get("student_id", "")
+
+    return {
+        "first_name": str(first_name).strip().capitalize(),
+        "last_name": str(last_name).strip().capitalize(),
+        "student_id": str(student_id).strip()
+    }
+
+
+##########################################################################
+###                      SessionService CLASS                          ###
+##########################################################################
+
 
 class SessionService:
     def __init__(self, repository):
@@ -20,33 +72,6 @@ class SessionService:
 
     def get_profile(self, username):
         return self.repo.get_profile_data(username) or {}
-
-    def validate_profile(self, data):
-        # Check that all fields are provided and non-empty
-        first_name = data.get("first_name", "")
-        last_name = data.get("last_name", "")
-        student_id = data.get("student_id", "")
-        if not first_name or not last_name or not student_id:
-            return "All fields are required."
-
-        student_id = str(student_id)
-
-        # Check that student_id is numeric
-        if not student_id.isdigit():
-            return "Student ID must be numeric."
-
-        return None
-
-    def normalize_profile(self, data):
-        first_name = data.get("first_name", "")
-        last_name = data.get("last_name", "")
-        student_id = data.get("student_id", "")
-
-        return {
-            "first_name": str(first_name).strip().capitalize(),
-            "last_name": str(last_name).strip().capitalize(),
-            "student_id": str(student_id).strip()
-        }
 
     def save_profile(self, username, profile_data):
         self.repo.save_profile_data(username, profile_data)

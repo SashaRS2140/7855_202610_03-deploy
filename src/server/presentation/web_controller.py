@@ -1,7 +1,11 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash, jsonify
 import os
 import json
 import time
+from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash, jsonify
+from server.services.session_services import require_json_content_type, validate_profile, normalize_profile, WEB_API_KEY
+from firebase_admin import auth
+from functools import wraps
+
 
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
@@ -10,46 +14,71 @@ web_bp = Blueprint('web', __name__,
                    static_folder=static_dir)
 
 
+##########################################################################
+###                        HELPER FUNCTIONS                            ###
+##########################################################################
+
+
 def get_session_service():
     """Helper to access the service layer."""
     return current_app.session_service
+
 
 def get_timer_service():
     return current_app.timer
 
 
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if "uid" not in session:
+            return redirect(url_for("web.login"))
+        return f(*args, **kwargs)
+    return wrapper
+
+
+##########################################################################
+###                           WEB ROUTES                               ###
+##########################################################################
+
+
 @web_bp.route("/")
+@login_required
 def home():
-    if not session.get("logged_in"):
-        return redirect(url_for('web.login'))
-
-    username = session.get("username")
-
-    svc = get_session_service()
-
-    presets = svc.get_all_task_presets(username) or []
-
-    tasks = []
-    index = 0
-    for index, preset in enumerate(presets, start=1):
-        tasks.append({"id": index, "name": preset})
-
-    return render_template("dashboard.html", username=username, tasks=tasks)
-
+    """Home page."""
+    uid = session.get("uid")
+    if uid:
+        svc = get_session_service()
+        presets = svc.get_all_task_presets(uid) or []
+        tasks = []
+        for index, preset in enumerate(presets, start=1):
+            tasks.append({"id": index, "name": preset})
+        return render_template("dashboard.html", tasks=tasks)
+    return redirect(url_for('web.login'))
 
 @web_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip().lower()
-        password = request.form.get("password", "").strip()
+    """Login page."""
+    if request.method == "GET":
+        return render_template("login.html", api_key=WEB_API_KEY)
 
-        if get_session_service().validate_user(username, password):
-            session["logged_in"] = True
-            session["username"] = username
-            return redirect(url_for('web.home'))
+    # Get Firebase ID token from header
+    header = request.headers.get("Authorization", "")
+    if not header or not header.startswith("Bearer "):
+        return render_template("login.html", error="Missing auth token")
+    token = header.split(" ")[1]
 
-        return render_template("login.html", error="Invalid credentials")
-    return render_template("login.html")
+    try:
+        # Decode token and extract uid
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token["uid"]
+
+        # Create Flask session
+        session["uid"] = uid
+
+        return redirect(url_for("web.home"))
+    except Exception:
+        return render_template("login.html", error="Invalid or expired token")
 
 
 @web_bp.route("/new_user", methods=["POST"])
@@ -120,7 +149,7 @@ def profile():
 
     if request.method == "POST":
         data = request.form
-        error = svc.validate_profile(data)
+        error = validate_profile(data)
         if error:
             # Re-render form with error and submitted data
             # If HTMX request, return ONLY the form with the error (no header/footer)
@@ -135,7 +164,7 @@ def profile():
             )
 
         # Valid -> normalize and save
-        normalized_profile = svc.normalize_profile(data)
+        normalized_profile = normalize_profile(data)
         svc.save_profile(username, normalized_profile)
 
         # Success Response
@@ -155,8 +184,9 @@ def set_task():
     if not username:
         return jsonify({"error": "Unauthorized"}), 401
 
-    if not request.is_json:
-        return jsonify({"error": "Content-Type must be application/json"}), 415
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
 
     data = request.get_json()
     if not data:

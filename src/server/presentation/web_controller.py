@@ -2,7 +2,7 @@ import os
 import json
 import time
 from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash, jsonify
-from server.services.session_services import require_json_content_type, validate_profile, normalize_profile, WEB_API_KEY
+from server.services.session_services import create_firebase_user, require_json_content_type, validate_profile, normalize_profile, WEB_API_KEY, validate_login_data
 from firebase_admin import auth
 from functools import wraps
 
@@ -47,6 +47,7 @@ def login_required(f):
 def home():
     """Home page."""
     uid = session.get("uid")
+
     if uid:
         svc = get_session_service()
         presets = svc.get_all_task_presets(uid) or []
@@ -54,7 +55,9 @@ def home():
         for index, preset in enumerate(presets, start=1):
             tasks.append({"id": index, "name": preset})
         return render_template("dashboard.html", tasks=tasks)
+
     return redirect(url_for('web.login'))
+
 
 @web_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -77,41 +80,45 @@ def login():
         session["uid"] = uid
 
         return redirect(url_for("web.home"))
+
     except Exception:
         return render_template("login.html", error="Invalid or expired token")
 
 
-@web_bp.route("/new_user", methods=["POST"])
-def new_user():
-    username = request.form.get("username")
-    password = request.form.get("password")
+@web_bp.route("/signup", methods=["GET", "POST"])
+def signup():
+    """Sign up page. Create a new user account."""
+    if request.method == "GET":
+        return render_template("signup.html")
 
     svc = get_session_service()
 
-    if not username or not password:
-        return render_template(
-            "signup.html",
-            error="Username and password are required."
-        )
+    # Validate input data
+    data = request.form.to_dict()
+    error = validate_login_data(data)
+    if error:
+        return render_template("signup.html", error=error)
 
-    if svc.get_profile(username):
-        return render_template(
-            "signup.html",
-            error="Username already exists."
-        )
+    # Extract input data
+    email = data["email"]
+    password = data["password"]
+    confirm_password = data["confirm_password"]
 
-    svc.create_user(username, password)
+    # Validate passwords match
+    if password != confirm_password:
+        return render_template("signup.html", error="Passwords do not match")
 
-    # Auto-login after account creation
-    session["logged_in"] = True
-    session["username"] = username
+    # Create user via Firebase Authentication Service
+    (user, error) = create_firebase_user(email, password)
+    if error:
+        return render_template("signup.html", error=error)
 
-    return redirect(url_for("web.home"))
+    # Save new user information to database
+    uid = user.uid
+    user_info = {"email": email, "role": "user"}
+    svc.save_user_info(uid, user_info)
 
-
-@web_bp.route("/signup", methods=["GET"])
-def signup():
-    return render_template("signup.html")
+    return redirect(url_for("web.login"))
 
 
 @web_bp.route("/delete/profile", methods=["GET","POST"])
@@ -135,12 +142,15 @@ def delete_user():
 
 
 @web_bp.route("/logout")
+@login_required
 def logout():
+    """Clear the session and return to login."""
     session.clear()
     return redirect(url_for('web.login'))
 
-
+### FIX LATER ###
 @web_bp.route("/profile", methods=["GET", "POST"])
+@login_required
 def profile():
     if not session.get("logged_in"): return redirect(url_for('web.login'))
 

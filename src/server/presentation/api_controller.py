@@ -1,10 +1,15 @@
+import requests
 from flask import Blueprint, jsonify, request, current_app, session
-import re
-from server.services.session_services import require_json_content_type, validate_profile, normalize_profile
+from firebase_admin import auth
+from server.services.session_services import validate_preset, create_firebase_user, require_json_content_type, WEB_API_KEY, validate_profile, normalize_profile, validate_login_data
+
 
 api_bp = Blueprint('api', __name__)
 
-HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
+
+##########################################################################
+###                        HELPER FUNCTIONS                            ###
+##########################################################################
 
 
 def get_session_service():
@@ -15,13 +20,30 @@ def get_session_service():
 def get_hw_service():
     return current_app.hw_service
 
+
 def get_timer_service():
     return current_app.timer
+
+
+def get_user_or_401():
+    """Return the current API user or an Unauthorized response."""
+    header = request.headers.get("Authorization")
+    if not header or not header.startswith("Bearer "):
+        return None, "Invalid token format"
+    token = header.split(" ")[1]
+
+    try:
+        # Validates cryptographic signature
+        decoded_token = auth.verify_id_token(token)
+        return decoded_token["uid"], None
+    except Exception as e:
+        return None, f"Unauthorized: {str(e)}"
 
 
 ##########################################################################
 ###                        CUBE REST API                               ###
 ##########################################################################
+
 
 @api_bp.route("/esp/telemetry", methods=["POST"])
 def receive_telemetry():
@@ -35,6 +57,7 @@ def receive_telemetry():
 def get_config():
     """Endpoint for ESP32 to fetch settings."""
     return jsonify(get_hw_service().get_config())
+
 
 @api_bp.route("/task/control", methods=["POST"])
 def task_control():
@@ -97,6 +120,217 @@ def task_control():
 ###                             REST API                               ###
 ##########################################################################
 
+
+@api_bp.route("/login", methods=["POST"])
+def api_login():
+    """Login via Firestore Authentication. Return JWT."""
+    # Check Content-Type header
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Extract data from JSON
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Send login credentials to Firestore Authentication Service for verification
+    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={WEB_API_KEY}"
+    payload = {"email": data["email"], "password": data["password"], "returnSecureToken": True}
+    res = requests.post(url, json=payload)
+    if res.status_code == 200:
+        # Return JWT on success
+        return jsonify({"token": res.json()["idToken"]}), 200
+
+    return jsonify({"error": "Invalid credentials"}), 401
+
+
+@api_bp.route("/signup", methods=["POST"])
+def api_signup():
+    """Create new user account. Return new account UID."""
+    svc = get_session_service()
+
+    # Check Content-Type header
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Extract data from JSON
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Validate input data
+    error = validate_login_data(data)
+    if error:
+        return jsonify({"error": error}), 400
+
+    # Extract input data
+    email = data["email"]
+    password = data["password"]
+
+    # Create user via Firebase Authentication Service
+    (user, error) = create_firebase_user(email, password)
+    if error:
+        return jsonify({"error": error}), 400
+
+    # Save new user information to database
+    uid = user.uid
+    user_info = {"email": email, "role": "user"}
+    svc.save_user_info(uid, user_info)
+
+    return jsonify({"uid": uid}), 201
+
+
+@api_bp.get("/profile")
+def api_get_profile():
+    """Return all the current user's profile data."""
+    svc = get_session_service()
+
+    # Get current user uid
+    (uid, error) = get_user_or_401()
+    if error:
+        return jsonify({"error": error}), 401
+
+    # Get all profile data
+    profile_data = svc.get_profile(uid)
+
+    return jsonify({"profile": profile_data}), 200
+
+
+@api_bp.route("/profile/preset/<task_name>", methods=["GET"])
+def api_get_preset(task_name):
+    """Get preset task configurations."""
+    svc = get_session_service()
+
+    # Get current user uid
+    (uid, error) = get_user_or_401()
+    if error:
+        return jsonify({"error": error}), 401
+
+    # Check Content-Type header
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Extract data from JSON
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Return all presets if passed "all"
+    if task_name == "all":
+        presets = svc.get_all_task_presets(uid)
+        if not presets:
+            return jsonify({"error": "No presets configured."}), 404
+        return jsonify({"presets": presets}), 200
+
+    # Return preset data
+    preset_data = svc.get_task_preset(uid, task_name)
+    if not preset_data:
+        return jsonify({"error": "Preset not found"}), 404
+    return jsonify({f"{task_name}": preset_data}), 200
+
+
+@api_bp.post("/profile/preset")
+def api_create_preset():
+    """Create new preset task configuration from a JSON body."""
+    svc = get_session_service()
+
+    # Get current user uid
+    (uid, error) = get_user_or_401()
+    if error:
+        return jsonify({"error": error}), 401
+
+    # Check Content-Type header
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Extract data from JSON
+    data = request.get_json(silent=True) or {}
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Validate input data
+    error = validate_preset(data)
+    if error:
+        return jsonify({"error": error}), 400
+
+    # Organize preset task data
+    task_name = data.get("task_name").strip().title()
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    task_time = data.get("task_time")
+    if not task_time:
+        return jsonify({"error": "task time required"}), 400
+
+    task_color = data.get("task_color").lower()
+    if not task_color:
+        return jsonify({"error": "task color required"}), 400
+
+    preset_data = {
+        "task_time": task_time,
+        "task_color": task_color,
+    }
+
+    # Save new preset task in database
+    svc.update_task_preset(uid, task_name, preset_data)
+
+    return jsonify({f"{task_name}": preset_data,}), 201
+
+
+@api_bp.put("/profile/preset")
+def api_update_preset():
+    """Update preset task configuration from a JSON body."""
+    svc = get_session_service()
+
+    # Get current user uid
+    (uid, error) = get_user_or_401()
+    if error:
+        return jsonify({"error": error}), 401
+
+    # Check Content-Type header
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Extract data from JSON
+    data = request.get_json(silent=True) or {}
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Validate input data
+    error = validate_preset(data)
+    if error:
+        return jsonify({"error": error}), 400
+
+    # Prepare updated preset task data (only include provided fields)
+    task_name = data.get("task_name")
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    task_time = data.get("task_time")
+    task_color = data.get("task_color")
+
+    updated_preset_data = {}
+    if task_time is not None:
+        updated_preset_data["task_time"] = task_time if task_time else ""
+    if task_color is not None:
+        updated_preset_data["task_color"] = task_color.lower() if task_color else ""
+
+    # Save updated preset task in database
+    svc.update_task_preset(uid, task_name, updated_preset_data)
+
+    # Return updated task with all fields
+    preset_data = svc.get_task_preset(uid, task_name)
+    return jsonify({f"{task_name}": preset_data,}), 200
+
+
+#-----Below in Progress-----#
+
+
 @api_bp.route("/profile", methods=["GET", "POST", "DELETE"])
 def api_profile():
     svc = get_session_service()
@@ -153,96 +387,10 @@ def api_profile():
     return None
 
 
-@api_bp.route("/user", methods=["GET", "POST", "DELETE"])
-def api_user():
-    svc = get_session_service()
-
-    username = session.get("username")
-
-    if request.method == "GET":
-        if not username:
-            return jsonify({"message": "No user logged in"}), 200
-        return jsonify({"username": username}), 200
-
-    # Create new user account
-    if request.method == "POST":
-        if username:
-            return jsonify({"error": "Must be logged off to create new account"}), 400
-
-        content_error = require_json_content_type()
-        if content_error:
-            return content_error
-
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "Invalid JSON"}), 400
-
-        username = data.get("username")
-        password = data.get("password")
-
-        if not username or not password:
-            return jsonify({"error": "Both username and password required"}), 400
-
-        # Check if user already exists
-        if svc.get_user(username):
-            return jsonify({"error": "User already exists"}), 409
-
-        svc.create_user(username, password)
-        session["logged_in"] = True
-        session["username"] = username
-        return jsonify({
-            "message": "User created successfully. Logged in under new username.",
-            "username": username
-        }), 201
-
-    # Delete user account
-    if request.method == "DELETE":
-        if not username:
-            return jsonify({"error": "Unauthorized"}), 401
-        if not svc.get_user(username):
-            return jsonify({"error": "User not found"}), 404
-
-        svc.delete_user(username)
-        session.clear()
-        return jsonify({"message": "User deleted successfully. log in to a different account or create a new one."}), 200
-    return None
-
-
-@api_bp.route("/login", methods=["POST"])
-def api_login():
-    svc = get_session_service()
-
-    if session.get("logged_in"):
-        username = session.get("username")
-        return jsonify({"error": f"{username} is already logged in"}), 400
-
-    # Check Content-Type header
-    content_error = require_json_content_type()
-    if content_error:
-        return content_error
-
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
-
-    username = data.get("username").strip().lower()
-    password = data.get("password").strip()
-
-    if not username or not password:
-        return jsonify({"error": "Both username and password required"}), 400
-
-    if not svc.get_user(username):
-        return jsonify({"error": "username not found"}), 404
-
-    if svc.validate_user(username, password):
-        session["logged_in"] = True
-        session["username"] = username
-        return jsonify({"message": f"{username} successfully logged in"}), 200
-    return jsonify({"error": "Invalid password"}), 400
-
-
+# MAYBE DON'T NEED #
 @api_bp.route("/logout", methods=["POST"])
 def api_logout():
+    """Clear the session"""
     session.clear()
     return jsonify({"message": "User successfully logged out"}), 200
 
@@ -283,99 +431,10 @@ def api_get_from_profile(username):
     return jsonify({final_key: value}), 200
 
 
-@api_bp.route("/profile/preset", methods=["POST", "PUT"])
-def api_update_preset():
-    svc = get_session_service()
-
-    username = session.get("username")
-
-    if not username:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    content_error = require_json_content_type()
-    if content_error:
-        return content_error
-
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
-
-    task_name = data.get("task_name")
-    if not task_name:
-        return jsonify({"error": "task name required"}), 400
-
-    task_name = task_name.strip().upper()
-
-    task_time = data.get("task_time")
-    if not task_time:
-        return jsonify({"error": "task time required"}), 400
-
-    task_color = data.get("task_color")
-    if not task_color:
-        return jsonify({"error": "task color required"}), 400
-
-    if not isinstance(task_color, str) or not HEX_COLOR_RE.fullmatch(task_color):
-        return jsonify({
-            "error": "task_color must be a valid hex RGB string (e.g., '#0000ff')"
-        }), 400
-
-    task_color = task_color.lower()
-
-    preset_data = {
-        "task_time": task_time,
-        "task_color": task_color,
-    }
-
-    svc.update_task_preset(username, task_name, preset_data)
-
-    if request.method == "POST":
-        return jsonify({
-            "message": f"{task_name} task created successfully",
-            f"{task_name}": preset_data,
-        }), 201
-
-    # if "PUT"
-    return jsonify({
-        "message": f"{task_name} task updated successfully",
-        f"{task_name}": preset_data,
-    }), 200
 
 
-@api_bp.route("/profile/preset", methods=["GET"])
-def api_get_preset():
-    svc = get_session_service()
 
-    username = session.get("username")
 
-    if not username:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    content_error = require_json_content_type()
-    if content_error:
-        return content_error
-
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
-
-    task_name = data.get("task_name")
-    if not task_name:
-        return jsonify({"error": "task name required"}), 400
-
-    if task_name == "all":
-        presets = svc.get_all_task_presets(username)
-
-        if not presets:
-            return jsonify({"error": "No presets configured."}), 404
-
-        return jsonify({"presets": presets}), 200
-
-    preset_data = svc.get_task_preset(username, task_name)
-
-    if not preset_data:
-        return jsonify({"error": "Preset not found"}), 404
-
-    return jsonify({f"{task_name}": preset_data}), 200
 
 
 @api_bp.route("/profile/preset", methods=["DELETE"])

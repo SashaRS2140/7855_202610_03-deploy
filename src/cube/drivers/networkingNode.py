@@ -46,7 +46,7 @@ class NetworkingNode:
     def get_state(self):
         self.ensure_connection()
 
-        url = f"http://{self.server_ip}:{self.port}/api/state"
+        url = f"http://{self.server_ip}:{self.port}/api/esp/config"
 
         try:
             response = urequests.get(url)
@@ -61,9 +61,13 @@ class NetworkingNode:
     def send_command(self, mode):
         self.ensure_connection()
 
-        url = f"http://{self.server_ip}:{self.port}/api/command"
-        payload = {"mode": mode}
-
+        url = f"http://{self.server_ip}:{self.port}/api/esp/telemetry"
+        payload = {
+            "mode": mode,
+            "timestamp": time.time(),
+            "timeElapsed": 69          
+                   }
+           
         try:
             response = urequests.post(url, json=payload)
             response.close()

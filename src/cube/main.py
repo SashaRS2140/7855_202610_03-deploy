@@ -55,7 +55,7 @@ class CubeController:
         )
         # THE DIFFERENT MODES ARE PAUSE and RUNNING
         self.mode = MODE_PAUSE
-        self.stopWatchPresetTime = 20 * 60  # 20 minutes in seconds
+        self.stopWatchPresetTime = 10   # 20 minutes in seconds
 
     # ---------- Callbacks ----------
     def on_session_complete(self):

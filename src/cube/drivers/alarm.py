@@ -66,8 +66,8 @@ class Alarm:
 
         self.speaker.freq(250)
 
-        duty = 20000          # initial amplitude
-        decay = 0.5          # exponential decay factor (smaller = faster fade)
+        duty = 40000          # initial amplitude
+        decay = 0.9          # exponential decay factor (smaller = faster fade)
 
         self._on(duty)
         sleep_ms(60)         # soft strike

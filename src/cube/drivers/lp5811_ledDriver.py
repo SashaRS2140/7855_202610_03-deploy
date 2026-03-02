@@ -360,12 +360,12 @@ class LP5811:
     #initialization sequence for auto mode
     def init_auto(self):
         self.write_reg(CHIP_ENABLE_REGISTER, 0x01)   # Chip_Enable_Register
-        self.write_reg(DEV_CONFIG0_REGISTER, 0x00)   # Dev_Config0_Register current limit 25mA, set 0x00
+        self.write_reg(DEV_CONFIG0_REGISTER, 0x01)   # Dev_Config0_Register current limit 25mA, set 0x00 , 0x01
         self.write_reg(DEV_CONFIG1_REGISTER, 0x80)   # 24KHz pwm freq in direct drive mode
         self.write_reg(DEV_CONFIG3_REGISTER, 0x0F)   # auto mode, on all LED's
         self.write_reg(DEV_CONFIG5_REGISTER, 0x0F)   # Enable exponential curve dimming mode for all LED's
-        # lsd_threshold = 0.65Vcc, shut off if cathode voltage surpasses set amount. Also enabled short and open fault
-        self.write_reg(DEV_CONFIG12_REGISTER, 0x0D)   
+        
+        self.write_reg(DEV_CONFIG12_REGISTER, 0x00)   # lsd_threshold = 0.65Vcc, shut off if cathode voltage surpasses set amount. Also enabled short and open fault
         time.sleep_ms(5)
         self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)   # Update LED params
 
@@ -469,7 +469,6 @@ class LP5811:
             playback_times=0xF,#infinite playback
             aeu_select=0
         )
-
         # ---- AEU1 ---
         self.aeu_set(
             led_num=led_num,
@@ -480,7 +479,6 @@ class LP5811:
         )
     
     def led_all_breathing(self, RGBW:list , duration_ms:list = [0x08,0x08,0x08,0x08]):
-
 
         #RGBW gives target brightness for each LED
         self.led_dot_breathing(LED0, 0, RGBW[0], duration_ms)

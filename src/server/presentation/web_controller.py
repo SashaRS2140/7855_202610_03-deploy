@@ -1,7 +1,11 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash, jsonify
 import os
 import json
 import time
+from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash, jsonify
+from src.server.services.session_services import validate_preset, create_firebase_user, require_json_content_type, validate_profile, normalize_profile, WEB_API_KEY, validate_login_data
+from firebase_admin import auth
+from functools import wraps
+
 
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
@@ -10,182 +14,123 @@ web_bp = Blueprint('web', __name__,
                    static_folder=static_dir)
 
 
+##########################################################################
+###                        HELPER FUNCTIONS                            ###
+##########################################################################
+
+
 def get_session_service():
     """Helper to access the service layer."""
     return current_app.session_service
+
 
 def get_timer_service():
     return current_app.timer
 
 
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if "uid" not in session:
+            return redirect(url_for("web.login"))
+        return f(*args, **kwargs)
+    return wrapper
+
+
+##########################################################################
+###                           WEB ROUTES                               ###
+##########################################################################
+
+
 @web_bp.route("/")
+@login_required
 def home():
-    if not session.get("logged_in"):
-        return redirect(url_for('web.login'))
+    """Home page."""
+    uid = session.get("uid")
 
-    username = session.get("username")
+    if uid:
+        svc = get_session_service()
+        presets = svc.get_all_task_presets(uid) or []
+        tasks = []
+        for index, preset in enumerate(presets, start=1):
+            tasks.append({"id": index, "name": preset})
+        return render_template("dashboard.html", tasks=tasks)
 
-    svc = get_session_service()
-
-    presets = svc.get_all_task_presets(username) or []
-
-    tasks = []
-    index = 0
-    for index, preset in enumerate(presets, start=1):
-        tasks.append({"id": index, "name": preset})
-
-    return render_template("dashboard.html", username=username, tasks=tasks)
+    return redirect(url_for('web.login'))
 
 
 @web_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip().lower()
-        password = request.form.get("password", "").strip()
+    """Login page."""
+    if request.method == "GET":
+        return render_template("login.html", api_key=WEB_API_KEY)
 
-        if get_session_service().validate_user(username, password):
-            session["logged_in"] = True
-            session["username"] = username
-            return redirect(url_for('web.home'))
+    # Get Firebase ID token from header
+    header = request.headers.get("Authorization", "")
+    if not header or not header.startswith("Bearer "):
+        return render_template("login.html", error="Missing auth token")
+    token = header.split(" ")[1]
 
-        return render_template("login.html", error="Invalid credentials")
-    return render_template("login.html")
+    try:
+        # Decode token and extract uid
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token["uid"]
+
+        # Create Flask session
+        session["uid"] = uid
+
+        return redirect(url_for("web.home"))
+
+    except Exception:
+        return render_template("login.html", error="Invalid or expired token")
 
 
-@web_bp.route("/new_user", methods=["POST"])
-def new_user():
-    username = request.form.get("username")
-    password = request.form.get("password")
+@web_bp.route("/signup", methods=["GET", "POST"])
+def signup():
+    """Sign up page. Create a new user account."""
+    if request.method == "GET":
+        return render_template("signup.html")
 
     svc = get_session_service()
 
-    if not username or not password:
-        return render_template(
-            "signup.html",
-            error="Username and password are required."
-        )
+    # Validate input data
+    data = request.form.to_dict()
+    error = validate_login_data(data)
+    if error:
+        return render_template("signup.html", error=error)
 
-    if svc.get_profile(username):
-        return render_template(
-            "signup.html",
-            error="Username already exists."
-        )
+    # Extract input data
+    email = data["email"]
+    password = data["password"]
+    confirm_password = data["confirm_password"]
 
-    svc.create_user(username, password)
+    # Validate passwords match
+    if password != confirm_password:
+        return render_template("signup.html", error="Passwords do not match")
 
-    # Auto-login after account creation
-    session["logged_in"] = True
-    session["username"] = username
+    # Create user via Firebase Authentication Service
+    (user, error) = create_firebase_user(email, password)
+    if error:
+        return render_template("signup.html", error=error)
 
-    return redirect(url_for("web.home"))
-
-
-@web_bp.route("/signup", methods=["GET"])
-def signup():
-    return render_template("signup.html")
-
-
-@web_bp.route("/delete/profile", methods=["GET","POST"])
-def delete_profile():
-    if not session.get("logged_in"):
-        return redirect(url_for("web.login"))
-
-    get_session_service().delete_profile(session["username"])
-
-    return redirect(url_for("web.home"))
-
-
-@web_bp.route("/delete/user", methods=["GET","POST"])
-def delete_user():
-    if not session.get("logged_in"):
-        return redirect(url_for("web.login"))
-
-    get_session_service().delete_user(session["username"])
+    # Save new user information to database
+    uid = user.uid
+    user_info = {"email": email, "role": "user"}
+    svc.save_user_info(uid, user_info)
 
     return redirect(url_for("web.login"))
 
 
 @web_bp.route("/logout")
+@login_required
 def logout():
+    """Clear the session and return to login."""
     session.clear()
     return redirect(url_for('web.login'))
 
 
-@web_bp.route("/profile", methods=["GET", "POST"])
-def profile():
-    if not session.get("logged_in"): return redirect(url_for('web.login'))
-
-    svc = get_session_service()
-    username = session["username"]
-
-    if request.method == "POST":
-        data = request.form
-        error = svc.validate_profile(data)
-        if error:
-            # Re-render form with error and submitted data
-            # If HTMX request, return ONLY the form with the error (no header/footer)
-            if request.headers.get('HX-Request'):
-                return render_template("partials/profile_form.html", error=error, profile=data)
-
-            # If Standard Request
-            return render_template(
-                "profile.html",
-                error=error,
-                profile=data
-            )
-
-        # Valid -> normalize and save
-        normalized_profile = svc.normalize_profile(data)
-        svc.save_profile(username, normalized_profile)
-
-        # Success Response
-        flash("You have successfully updated your profile.")
-
-        return redirect(url_for("web.home"))
-    return render_template("profile.html", profile=svc.get_profile(username))
-
-
-@web_bp.route("/task/current", methods=["POST"])
-def set_task():
-    svc = get_session_service()
-    timer = get_timer_service()
-
-    username = session.get("username")
-
-    if not username:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    if not request.is_json:
-        return jsonify({"error": "Content-Type must be application/json"}), 415
-
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
-
-    task_name = data.get("task_name")
-    if not task_name:
-        return jsonify({"error": "task name required"}), 400
-
-    preset_data = svc.get_task_preset(username, task_name)
-
-    if not preset_data:
-        return jsonify({"error": "Preset not found"}), 404
-
-    svc.set_current_task(username, task_name)
-
-    task_time = preset_data.get("task_time")
-
-    timer.reset(task_time)
-
-    return jsonify({"current_task": task_name}), 200
-
-
-@web_bp.route("/home/color", methods=["GET", "POST"])
-def update_color():
-    pass
-
-
 @web_bp.route("/task/timer")
+@login_required
 def stream_timer():
     timer = get_timer_service()
 
@@ -220,6 +165,223 @@ def stream_timer():
             time.sleep(1)
 
     return Response(event_stream(), mimetype="text/event-stream")
+
+
+#--- TEMP WEB API ---#
+
+
+@web_bp.post("/task/current")
+def set_task():
+    """Set the current active task."""
+    svc = get_session_service()
+
+    # Get current user uid
+    uid = session["uid"]
+
+    # Check for content error
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Parsing data from json
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Checking
+    task_name = data.get("task_name").strip().title()
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    preset_data = svc.get_task_preset(uid, task_name)
+
+    if not preset_data:
+        return jsonify({"error": "Preset not found"}), 404
+
+    svc.set_current_task(uid, task_name)
+
+    task_time = preset_data.get("task_time")
+    timer = get_timer_service()
+    timer.reset(task_time)
+
+    return jsonify({"current_task": task_name}), 200
+
+
+@web_bp.post("/profile/preset")
+def create_preset():
+    """Create new preset task configuration from a JSON body."""
+    svc = get_session_service()
+
+    # Get current user uid
+    uid = session["uid"]
+
+    # Check Content-Type header
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Extract data from JSON
+    data = request.get_json(silent=True) or {}
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Validate input data
+    error = validate_preset(data)
+    if error:
+        return jsonify({"error": error}), 400
+
+    # Organize preset task data
+    task_name = data.get("task_name").strip().title()
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    task_time = data.get("task_time")
+    if not task_time:
+        return jsonify({"error": "task time required"}), 400
+
+    task_color = data.get("task_color").lower()
+    if not task_color:
+        return jsonify({"error": "task color required"}), 400
+
+    preset_data = {
+        "task_time": task_time,
+        "task_color": task_color,
+    }
+
+    # Save new preset task in database
+    svc.update_task_preset(uid, task_name, preset_data)
+
+    return jsonify({f"{task_name}": preset_data,}), 201
+
+
+@web_bp.get("/task/current")
+def get_task():
+    """Get the current active task name."""
+    svc = get_session_service()
+
+    # Get current user uid
+    uid = session["uid"]
+
+    current_task = svc.get_current_task(uid)
+
+    if not current_task:
+        return jsonify({"error": "Current task not set"}), 400
+
+    return jsonify({"current_task": current_task}), 200
+
+
+@web_bp.put("/profile/preset")
+def update_preset():
+    """Update preset task configuration from a JSON body."""
+    svc = get_session_service()
+
+    # Get current user uid
+    uid = session["uid"]
+
+    # Check Content-Type header
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Extract data from JSON
+    data = request.get_json(silent=True) or {}
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Validate input data
+    error = validate_preset(data)
+    if error:
+        return jsonify({"error": error}), 400
+
+    # Prepare updated preset task data (only include provided fields)
+    task_name = data.get("task_name").strip().title()
+    if not task_name:
+        return jsonify({"error": "Task name required"}), 400
+
+    # Check for existing preset
+    preset_data = svc.get_task_preset(uid, task_name)
+    if not preset_data:
+        return jsonify({"error": "Task not found"}), 404
+
+    task_time = data.get("task_time")
+    task_color = data.get("task_color")
+
+    updated_preset_data = {}
+    if task_time is not None:
+        updated_preset_data["task_time"] = task_time if task_time else ""
+    if task_color is not None:
+        updated_preset_data["task_color"] = task_color.lower() if task_color else ""
+
+    # Save updated preset task in database
+    svc.update_task_preset(uid, task_name, updated_preset_data)
+
+    # Return updated task with all fields
+    preset_data = svc.get_task_preset(uid, task_name)
+    return jsonify({f"{task_name}": preset_data,}), 200
+
+
+# -----Below in Progress-----#
+
+
+@web_bp.route("/delete/profile", methods=["GET","POST"])
+def delete_profile():
+    if not session.get("logged_in"):
+        return redirect(url_for("web.login"))
+
+    get_session_service().delete_profile(session["username"])
+
+    return redirect(url_for("web.home"))
+
+
+@web_bp.route("/delete/user", methods=["GET","POST"])
+def delete_user():
+    if not session.get("logged_in"):
+        return redirect(url_for("web.login"))
+
+    get_session_service().delete_user(session["username"])
+
+    return redirect(url_for("web.login"))
+
+
+### FIX LATER ###
+@web_bp.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    if not session.get("logged_in"): return redirect(url_for('web.login'))
+
+    svc = get_session_service()
+    username = session["username"]
+
+    if request.method == "POST":
+        data = request.form
+        error = validate_profile(data)
+        if error:
+            # Re-render form with error and submitted data
+            # If HTMX request, return ONLY the form with the error (no header/footer)
+            if request.headers.get('HX-Request'):
+                return render_template("partials/profile_form.html", error=error, profile=data)
+
+            # If Standard Request
+            return render_template(
+                "profile.html",
+                error=error,
+                profile=data
+            )
+
+        # Valid -> normalize and save
+        normalized_profile = normalize_profile(data)
+        svc.save_profile(username, normalized_profile)
+
+        # Success Response
+        flash("You have successfully updated your profile.")
+
+        return redirect(url_for("web.home"))
+    return render_template("profile.html", profile=svc.get_profile(username))
+
+
+@web_bp.route("/home/color", methods=["GET", "POST"])
+def update_color():
+    pass
 
 
 @web_bp.route("/test")

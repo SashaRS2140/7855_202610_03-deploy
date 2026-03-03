@@ -8,10 +8,10 @@
 
 - **Your Team Name:** [**Team 2**]  
 - **Sprint 2 Dates:** [**10/02/2026 → 03/03/2026**]  
-- **Sprint Goal:** 
-    *Implement feature dashboard connection for timer implementation with **Firestore persistence** and **safe validation**. data should be personal to each user and users should be able to login via email.*
-
-    *Implement basic communication between ESP32 and FLASK SERVER using REST API*
+- **Sprint Goals:** 
+    - *Implement feature dashboard connection for timer implementation with **Firestore persistence** and **safe validation**. data should be personal to each user and users should be able to login via email.*
+    - *Create CUBE Client simulator to test and demo hardware REST API*
+    - *Implement basic communication between ESP32 and FLASK SERVER using REST API*
 
 ---
 
@@ -42,25 +42,28 @@
 ### 2.2 Completed vs. Not Completed (Feature-Focused)
 
 **Plan** 
+
+
 SPRINT 2:
 
-- WEB UI FRAMEWORK PLACEHOLDERS
-- COMMUNICATION PROTOCOL BETWEEN CUBE AND SERVER VIA REST API
-(OR MOCK ‘CUBE’ CLIENT)
+- Web UI framework placeholders
+- communication protocol between server + cube
+(or mock cube client)
 - **DATABASE FRAMEWORK** - Ability to store necessary data on firebase securely
-- **Cube-Client Control** to Start, Stop session, & Reset session.
-- **Web-Client Control** Configure session time, task type, and color
+- **Cube-Client Control** - Ability to start, stop, & reset sessions and send session information to the server for storage
+- **Web-Client Control** - Ability to select the current active task, create new tasks, and edit preset task times
 - **USER STORIES FOR BASIC FUNCTIONALITY** 
-	- As a user i want the cube to send start,pause, and stop signals to the webapp so that the app accurately tracks how long a cube has actively run a session. 
+	- As a user i want the cube to send start, stop, and reset signals to the web app so that the app accurately tracks how long a cube has actively run a session. 
 	- As a user i want to the web app to send session time to the cube. So that session time can be easily changed.
 - **END-TO-END FEATURES**
-	- Web app knows how long cube has run for. 
-	- Web app can send how long cube should run. 
+	- 
+    - Web app knows how long cube has run for. 
+	- Web app can configure task times
 
 
 **Completed in Sprint 2 (Feature)**
 
-- [ ] **Client** can trigger start stops and resets. 
+- [ ] **Client** can trigger start, stop, and resets. 
 - [ ] **Server** exposes the endpoint with basic validation
 - [ ] **Firestore** integration: data is written to the database
 - [ ] **Server** can retrieve the stored data (GET from Firestore)
@@ -76,6 +79,44 @@ SPRINT 2:
 ## 3. Technical Summary: What Was Implemented
 
 This is a **short technical summary** of the **end-to-end feature** you built.
+
+- **Feature:** **Cube Client Simulator - Start Task**
+- **Collection:** N/A  
+- **What it does:** Triggers server to start timer for web app display
+
+
+- **Feature:** **Cube Client Simulator - Stop Task**
+- **Collection:** user_profiles -> uid -> session_history -> task_name & elapsed_time
+- **What it does:** Triggers server to stop timer for web app display. 
+Sends elapsed time recorded on the client to the server to store in database.
+
+
+- **Feature:** **Cube Client Simulator - Reset Task**
+- **Collection:** user_profiles -> uid -> current_task
+- **What it does:** Triggers server to reset timer for web app display. 
+Requests current task data from the server.
+
+
+- **Feature:** **Web App - Set Current Task**
+- **Collection:** user_profiles -> uid -> current_task
+- **What it does:** Triggers server to update the current task in the database. 
+
+
+- **Feature:** **Web App - Create Preset Task**
+- **Collection:** user_profiles -> uid -> presets -> task_name -> task_color & task_time
+- **What it does:** Triggers server to create a new task preset with the input task name (task_time default to 10 min & task_color default to #ffaa00) in the database. 
+
+
+- **Feature:** **Web App - Update Current Task Time**
+- **Collection:** user_profiles -> uid -> presets -> task_name -> task_time
+- **What it does:** Triggers server to update the task time field in the current task preset in the database. 
+
+
+- **Feature:** **Web App - Display Timer**
+- **Collection:** user_profiles -> uid -> presets -> task_name -> task_time
+- **What it does:** Web app displays the task time associated with the current task.
+Display timer is controlled by CUBE client start, stop, & reset signals.
+
 
 - **Feature:** [**Cube Timer Control**]  
 - **Collection:** [**Firestore collection**] (e.g., `features`, `orders`, etc.)  
@@ -102,33 +143,75 @@ TENTATIVE POST COMMAND
 - **Document shape:**  
   Example JSON that represents **one document** in the collection (or the schema you structured):
 
-![alt text](image-3.png)
+  ```json
+  {
+    "current_task": "Study",
+    "presets": {
+      "Flow State": {
+        "task_color": "#ffaa00",
+        "task_time": 2100
+      },
+      "Meditation": {
+        "task_color": "#ffaa00",
+        "task_time": 3355
+      },
+      "Relax": {
+        "task_color": "#ffaa00",
+        "task_time": 900
+      },
+      "Study": {
+        "task_color": "#ffaa00",
+        "task_time": 600
+      }
+    },
+    "session_history": {
+      "elapsed_time": 8,
+      "task": "Flow State"
+    },
+    "user_info": {
+      "email": "bryceroberttaylorreid@gmail.com",
+      "first_name": "Bryce",
+      "last_name": "Reid",
+      "role": "user"
+    }
+  }
+  ```
 
   **Why this structure?** We used Firebase Authentication to validate users via email. Then with unique generated uuids we store the information we need. For basica usage we store preset tasks, connected cubes, current session, and session history. 
 
 - **Input (Client → Server):**  
-  Example JSON the client sends:
+  Example JSON the CUBE client sends:
 
   ```json
-  {
-    "name": "New Feature",
-    "status": "pending"
-  }
+    {
+      "action": "stop",
+      "elapsed_seconds": self.elapsed_seconds
+    }
+  ```
+  
+    Example JSON the Web client sends:
+
+  ```json
+    {
+      "task_name": "chill time", 
+      "task_time": 600, 
+      "task_color": "#ffaa00"
+    }
   ```
 
 
 - **Output (Server → Client):**  
-  Example response the client receives after a successful create or read:
+  Example response the CUBE client receives after a successful create or read:
 
   ```json
   {
-    "id": "generated-id",
-    "userId": "firebase-uid",
-    "name": "New Feature",
-    "status": "pending",
-    "createdAt": "2026-01-01T12:00:00.000Z"
+    "message": "Meditation task reset", 
+    "task_name": "Meditation", 
+    "task_time": 3355
   }
   ```
+  
+
 
 ---
 

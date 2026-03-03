@@ -360,12 +360,12 @@ class LP5811:
     #initialization sequence for auto mode
     def init_auto(self):
         self.write_reg(CHIP_ENABLE_REGISTER, 0x01)   # Chip_Enable_Register
-        self.write_reg(DEV_CONFIG0_REGISTER, 0x00)   # Dev_Config0_Register current limit 25mA, set 0x00
+        self.write_reg(DEV_CONFIG0_REGISTER, 0x01)   # Dev_Config0_Register current limit 25mA, set 0x00 , 0x01
         self.write_reg(DEV_CONFIG1_REGISTER, 0x80)   # 24KHz pwm freq in direct drive mode
         self.write_reg(DEV_CONFIG3_REGISTER, 0x0F)   # auto mode, on all LED's
         self.write_reg(DEV_CONFIG5_REGISTER, 0x0F)   # Enable exponential curve dimming mode for all LED's
-        # lsd_threshold = 0.65Vcc, shut off if cathode voltage surpasses set amount. Also enabled short and open fault
-        self.write_reg(DEV_CONFIG12_REGISTER, 0x0D)   
+        
+        self.write_reg(DEV_CONFIG12_REGISTER, 0x00)   # lsd_threshold = 0.65Vcc, shut off if cathode voltage surpasses set amount. Also enabled short and open fault
         time.sleep_ms(5)
         self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)   # Update LED params
 
@@ -448,7 +448,6 @@ class LP5811:
                         led_num: int,
                         gs_start: int,
                         gs_end: int,
-                        pause_times: list,
                         duration_ms: list
                         ):
         """
@@ -459,37 +458,33 @@ class LP5811:
         gs_end   : ending PWM value (0–255)
         """
 
-        # Midpoint brightness
-        gs_mid = (gs_start + gs_end) // 2
-
         # Pause time + playback control
         # Pause at start = 2, pause at end = 2
         # Playback times = 0xF (infinite)
         # AEU_select = 3 → use AEU1 + AEU2 + AEU3
         self.aeu_pause_time_set(
             led_num=led_num,
-            pause_time_start=pause_times[0],
-            pause_time_end=pause_times[1],
+            pause_time_start=0, # does not matter for 1 AEU
+            pause_time_end=0, # does not matter for 1 AEU
             playback_times=0xF,#infinite playback
             aeu_select=0
         )
-
         # ---- AEU1 ---
         self.aeu_set(
             led_num=led_num,
             aeu_num=0,
-            pwm1=gs_start,pwm2=gs_mid,pwm3=gs_end,pwm4=gs_mid,pwm5=gs_start,
+            pwm1=gs_start,pwm2=gs_end,pwm3=gs_end,pwm4=gs_start,pwm5=gs_start,
             t1=duration_ms[0], t2=duration_ms[1], t3=duration_ms[2], t4=duration_ms[3],
             pt=0x03 # infinite playback
         )
     
-    def led_all_breathing(self, RGBW:list , duration_ms:list = [0x08,0x08,0x08,0x08] , pause_times:list = [0x08,0x08]):
+    def led_all_breathing(self, RGBW:list , duration_ms:list = [0x08,0x08,0x08,0x08]):
 
-        # self.aeu_pause_time_set(LED_NUM, 2, 2, 15, 3);//LED_NUM, Pause_Time_start, Pause_Time_end, Playback_Times, AEU_select
-        self.led_dot_breathing(LED0, 0, RGBW[0], pause_times, duration_ms)
-        self.led_dot_breathing(LED1, 0, RGBW[1], pause_times, duration_ms)
-        self.led_dot_breathing(LED2, 0, RGBW[2], pause_times, duration_ms)
-        self.led_dot_breathing(LED3, 0, RGBW[3], pause_times, duration_ms)
+        #RGBW gives target brightness for each LED
+        self.led_dot_breathing(LED0, 0, RGBW[0], duration_ms)
+        self.led_dot_breathing(LED1, 0, RGBW[1], duration_ms)
+        self.led_dot_breathing(LED2, 0, RGBW[2], duration_ms)
+        self.led_dot_breathing(LED3, 0, RGBW[3], duration_ms)
 
         self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)   # Update LED params
         time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting

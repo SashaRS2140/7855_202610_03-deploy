@@ -1,23 +1,24 @@
 # Sprint 2 Report
 
-**Format:** Add the markdown (`docs/sprint2-report.md`) to your repo and submit the PDF to Learning Hub  
-**Purpose:** This report is a **written companion** to your live demo. It summarizes **what you planned**, **what you delivered**, and **what you learned**.
+
 
 ---
 
 ## 1. Sprint Overview
 
-- **Your Team Name:** [**Team Name Here**]  
-- **Sprint 2 Dates:** [**Start → End**]  
+- **Your Team Name:** [**Team 2**]  
+- **Sprint 2 Dates:** [**10/02/2026 → 03/03/2026**]  
 - **Sprint Goal:** 
-    *Example: Implement feature X with **Firestore persistence** and **basic validation**.*
+    *Implement feature dashboard connection for timer implementation with **Firestore persistence** and **safe validation**. data should be personal to each user and users should be able to login via email.*
+
+    *Implement basic communication between ESP32 and FLASK SERVER using REST API*
 
 ---
 
 ## 2. Sprint Board
 
-**Sprint Board Link:** [**Paste your Trello/GitHub Project link here**]  
-**GitHub Repository Link:** [**Paste your repository link here**]
+**Sprint Board Link:** [**[Trello](https://trello.com/invite/b/697954d1883f9190e1c7a774/ATTIfb7fe3865b854744cbb2eac186a07e0aE569C07D/7855202610-3)**]  
+**GitHub Repository Link:** [[**Github**](https://github.com/BrycesDevices/7855_202610_03.git)]
 
 ---
 
@@ -25,23 +26,41 @@
 
 **Please provide a screenshot of your Sprint 2 board** (e.g., Trello, GitHub Projects) **filtered by each team member**. This makes the review concrete and shows shared ownership.
 
-- **[Member Name 1] Board Screenshot:**  
-  `images/sprint2-board-filter-[member-name-1].png`
+- **[Sasha Roosen-Saba] Board Screenshot:**  
+  ![alt text](image.png)
 
-- **[Member Name 2] Board Screenshot:**  
-  `images/sprint2-board-filter-[member-name-2].png`
+- **[Bryce Reid] Board Screenshot:**  
+  ![alt text](image-1.png)
 
+- **[Perry Zhuo] Board Screenshot:**  
+  ![alt text](image-4.png)
+- **[Kale Wyse] Board Screenshot:**  
 (Repeat for each member.)
 
 ---
 
 ### 2.2 Completed vs. Not Completed (Feature-Focused)
 
-Based on what you **plan** vs. what you **demoed**, summarize the state of your feature.
+**Plan** 
+SPRINT 2:
+
+- WEB UI FRAMEWORK PLACEHOLDERS
+- COMMUNICATION PROTOCOL BETWEEN CUBE AND SERVER VIA REST API
+(OR MOCK ‘CUBE’ CLIENT)
+- **DATABASE FRAMEWORK** - Ability to store necessary data on firebase securely
+- **Cube-Client Control** to Start, Stop session, & Reset session.
+- **Web-Client Control** Configure session time, task type, and color
+- **USER STORIES FOR BASIC FUNCTIONALITY** 
+	- As a user i want the cube to send start,pause, and stop signals to the webapp so that the app accurately tracks how long a cube has actively run a session. 
+	- As a user i want to the web app to send session time to the cube. So that session time can be easily changed.
+- **END-TO-END FEATURES**
+	- Web app knows how long cube has run for. 
+	- Web app can send how long cube should run. 
+
 
 **Completed in Sprint 2 (Feature)**
 
-- [ ] **Client** can trigger the feature and send input (e.g., POST `/feature`)
+- [ ] **Client** can trigger start stops and resets. 
 - [ ] **Server** exposes the endpoint with basic validation
 - [ ] **Firestore** integration: data is written to the database
 - [ ] **Server** can retrieve the stored data (GET from Firestore)
@@ -58,26 +77,34 @@ Based on what you **plan** vs. what you **demoed**, summarize the state of your 
 
 This is a **short technical summary** of the **end-to-end feature** you built.
 
-- **Feature:** [**Feature Name**]  
+- **Feature:** [**Cube Timer Control**]  
 - **Collection:** [**Firestore collection**] (e.g., `features`, `orders`, etc.)  
 - **What it does:** [1–2 sentence description]
+
+
+### Communication between REST API on ESP32 with TEST FLASK SERVER
+
+https://www.youtube.com/shorts/B0Q0dJrN8rY
+
+### Defined basic JSON payload required from CUBE
+
+TENTATIVE GET COMMAND
+
+![alt text](image-5.png)
+
+TENTATIVE POST COMMAND
+
+![alt text](image-6.png)
+
 
 ### Data Model (Firestore)
 
 - **Document shape:**  
   Example JSON that represents **one document** in the collection (or the schema you structured):
 
-  ```json
-  {
-    "id": "generated-id",
-    "userId": "firebase-uid",
-    "name": "Example Name",
-    "status": "pending",
-    "createdAt": "2026-01-01T12:00:00.000Z"
-  }
-  ```
+![alt text](image-3.png)
 
-  **Why this structure?** [Brief rationale: e.g., “We use `userId` to enforce per-user ownership, and `createdAt` for ordering.”]
+  **Why this structure?** We used Firebase Authentication to validate users via email. Then with unique generated uuids we store the information we need. For basica usage we store preset tasks, connected cubes, current session, and session history. 
 
 - **Input (Client → Server):**  
   Example JSON the client sends:
@@ -88,6 +115,7 @@ This is a **short technical summary** of the **end-to-end feature** you built.
     "status": "pending"
   }
   ```
+
 
 - **Output (Server → Client):**  
   Example response the client receives after a successful create or read:
@@ -126,21 +154,21 @@ Give a **high-level, end-to-end description** of the feature flow you demonstrat
 
 ### 5.1 What Went Well
 
-- [Item 1: e.g., “We got end-to-end persistence working faster than expected.”]
+- [Item 1: We were able to hit our targeted goals successfully in trello]
 - [Item 2: e.g., “We agreed on a consistent validation strategy for the request.”]
 - [Item 3: e.g., “Our team communication and coordination improved this sprint.”]
 
 ### 5.2 What Didn’t Go Well
 
-- [Item 1: e.g., “We underestimated the time needed to set up Firebase credentials and permissions.”]
+- [Item 1: planning was rushed, as a result documentation was a bit messy resulting in some communication errors]
 - [Item 2: e.g., “Our tests were delayed and didn’t cover all edge cases by demo time.”]
-- [Item 3: e.g., “We had integration friction between the client and server around payload format.”]
+
 
 ### 5.3 Key Takeaways & Sprint 3 Actions
 
 | Issue / Challenge | What We Learned | Action for Sprint 3 |
 |---|---|---|
-| [Issue 1] | [Learning] | [Action] |
+| [Rushing planning stage] | [Results in potential misuse of time implementing features that may not be required] | [spend more time ensuring architecture and documentation are done well before beginning work] |
 | [Issue 2] | [Learning] | [Action] |
 | [Issue 3] | [Learning] | [Action] |
 
@@ -149,7 +177,7 @@ Give a **high-level, end-to-end description** of the feature flow you demonstrat
 ## 6. Sprint 3 Preview
 
 Based on what we accomplished (and what we didn’t), here are the **next Sprint 3 priorities**:
-
-- [**Priority 1**: e.g., “Add user authentication and authorization so users can only access/modify their own feature data.”]
+ 
+- [**Priority 1**: e.g., "Finalize communication between SERVER and CUBE client”]
 - [**Priority 2**: e.g., “Expand testing coverage (unit + integration) and implement clearer error handling.”]
 - [**Priority 3**: e.g., “Improve read performance with pagination and/or where clauses.”]

@@ -26,7 +26,7 @@ class PiezoButton:
         threshold_high: int = 400,
         threshold_low: int = 50,
         baseline_alpha: float = 0.5,
-        settle_ms: int = 30,
+        settle_ms: int = 20,
         double_tap_ms: int = 1000
     ):
         # ADC setup

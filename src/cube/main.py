@@ -55,7 +55,7 @@ class CubeController:
         )
         # THE DIFFERENT MODES ARE PAUSE and RUNNING
         self.mode = MODE_PAUSE
-        self.stopWatchPresetTime = 20 * 60  # 20 minutes in seconds
+        self.stopWatchPresetTime = 20*60   # 20 minutes in seconds
 
     # ---------- Callbacks ----------
     def on_session_complete(self):
@@ -85,16 +85,7 @@ class CubeController:
     # ---------- Behavior ----------
     def handle_single_tap(self):
         print("Single tap")
-
-
         self.toggle_mode()
-
-        # Send REST command
-        success = self.network.send_command(self.mode)
-        if success:
-            print(str(self.mode) + " Command sent successfully")
-        else:
-            print(str(self.mode) + " Failed to send command")
 
         if self.mode == MODE_RUNNING:# then STOP
             self.lp.stop_cmd()
@@ -107,7 +98,12 @@ class CubeController:
             self.lp.led_all_breathing([255, 0, 0, 0])
             self.lp.start_cmd()
 
-
+        # Send REST command at end so it does not stop animation.
+        success = self.network.send_command(self.mode)
+        if success:
+            print(str(self.mode) + " Command sent successfully")
+        else:
+            print(str(self.mode) + " Failed to send command")
 
     def handle_double_tap(self):
         # Send REST command
@@ -142,7 +138,7 @@ class CubeController:
             elif press == 2:
                 self.handle_double_tap()
 
-            time.sleep_ms(5)
+            # time.sleep_ms(5)
 
 
 def main():

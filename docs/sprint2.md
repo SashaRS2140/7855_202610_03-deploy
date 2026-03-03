@@ -33,7 +33,7 @@
 - **[Perry Zhou] Board Screenshot:**  
   ![alt text](image-2.png)
 - **[Kale Wyse] Board Screenshot:**  
-![image-4.png](image-4.png)
+![image-kale.png](image-kale.png)
 
 ---
 

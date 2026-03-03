@@ -11,8 +11,6 @@
 - **Sprint Goal:** 
     *Implement feature dashboard connection for timer implementation with **Firestore persistence** and **safe validation**. data should be personal to each user and users should be able to login via email.*
 
-    *Implement basic communication between ESP32 and FLASK SERVER using REST API*
-
 ---
 
 ## 2. Sprint Board
@@ -32,10 +30,10 @@
 - **[Bryce Reid] Board Screenshot:**  
   ![alt text](image-1.png)
 
-- **[Perry Zhuo] Board Screenshot:**  
-  ![alt text](image-4.png)
+- **[Perry Zhou] Board Screenshot:**  
+  ![alt text](image-2.png)
 - **[Kale Wyse] Board Screenshot:**  
-(Repeat for each member.)
+![image-4.png](image-4.png)
 
 ---
 
@@ -44,34 +42,28 @@
 **Plan** 
 SPRINT 2:
 
-- WEB UI FRAMEWORK PLACEHOLDERS
-- COMMUNICATION PROTOCOL BETWEEN CUBE AND SERVER VIA REST API
-(OR MOCK ‘CUBE’ CLIENT)
-- **DATABASE FRAMEWORK** - Ability to store necessary data on firebase securely
-- **Cube-Client Control** to Start, Stop session, & Reset session.
-- **Web-Client Control** Configure session time, task type, and color
-- **USER STORIES FOR BASIC FUNCTIONALITY** 
+- **Web UI framework placeholders**
+- **communication protocol between server + cube**
+(or mock cube client)
+- **Database framework** - Ability to store necessary data on firebase securely
+- **Cube-Client control** to start, stop session, & reset session.
+- **Web-Client control** Configure session time, task type, and color
+- **User stories for basic functionality** 
 	- As a user i want the cube to send start,pause, and stop signals to the webapp so that the app accurately tracks how long a cube has actively run a session. 
 	- As a user i want to the web app to send session time to the cube. So that session time can be easily changed.
-- **END-TO-END FEATURES**
+- **End-to-End features**
 	- Web app knows how long cube has run for. 
 	- Web app can send how long cube should run. 
 
 
 **Completed in Sprint 2 (Feature)**
 
-- [ ] **Client** can trigger start stops and resets. 
-- [ ] **Server** exposes the endpoint with basic validation
-- [ ] **Firestore** integration: data is written to the database
+- [ ] **Web UI framework placeholders**
+- [ ] **Cube-Client control** can trigger start stops and resets. 
+- [ ] **Web-Client control** exposes the endpoint with basic validation
+- [ ] **Database framework** integration: data is written to the database
 - [ ] **Server** can retrieve the stored data (GET from Firestore)
-- [ ] **Basic Testing**: at least one test covering the happy path (or a validation test)
-- [ ] **Security/Secrets**: credentials are not committed; `.gitignore` excludes sensitive files (e.g., `serviceAccountKey.json`, `.env`)
 
-**Not Completed / Partially Completed**
-
-- [ ] [**Feature/Task Name**]: [Brief reason: e.g., under‑estimated complexity, credential setup, blocked by Firestore rules, time constraint, ran out of Sprint]
-
----
 
 ## 3. Technical Summary: What Was Implemented
 
@@ -80,22 +72,6 @@ This is a **short technical summary** of the **end-to-end feature** you built.
 - **Feature:** [**Cube Timer Control**]  
 - **Collection:** [**Firestore collection**] (e.g., `features`, `orders`, etc.)  
 - **What it does:** [1–2 sentence description]
-
-
-### Communication between REST API on ESP32 with TEST FLASK SERVER
-
-https://www.youtube.com/shorts/B0Q0dJrN8rY
-
-### Defined basic JSON payload required from CUBE
-
-TENTATIVE GET COMMAND
-
-![alt text](image-5.png)
-
-TENTATIVE POST COMMAND
-
-![alt text](image-6.png)
-
 
 ### Data Model (Firestore)
 
@@ -116,7 +92,6 @@ TENTATIVE POST COMMAND
   }
   ```
 
-
 - **Output (Server → Client):**  
   Example response the client receives after a successful create or read:
 
@@ -134,19 +109,34 @@ TENTATIVE POST COMMAND
 
 ## 4. End-to-End Flow (What Was Demoed)
 
-Give a **high-level, end-to-end description** of the feature flow you demonstrated. This is the same flow you walked through in the demo, in written form.
+**Every JSON request from the cube client is accompanied by the cube 
+UUID to link the session activity to a particular user profile.**
 
-1. **Client** sends a request to the server (e.g., POST `/feature`) with a valid **payload** (JSON).
-2. **Server** validates the input and **requires authentication** (JWT verification via Firebase Admin).
-3. **Server** creates or updates a document in **Firestore**, storing it under a collection (e.g., `/features`).
-4. **Client** receives a response (e.g., 201 or 200) with the stored data.
-5. **Client** requests the data (e.g., GET `/feature/:id`) and the server reads the document **specifically** from Firestore.
-6. **Server** returns the data to the client.
+**This is a brief description of the Cube client interacting with the server to start a task session**
+1. **Client** cube sends a reset request (e.g., POST `/feature`) with a valid **payload** (JSON).
+2. **Server** responds with a json with the current time and current task information
+3. **Client** Displays current task via GUI
+4. **Client** Start button is pressed on client GUI which sends a start task request to the server and Client starts a timer to measure time elapsed along with displaying the task has begun via a faux LED in the GUI.
+5. **Server** Once server receives a start task, the server starts a timer to measure elapsed time for web-app display and returns a json to the client that the task has started.
+6. **Client** Once client elapsed timer = the task_preset time an 'alert!' is displayed via the GUI.
+7. **Client** Once the stop button is pressed the client checks if a task is running (client does nothing if task has not been started) and sends a json stop request to the server which has the elapsed time within the json payload.
+8. **Server** Server sends a json POST request to the database with the task_name and elapsed time which is saved in latest session database.
 
-**Bounded Read:** In Sprint 2, you were required to demonstrate a **bounded read** (e.g., `.limit()`, `.where()`, or pagination). Describe what you implemented:
+**This is a brief description of the Web-app client interacting with the server to change the current task**
+1. **Client** On the web-app client the user selects a different task from the drop down menu this sends a POST with a valid **payload** (JSON) of the new task to update the current active task.
+2. **Server** The server validates the uid for authentication
+3. **Server** The server updates the database current_task section.
+4. **Server** The server updates the databases task_time section to correlate with the task selected.
 
-- **What you did:** [e.g., “We used Firestore `.limit(10)` to fetch a maximum of 10 items per request.”]
-- **Why this matters:** [e.g., “This prevents unbounded scans, protects cost, and improves performance as data grows.”]
+
+- **Bounded Read:** In Sprint 2, you were required to demonstrate a **bounded read** (e.g., `.limit()`, `.where()`, or pagination). Describe what you implemented:
+
+
+- **What you did:** 
+- Bound email data to 50 characters, task names to 30 characters : these were done to disable users from adding names of 'infinite' length to prevent attempting to store very large files.
+- Bound task time to 99 minutes to prevent users from adding task times of 'infinte' time
+- Bound task colour to values within the RGB hex values so users were not adding invalid colours to the cube itself.
+
 
 ---
 
@@ -154,21 +144,21 @@ Give a **high-level, end-to-end description** of the feature flow you demonstrat
 
 ### 5.1 What Went Well
 
-- [Item 1: We were able to hit our targeted goals successfully in trello]
+- [Item 1: e.g., “We got end-to-end persistence working faster than expected.”]
 - [Item 2: e.g., “We agreed on a consistent validation strategy for the request.”]
 - [Item 3: e.g., “Our team communication and coordination improved this sprint.”]
 
 ### 5.2 What Didn’t Go Well
 
-- [Item 1: planning was rushed, as a result documentation was a bit messy resulting in some communication errors]
+- [Item 1: e.g., “We underestimated the time needed to set up Firebase credentials and permissions.”]
 - [Item 2: e.g., “Our tests were delayed and didn’t cover all edge cases by demo time.”]
-
+- [Item 3: e.g., “We had integration friction between the client and server around payload format.”]
 
 ### 5.3 Key Takeaways & Sprint 3 Actions
 
 | Issue / Challenge | What We Learned | Action for Sprint 3 |
 |---|---|---|
-| [Rushing planning stage] | [Results in potential misuse of time implementing features that may not be required] | [spend more time ensuring architecture and documentation are done well before beginning work] |
+| [Issue 1] | [Learning] | [Action] |
 | [Issue 2] | [Learning] | [Action] |
 | [Issue 3] | [Learning] | [Action] |
 
@@ -177,7 +167,7 @@ Give a **high-level, end-to-end description** of the feature flow you demonstrat
 ## 6. Sprint 3 Preview
 
 Based on what we accomplished (and what we didn’t), here are the **next Sprint 3 priorities**:
- 
-- [**Priority 1**: e.g., "Finalize communication between SERVER and CUBE client”]
+
+- [**Priority 1**: e.g., “Add user authentication and authorization so users can only access/modify their own feature data.”]
 - [**Priority 2**: e.g., “Expand testing coverage (unit + integration) and implement clearer error handling.”]
 - [**Priority 3**: e.g., “Improve read performance with pagination and/or where clauses.”]

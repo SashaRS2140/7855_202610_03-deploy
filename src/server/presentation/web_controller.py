@@ -2,7 +2,7 @@ import os
 import json
 import time
 from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash, jsonify
-from server.services.session_services import create_firebase_user, require_json_content_type, validate_profile, normalize_profile, WEB_API_KEY, validate_login_data
+from src.server.services.session_services import create_firebase_user, require_json_content_type, validate_profile, normalize_profile, WEB_API_KEY, validate_login_data
 from firebase_admin import auth
 from functools import wraps
 
@@ -121,6 +121,55 @@ def signup():
     return redirect(url_for("web.login"))
 
 
+@web_bp.route("/logout")
+@login_required
+def logout():
+    """Clear the session and return to login."""
+    session.clear()
+    return redirect(url_for('web.login'))
+
+
+@web_bp.route("/task/timer")
+@login_required
+def stream_timer():
+    timer = get_timer_service()
+
+    def format_mmss(seconds):
+        minutes = seconds // 60
+        secs = seconds % 60
+        return f"{minutes:02d}:{secs:02d}"
+
+    def event_stream():
+        while True:
+            elapsed = timer.get_elapsed()
+            target = timer.get_target()
+
+            if elapsed < target:
+                # countdown phase
+                display_seconds = target - elapsed
+                mode = "countdown"
+            else:
+                # overtime phase (count up past zero)
+                display_seconds = elapsed - target
+                mode = "overtime"
+
+            payload = {
+                "display_seconds": display_seconds,
+                "display_mmss": format_mmss(display_seconds),
+                "mode": mode,
+                "elapsed": elapsed,
+                "target": target
+            }
+
+            yield f"data: {json.dumps(payload)}\n\n"
+            time.sleep(1)
+
+    return Response(event_stream(), mimetype="text/event-stream")
+
+
+# -----Below in Progress-----#
+
+
 @web_bp.route("/delete/profile", methods=["GET","POST"])
 def delete_profile():
     if not session.get("logged_in"):
@@ -140,13 +189,6 @@ def delete_user():
 
     return redirect(url_for("web.login"))
 
-
-@web_bp.route("/logout")
-@login_required
-def logout():
-    """Clear the session and return to login."""
-    session.clear()
-    return redirect(url_for('web.login'))
 
 ### FIX LATER ###
 @web_bp.route("/profile", methods=["GET", "POST"])
@@ -184,82 +226,9 @@ def profile():
     return render_template("profile.html", profile=svc.get_profile(username))
 
 
-@web_bp.route("/task/current", methods=["POST"])
-def set_task():
-    svc = get_session_service()
-    timer = get_timer_service()
-
-    username = session.get("username")
-
-    if not username:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    content_error = require_json_content_type()
-    if content_error:
-        return content_error
-
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
-
-    task_name = data.get("task_name")
-    if not task_name:
-        return jsonify({"error": "task name required"}), 400
-
-    preset_data = svc.get_task_preset(username, task_name)
-
-    if not preset_data:
-        return jsonify({"error": "Preset not found"}), 404
-
-    svc.set_current_task(username, task_name)
-
-    task_time = preset_data.get("task_time")
-
-    timer.reset(task_time)
-
-    return jsonify({"current_task": task_name}), 200
-
-
 @web_bp.route("/home/color", methods=["GET", "POST"])
 def update_color():
     pass
-
-
-@web_bp.route("/task/timer")
-def stream_timer():
-    timer = get_timer_service()
-
-    def format_mmss(seconds):
-        minutes = seconds // 60
-        secs = seconds % 60
-        return f"{minutes:02d}:{secs:02d}"
-
-    def event_stream():
-        while True:
-            elapsed = timer.get_elapsed()
-            target = timer.get_target()
-
-            if elapsed < target:
-                # countdown phase
-                display_seconds = target - elapsed
-                mode = "countdown"
-            else:
-                # overtime phase (count up past zero)
-                display_seconds = elapsed - target
-                mode = "overtime"
-
-            payload = {
-                "display_seconds": display_seconds,
-                "display_mmss": format_mmss(display_seconds),
-                "mode": mode,
-                "elapsed": elapsed,
-                "target": target
-            }
-
-            yield f"data: {json.dumps(payload)}\n\n"
-            time.sleep(1)
-
-    return Response(event_stream(), mimetype="text/event-stream")
 
 
 @web_bp.route("/test")

@@ -76,19 +76,40 @@ def validate_preset(data: dict):
     # Type / Value Validation for task_time
     task_time = data.get("task_time", "")
 
-    if isinstance(task_time, int):
-        if task_time <= 0:
+    if task_time:
+        if isinstance(task_time, int):
+            if task_time <= 0:
+                errors.append("Task time must be a positive integer")
+            if task_time > 5940:
+                errors.append("Task time must be less then 99 minutes")
+        else:
             errors.append("Task time must be a positive integer")
-        if task_time > 5940:
-            errors.append("Task time must be less then 99 minutes")
-    else:
-        errors.append("Task time must be a positive integer")
 
     # Pattern Validation for task_color
     task_color = data.get("task_color", "")
 
-    if not isinstance(task_color, str) or not re.compile(r"^#[0-9a-fA-F]{6}$").fullmatch(task_color):
-        errors.append("Task color must be a valid hex RGB string (e.g., '#0000ff')")
+    if task_color:
+        if not isinstance(task_color, str) or not re.compile(r"^#[0-9a-fA-F]{6}$").fullmatch(task_color):
+            errors.append("Task color must be a valid hex RGB string (e.g., '#0000ff')")
+
+    return errors  # Return ALL errors
+
+
+def validate_user_info(data: dict):
+    errors = []
+    allowed = {"first_name", "last_name"}
+
+    # Whitelist Check - reject unknown fields
+    if unknown := set(data.keys()) - allowed:
+        errors.append(f"Unknown fields: {unknown}")
+
+    # Bounds Checking - enforce length limits
+    if len(data.get("last_name", "")) > 50:
+        errors.append("last name must be 50 chars or less")
+
+    # Bounds Checking - enforce length limits
+    if len(data.get("first_name", "")) > 50:
+        errors.append("first must be 50 chars or less")
 
     return errors  # Return ALL errors
 
@@ -134,23 +155,58 @@ class SessionService:
 
     def save_user_info(self, uid: str, user_info: dict[str, str]):
         """Saves user information in database."""
-        self.repo.save_user_info_data({uid, user_info})
+        self.repo.save_user_info_data(uid, user_info)
+
+
+    def get_user_info(self, uid: str, field: str):
+        """Reads a specific user information field from the database."""
+        return self.repo.get_user_info_data(uid, field)
+
+
+    def get_all_user_info(self, uid: str):
+        """Reads all user information from the database."""
+        return self.repo.get_all_user_info_data(uid)
+
+
+    def save_cube_uuid(self, uid: str, cube_uuid: str):
+        self.repo.save_cube_uuid_data(uid, cube_uuid)
 
 
     def get_profile(self, uid: str):
+        """Reads all user profile data from the database."""
         return self.repo.get_profile_data(uid) or {}
 
 
-    def get_task_preset(self, uid, task_name):
+    def get_task_preset(self, uid: str, task_name: str):
         return self.repo.get_task_preset_data(uid, task_name)
 
 
-    def get_all_task_presets(self, uid):
+    def get_all_task_presets(self, uid: str):
         return self.repo.get_all_task_presets_data(uid)
 
 
-    def update_task_preset(self, uid, task_name, preset_data):
+    def update_task_preset(self, uid: str, task_name: str, preset_data: dict):
         self.repo.update_task_preset_data(uid, task_name, preset_data)
+
+
+    def delete_task_preset(self, uid: str, task_name: str):
+        self.repo.delete_task_preset_data(uid, task_name)
+
+
+    def set_current_task(self, uid: str, task_name: str):
+        self.repo.set_current_task_data(uid, task_name)
+
+
+    def get_current_task(self, uid: str):
+        return self.repo.get_current_task_data(uid)
+
+
+    def get_session(self, uid: str):
+        return self.repo.get_session_data(uid)
+
+
+    def save_session(self, uid: str, task: str, elapsed_time: int):
+        self.repo.save_session_data(uid, task, elapsed_time)
 
 
     # -----Below in Progress-----#
@@ -165,11 +221,6 @@ class SessionService:
             password.encode("utf-8"),
             user["password_hash"].encode("utf-8")
         )
-
-
-    def get_all_profiles(self):
-        """Prepares data for the dashboard."""
-        return self.repo.get_all_profile_data()
 
 
     def save_profile(self, uid, profile_data):
@@ -193,24 +244,4 @@ class SessionService:
 
 
 
-
-
-    def delete_task_preset(self, uid, task_name):
-        self.repo.delete_task_preset_data(uid, task_name)
-
-
-    def set_current_task(self, uid, task_name):
-        self.repo.set_current_task_data(uid, task_name)
-
-
-    def get_current_task(self, uid):
-        return self.repo.get_current_task_data(uid)
-
-
-    def save_session(self, uid, task, elapsed_time):
-        self.repo.save_session_data(uid, task, elapsed_time)
-
-
-    def get_session(self, uid):
-        return self.repo.get_session_data(uid)
 

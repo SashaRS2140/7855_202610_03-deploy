@@ -19,6 +19,7 @@ class Repository:
         self.db = firestore.client()
         # Define references to collections
         self.user_profiles = self.db.collection("user_profiles")
+        self.cubes = self.db.collection("cubes")
 
 
     def save_user_info_data(self, uid: str, user_info: dict[str, str]):
@@ -26,7 +27,36 @@ class Repository:
         self.user_profiles.document(uid).set({"user_info": user_info}, merge=True)
 
 
-    def get_profile_data(self, uid):
+    def get_user_info_data(self, uid: str, field: str):
+        doc = self.user_profiles.document(uid).get()
+        if not doc.exists:
+            return None
+
+        user_info = doc.to_dict().get("user_info")
+        if not user_info:
+            return None
+
+        if not field in user_info:
+            return None
+        return user_info.get(field)
+
+
+    def get_all_user_info_data(self, uid: str):
+        doc = self.user_profiles.document(uid).get()
+        if not doc.exists:
+            return None
+
+        user_info = doc.to_dict().get("user_info")
+        if not user_info:
+            return None
+        return user_info
+
+
+    def save_cube_uuid_data(self, uid: str, cube_uuid: str):
+        self.cubes.document(cube_uuid).set({"user uid": uid}, merge=True)
+
+
+    def get_profile_data(self, uid: str):
         """Finds a single user profile by username."""
         # Use the username directly as the document ID
         doc = self.user_profiles.document(uid).get()
@@ -35,7 +65,7 @@ class Repository:
         return None
 
 
-    def get_task_preset_data(self, uid, task):
+    def get_task_preset_data(self, uid: str, task: str):
         doc = self.user_profiles.document(uid).get()
         if not doc.exists:
             return None
@@ -49,7 +79,7 @@ class Repository:
         return presets.get(task)
 
 
-    def get_all_task_presets_data(self, uid):
+    def get_all_task_presets_data(self, uid: str):
         doc = self.user_profiles.document(uid).get()
         if not doc.exists:
             return None
@@ -60,7 +90,7 @@ class Repository:
         return presets
 
 
-    def update_task_preset_data(self, uid, task, preset_data):
+    def update_task_preset_data(self, uid: str, task: str, preset_data: dict):
         doc_ref = self.user_profiles.document(uid)
         doc = doc_ref.get()
 
@@ -74,13 +104,46 @@ class Repository:
         doc_ref.set({"presets": presets}, merge=True)
 
 
-    # -----Below in Progress-----#
+    def delete_task_preset_data(self, uid: str, task: str):
+        self.user_profiles.document(uid).update({
+            f"presets.{task}": DELETE_FIELD
+        })
 
-    def get_all_profile_data(self):
-        """Returns all user profiles as a list of dictionaries."""
-        docs = self.user_profiles.stream()
-        # Convert each document snapshot to a dictionary
-        return [doc.to_dict() for doc in docs]
+
+    def set_current_task_data(self, uid: str, task_name: str):
+        doc_ref = self.user_profiles.document(uid)
+        doc_ref.set({"current_task": task_name}, merge=True)
+
+
+    def get_current_task_data(self, uid: str):
+        doc = self.user_profiles.document(uid).get()
+        if not doc.exists:
+            return None
+
+        current_task = doc.to_dict().get("current_task")
+        if not current_task:
+            return None
+        return current_task
+
+
+    def get_session_data(self, uid: str):
+        doc = self.user_profiles.document(uid).get()
+        if not doc.exists:
+            return None
+
+        session_history = doc.to_dict().get("session_history")
+        if not session_history:
+            return None
+        return session_history
+
+
+    def save_session_data(self, uid: str, task: str, elapsed_time: int):
+        doc_ref = self.user_profiles.document(uid)
+        data = {"task": task, "elapsed_time": elapsed_time}
+        doc_ref.set({"session_history": data}, merge=True)
+
+
+    # -----Below in Progress-----#
 
 
     def save_profile_data(self, uid, data):
@@ -116,59 +179,3 @@ class Repository:
     def delete_user_data(self, uid):
         """Deletes a user auth document."""
         self.user_profiles.document(uid).delete()
-
-
-    def delete_task_preset_data(self, uid, task):
-        self.user_profiles.document(uid).update({
-            f"presets.{task}": DELETE_FIELD
-        })
-
-
-    def set_current_task_data(self, uid, task_name):
-        doc_ref = self.user_profiles.document(uid)
-        doc_ref.set({"current_task": task_name}, merge=True)
-
-
-    def get_current_task_data(self, uid):
-        doc = self.user_profiles.document(uid).get()
-        if not doc.exists:
-            return None
-
-        current_task = doc.to_dict().get("current_task")
-        if not current_task:
-            return None
-        return current_task
-
-
-    def save_session_data(self, uid, task, elapsed_time):
-        doc_ref = self.user_profiles.document(uid)
-        data = {"task": task, "elapsed_time": elapsed_time}
-        doc_ref.set({"session_history": data}, merge=True)
-
-
-    def get_session_data(self, uid):
-        doc = self.user_profiles.document(uid).get()
-        if not doc.exists:
-            return None
-
-        session_history = doc.to_dict().get("session_history")
-        if not session_history:
-            return None
-        return session_history
-
-
-    # CURRENTLY UNUSED #
-    def set_cube_uuid_data(self, uid, cube_uuid):
-        doc_ref = self.user_profiles.document(uid)
-        doc_ref.set({"cube_uuid": cube_uuid}, merge=True)
-
-    # CURRENTLY UNUSED #
-    def get_cube_uuid_data(self, uid):
-        doc = self.user_profiles.document(uid).get()
-        if not doc.exists:
-            return None
-
-        current_task = doc.to_dict().get("current_task")
-        if not current_task:
-            return None
-        return current_task

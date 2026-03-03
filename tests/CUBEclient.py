@@ -6,6 +6,7 @@ import json
 
 SERVER_URL = "http://127.0.0.1:5000/api/task/control"
 
+
 # ----- Dark Mode Colors -----
 BG_COLOR = "#1e1e1e"
 FG_COLOR = "#ffffff"
@@ -16,6 +17,7 @@ BUTTON_ACTIVE = "#3a3a3a"
 TEXT_BG = "#252526"
 ALERT_COLOR = "#ff3333"
 
+
 class CubeSimulatorGUI:
     def __init__(self, root):
         self.root = root
@@ -23,7 +25,7 @@ class CubeSimulatorGUI:
         self.root.configure(bg=BG_COLOR)
 
         # ---- Cube Identity ----
-        self.cube_uuid = "bryce_r"
+        self.cube_uuid = "50425bf2a120a1bcb4247cad8aab2449a3c196620c2388e2cf1a90c5437540dd"
 
         # ---- State ----
         self.state = "stopped"
@@ -107,6 +109,7 @@ class CubeSimulatorGUI:
         # Auto-fetch config
         self.on_reset()
 
+
     # ---------- LED Control ----------
     def set_led(self, on: bool):
         if on:
@@ -116,10 +119,12 @@ class CubeSimulatorGUI:
             self.led_canvas.itemconfig(self.led_rect, fill=ACCENT_DIM)
             self.led_canvas.itemconfig(self.led_text, text="OFF")
 
+
     # ---------- Timer Logic ----------
     def start_timer(self):
         if self.timer_job is None:
             self._tick()
+
 
     def _tick(self):
         self.elapsed_seconds += 1
@@ -132,10 +137,12 @@ class CubeSimulatorGUI:
 
         self.timer_job = self.root.after(1000, self._tick)
 
+
     def stop_timer(self):
         if self.timer_job is not None:
             self.root.after_cancel(self.timer_job)
             self.timer_job = None
+
 
     def reset_timer(self):
         self.stop_timer()
@@ -144,22 +151,25 @@ class CubeSimulatorGUI:
         self.alert_label.config(text="")
         self.alert_active = False
 
+
     def update_elapsed_display(self):
         m = self.elapsed_seconds // 60
         s = self.elapsed_seconds % 60
         self.elapsed_var.set(f"{m:02d}:{s:02d}")
+
 
     # ---------- Button Handlers ----------
     def on_start(self):
         if self.state != "reset":
             return
 
-        payload = {"action": "start", "cube_uuid": self.cube_uuid}
+        payload = {"action": "start"}
         self.send_request(payload)
 
         self.state = "running"
         self.set_led(True)
         self.start_timer()
+
 
     def on_stop(self):
         if self.state != "running":
@@ -167,7 +177,6 @@ class CubeSimulatorGUI:
 
         payload = {
             "action": "stop",
-            "cube_uuid": self.cube_uuid,
             "elapsed_seconds": self.elapsed_seconds
         }
         self.send_request(payload)
@@ -176,32 +185,47 @@ class CubeSimulatorGUI:
         self.set_led(False)
         self.stop_timer()
 
+
     def on_reset(self):
         if self.state == "running":
             return
 
-        payload = {"action": "reset", "cube_uuid": self.cube_uuid}
+        payload = {"action": "reset"}
         self.send_request(payload)
 
         self.reset_timer()
         self.set_led(False)
         self.state = "reset"
 
+
     # ---------- Networking ----------
     def send_request(self, payload):
         threading.Thread(target=self._request_worker, args=(payload,), daemon=True).start()
 
+
     def _request_worker(self, payload):
         try:
-            response = requests.post(SERVER_URL, json=payload)
+            headers = {
+                "X-API-KEY": self.cube_uuid,
+                "Content-Type": "application/json"
+            }
+
+            response = requests.post(
+                SERVER_URL,
+                json=payload,
+                headers=headers
+            )
+
             if response.headers.get("Content-Type", "").startswith("application/json"):
                 data = response.json()
                 self.root.after(0, self.handle_server_response, data)
                 self.log(f"Server: {json.dumps(data)}")
             else:
                 self.log(f"Server returned non-JSON: {response.text}")
+
         except Exception as e:
             self.log(f"Request error: {e}")
+
 
     def handle_server_response(self, data):
         task_name = data.get("task_name")
@@ -215,6 +239,7 @@ class CubeSimulatorGUI:
             minutes = task_time // 60
             seconds = task_time % 60
             self.task_time_var.set(f"{minutes:02d}:{seconds:02d}")
+
 
     # ---------- Display ----------
     def log(self, message):

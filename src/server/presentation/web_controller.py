@@ -2,7 +2,7 @@ import os
 import json
 import time
 from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, Response, flash, jsonify
-from src.server.services.session_services import create_firebase_user, require_json_content_type, validate_profile, normalize_profile, WEB_API_KEY, validate_login_data
+from src.server.services.session_services import validate_preset, create_firebase_user, require_json_content_type, validate_profile, normalize_profile, WEB_API_KEY, validate_login_data
 from firebase_admin import auth
 from functools import wraps
 
@@ -165,6 +165,159 @@ def stream_timer():
             time.sleep(1)
 
     return Response(event_stream(), mimetype="text/event-stream")
+
+
+#--- TEMP WEB API ---#
+
+
+@web_bp.post("/task/current")
+def set_task():
+    """Set the current active task."""
+    svc = get_session_service()
+
+    # Get current user uid
+    uid = session["uid"]
+
+    # Check for content error
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Parsing data from json
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Checking
+    task_name = data.get("task_name").strip().title()
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    preset_data = svc.get_task_preset(uid, task_name)
+
+    if not preset_data:
+        return jsonify({"error": "Preset not found"}), 404
+
+    svc.set_current_task(uid, task_name)
+
+    task_time = preset_data.get("task_time")
+    timer = get_timer_service()
+    timer.reset(task_time)
+
+    return jsonify({"current_task": task_name}), 200
+
+
+@web_bp.post("/profile/preset")
+def create_preset():
+    """Create new preset task configuration from a JSON body."""
+    svc = get_session_service()
+
+    # Get current user uid
+    uid = session["uid"]
+
+    # Check Content-Type header
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Extract data from JSON
+    data = request.get_json(silent=True) or {}
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Validate input data
+    error = validate_preset(data)
+    if error:
+        return jsonify({"error": error}), 400
+
+    # Organize preset task data
+    task_name = data.get("task_name").strip().title()
+    if not task_name:
+        return jsonify({"error": "task name required"}), 400
+
+    task_time = data.get("task_time")
+    if not task_time:
+        return jsonify({"error": "task time required"}), 400
+
+    task_color = data.get("task_color").lower()
+    if not task_color:
+        return jsonify({"error": "task color required"}), 400
+
+    preset_data = {
+        "task_time": task_time,
+        "task_color": task_color,
+    }
+
+    # Save new preset task in database
+    svc.update_task_preset(uid, task_name, preset_data)
+
+    return jsonify({f"{task_name}": preset_data,}), 201
+
+
+@web_bp.get("/task/current")
+def get_task():
+    """Get the current active task name."""
+    svc = get_session_service()
+
+    # Get current user uid
+    uid = session["uid"]
+
+    current_task = svc.get_current_task(uid)
+
+    if not current_task:
+        return jsonify({"error": "Current task not set"}), 400
+
+    return jsonify({"current_task": current_task}), 200
+
+
+@web_bp.put("/profile/preset")
+def update_preset():
+    """Update preset task configuration from a JSON body."""
+    svc = get_session_service()
+
+    # Get current user uid
+    uid = session["uid"]
+
+    # Check Content-Type header
+    content_error = require_json_content_type()
+    if content_error:
+        return content_error
+
+    # Extract data from JSON
+    data = request.get_json(silent=True) or {}
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    # Validate input data
+    error = validate_preset(data)
+    if error:
+        return jsonify({"error": error}), 400
+
+    # Prepare updated preset task data (only include provided fields)
+    task_name = data.get("task_name").strip().title()
+    if not task_name:
+        return jsonify({"error": "Task name required"}), 400
+
+    # Check for existing preset
+    preset_data = svc.get_task_preset(uid, task_name)
+    if not preset_data:
+        return jsonify({"error": "Task not found"}), 404
+
+    task_time = data.get("task_time")
+    task_color = data.get("task_color")
+
+    updated_preset_data = {}
+    if task_time is not None:
+        updated_preset_data["task_time"] = task_time if task_time else ""
+    if task_color is not None:
+        updated_preset_data["task_color"] = task_color.lower() if task_color else ""
+
+    # Save updated preset task in database
+    svc.update_task_preset(uid, task_name, updated_preset_data)
+
+    # Return updated task with all fields
+    preset_data = svc.get_task_preset(uid, task_name)
+    return jsonify({f"{task_name}": preset_data,}), 200
 
 
 # -----Below in Progress-----#

@@ -84,6 +84,12 @@ def task_control():
     timer = get_timer_service()
     sess_svc = get_session_service()
 
+    # Extract associated user account from CUBE UUID
+    cube_uuid = request.headers.get("X-API-Key")
+    uid = sess_svc.get_cube_user(cube_uuid)
+    if not uid:
+        return jsonify({"error": "Cube not registered with user account"}), 401
+
     # Check Content-Type header
     content_error = require_json_content_type()
     if content_error:
@@ -93,6 +99,7 @@ def task_control():
     data = request.get_json()
     if not data:
         return jsonify({"error": "Invalid JSON"}), 400
+
 
     action = data.get("action")
     elapsed_time = data.get("elapsed_seconds")
@@ -592,12 +599,6 @@ def api_save_cube():
     svc.save_cube_uuid(uid, cube_uuid)
 
     return jsonify({"cube_uuid": cube_uuid}), 200
-
-
-@api_bp.route("/profile/cube/<cube_uuid>", methods=["GET"])
-def api_get_cube_user(cube_uuid):
-    pass
-
 
 
 #-----Below in Progress-----#

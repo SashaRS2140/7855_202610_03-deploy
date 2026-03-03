@@ -55,6 +55,16 @@ class Repository:
     def save_cube_uuid_data(self, uid: str, cube_uuid: str):
         self.cubes.document(cube_uuid).set({"user uid": uid}, merge=True)
 
+    def get_cube_user_data(self, cube_uuid: str):
+        doc = self.cubes.document(cube_uuid).get()
+        if not doc.exists:
+            return None
+
+        uid = doc.to_dict().get("user uid")
+        if not uid:
+            return None
+        return uid
+
 
     def get_profile_data(self, uid: str):
         """Finds a single user profile by username."""

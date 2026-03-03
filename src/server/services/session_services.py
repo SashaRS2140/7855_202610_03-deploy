@@ -172,6 +172,10 @@ class SessionService:
         self.repo.save_cube_uuid_data(uid, cube_uuid)
 
 
+    def get_cube_user(self, cube_uuid: str):
+        return self.repo.get_cube_user_data(cube_uuid)
+
+
     def get_profile(self, uid: str):
         """Reads all user profile data from the database."""
         return self.repo.get_profile_data(uid) or {}

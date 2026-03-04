@@ -100,7 +100,6 @@ def task_control():
     if not data:
         return jsonify({"error": "Invalid JSON"}), 400
 
-
     action = data.get("action")
     elapsed_time = data.get("elapsed_seconds")
 

@@ -32,8 +32,9 @@
 - **[Bryce Reid] Board Screenshot:**  
   ![alt text](image-1.png)
 
-- **[Perry Zhou] Board Screenshot:**  
-  ![alt text](image-2.png)
+- **[Perry Zhuo] Board Screenshot:**  
+  ![alt text](image-4.png)
+  
 - **[Kale Wyse] Board Screenshot:**  
 ![image-kale.png](image-kale.png)
 
@@ -73,6 +74,21 @@ SPRINT 2:
 ## 3. Technical Summary: What Was Implemented
 
 This is a **short technical summary** of the **end-to-end feature** you built.
+
+
+### Communication between REST API on ESP32 with TEST FLASK SERVER
+
+https://www.youtube.com/shorts/B0Q0dJrN8rY
+
+### Defined basic JSON payload required from CUBE
+
+TENTATIVE GET COMMAND
+
+![alt text](image-5.png)
+
+TENTATIVE POST COMMAND
+
+![alt text](image-6.png)
 
 - **Feature:** **Cube Client Simulator - Start Task**
 - **Collection:** N/A  
@@ -229,21 +245,21 @@ UUID to link the session activity to a particular user profile.**
 
 ### 5.1 What Went Well
 
-- [Item 1: e.g., “We got end-to-end persistence working faster than expected.”]
+- [Item 1: We were able to hit our targeted goals successfully in trello]
 - [Item 2: e.g., “We agreed on a consistent validation strategy for the request.”]
 - [Item 3: e.g., “Our team communication and coordination improved this sprint.”]
 
 ### 5.2 What Didn’t Go Well
 
-- [Item 1: e.g., “We underestimated the time needed to set up Firebase credentials and permissions.”]
+- [Item 1: planning was rushed, as a result documentation was a bit messy resulting in some communication errors]
 - [Item 2: e.g., “Our tests were delayed and didn’t cover all edge cases by demo time.”]
-- [Item 3: e.g., “We had integration friction between the client and server around payload format.”]
+
 
 ### 5.3 Key Takeaways & Sprint 3 Actions
 
 | Issue / Challenge | What We Learned | Action for Sprint 3 |
 |---|---|---|
-| [Issue 1] | [Learning] | [Action] |
+| [Rushing planning stage] | [Results in potential misuse of time implementing features that may not be required] | [spend more time ensuring architecture and documentation are done well before beginning work] |
 | [Issue 2] | [Learning] | [Action] |
 | [Issue 3] | [Learning] | [Action] |
 
@@ -252,7 +268,7 @@ UUID to link the session activity to a particular user profile.**
 ## 6. Sprint 3 Preview
 
 Based on what we accomplished (and what we didn’t), here are the **next Sprint 3 priorities**:
-
-- [**Priority 1**: e.g., “Add user authentication and authorization so users can only access/modify their own feature data.”]
+ 
+- [**Priority 1**: e.g., "Finalize communication between SERVER and CUBE client”]
 - [**Priority 2**: e.g., “Expand testing coverage (unit + integration) and implement clearer error handling.”]
 - [**Priority 3**: e.g., “Improve read performance with pagination and/or where clauses.”]

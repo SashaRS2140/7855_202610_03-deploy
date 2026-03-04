@@ -71,7 +71,7 @@ async function syncCurrentTask() {
     if (!taskSelect) return;
 
     try {
-        const res = await fetch("/api/task/current");
+        const res = await fetch("/task/current");
         if (!res.ok) return;
 
         const data = await res.json();
@@ -253,7 +253,7 @@ if (saveNewTaskBtn) {
 
         try {
             // FIX: Added /api prefix
-            const res = await fetch("/api/profile/preset", {
+            const res = await fetch("/profile/preset", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -291,7 +291,7 @@ if (saveNewTaskBtn) {
                 setTimeout(() => timerDisplay.classList.remove("flash-success"), 1000);
 
                 // Set as active task
-                await fetch("/api/task/current", {
+                await fetch("/task/current", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ task_name: taskName })
@@ -315,7 +315,7 @@ if (saveTimerBtn) {
 
         try {
             // FIX: Added /api prefix
-            const res = await fetch("/api/profile/preset", {
+            const res = await fetch("/profile/preset", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -340,7 +340,7 @@ if (saveTimerBtn) {
                 setTimeout(() => timerDisplay.classList.remove("flash-success"), 1000);
 
                 // Update the timer service backend
-                await fetch("/api/task/current", {
+                await fetch("/task/current", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ task_name: currentTask })

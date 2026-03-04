@@ -58,9 +58,20 @@ SPRINT 2:
 	- As a user i want to the web app to send session time to the cube. So that session time can be easily changed.
 - **END-TO-END FEATURES**
 	
-  - Web app knows how long cube has run for. 
-	- Web app can configure task times
+  *Cube Client Simulator*
+   - Start Task
+   - Stop Task
+   - Reset Task
 
+
+  *Web App*
+  - Set Current Task
+  - Create Preset Task
+  - Update Current Task Time
+  - Display Timer
+  
+
+  *Cube Timer Control*
 
 **Completed in Sprint 2 (Feature)**
 
@@ -113,8 +124,8 @@ Display timer is controlled by CUBE client start, stop, & reset signals.
 
 
 ### **Feature:** [**Cube Timer Control**]  
-- **Collection:** [**Firestore collection**] (e.g., `features`, `orders`, etc.)  
-- **What it does:** [1–2 sentence description]
+- **Collection:** N/A
+- **What it does:** controls time on the hardware client  
 
 ### Data Model (Firestore)
 

@@ -23,4 +23,4 @@ venv.bak/
 .idea/
 
 src/server/serviceAccountKey.json
-src/server/js/firebase-config.js
+src/server/static/js/firebase-config.js

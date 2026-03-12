@@ -12,7 +12,8 @@ from bcrypt import hashpw, checkpw, gensalt
 ##########################################################################
 
 
-WEB_API_KEY = os.environ.get("FIREBASE_WEB_API_KEY")
+#WEB_API_KEY = os.environ.get("FIREBASE_WEB_API_KEY")
+WEB_API_KEY = "AIzaSyAyuzcT80Cgh91lC2-eQLOtZyRHl0ipN68"
 
 
 def require_json_content_type():
@@ -20,6 +21,7 @@ def require_json_content_type():
     if not request.is_json:
         return jsonify({"error": "Content-Type must be application/json"}), 415
     return None
+
 
 def validate_login_data(data: dict[str, str]):
     errors = []

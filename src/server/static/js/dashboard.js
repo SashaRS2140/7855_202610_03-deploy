@@ -314,7 +314,6 @@ if (saveTimerBtn) {
         if (!currentTask || currentTask === "new_task_trigger") return;
 
         try {
-            // FIX: Added /api prefix
             const res = await fetch("/profile/preset", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },

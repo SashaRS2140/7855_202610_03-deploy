@@ -1,7 +1,9 @@
 from src.server import create_app
 
-# Create the application instance using the factory we defined in __init__.py
+
+# Create the application instance
 app = create_app()
+
 
 if __name__ == "__main__":
     # Host '0.0.0.0' makes the server accessible to other devices (like your phone)

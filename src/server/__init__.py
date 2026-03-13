@@ -1,31 +1,29 @@
-import os
 from flask import Flask
-from .data.repository import Repository
-from .services.session_services import SessionService
-from .services.cube_services import CubeInterfaceService
+from config import Config
 from .services.timer_sevice import CountupTimer
-from .presentation.web_controller import web_bp
-from .presentation.api_controller import api_bp
+
+# Import blueprints
+from src.server.blueprints.api import api_bp
+from src.server.blueprints.auth import auth_bp
+from src.server.blueprints.presets import presets_bp
+from src.server.blueprints.sessions import sessions_bp
+from src.server.blueprints.dashboard import dashboard_bp
+from src.server.blueprints.user_info import user_info_bp
 
 
 def create_app():
     app = Flask(__name__)
-    app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
+    app.config.from_object(Config)
 
-    # 1. Initialize Data Layer
-    # OLD: db_path = os.path.join(os.path.dirname(__file__), 'data', 'db.json') <-- DELETE THIS
+    # Register blueprints
+    app.register_blueprint(api_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(presets_bp)
+    app.register_blueprint(sessions_bp)
+    app.register_blueprint(dashboard_bp)
+    app.register_blueprint(user_info_bp)
 
-    # IMPORTANT: Ensure the class name here ('Repository' )
-    # matches exactly what you defined in repository.py
-    repository = Repository()
-
-    # 2. Initialize Service Layer (Injecting Repository)
-    app.session_service = SessionService(repository)
-    app.hw_service = CubeInterfaceService()
+    # Initialize Timer Object
     app.timer = CountupTimer()
-
-    # 3. Register Client Layer (Blueprints)
-    app.register_blueprint(web_bp)
-    app.register_blueprint(api_bp, url_prefix='/api')
 
     return app

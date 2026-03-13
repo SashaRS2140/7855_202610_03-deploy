@@ -8,13 +8,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
 
-    <link rel="stylesheet" href="{{ url_for('web.static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('auth.static', filename='css/style.css') }}">
 
 </head>
 <body hx-boost="true">
 
   <nav>
-    <a href="/" class="nav-brand">
+    <a href="/server/static" class="nav-brand">
         <div class="logo-container">
             <div class="logo-sq-orange"></div>
             <div class="logo-sq-red"></div>
@@ -28,12 +28,11 @@
 </nav>
 
     <div id="sideMenu" class="mobile-menu">
-        <a href="/" onclick="toggleMenu()">Home</a>
+        <a href="/server/static" onclick="toggleMenu()">Home</a>
         {% if session.get('logged_in') %}
-            <a href="{{ url_for('web.profile') }}" onclick="toggleMenu()">Profile</a>
-            <a href="{{ url_for('web.logout') }}" hx-boost="false">Logout</a>
+            <a href="{{ url_for('auth.logout') }}" hx-boost="false">Logout</a>
         {% else %}
-            <a href="{{ url_for('web.login') }}" onclick="toggleMenu()">Login</a>
+            <a href="{{ url_for('auth.login') }}" onclick="toggleMenu()">Login</a>
         {% endif %}
     </div>
 

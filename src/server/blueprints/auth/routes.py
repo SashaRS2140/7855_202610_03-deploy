@@ -124,7 +124,7 @@ def api_login():
         return jsonify({"error": "Email and password are required"}), 400
 
     # Send login credentials to Firestore Authentication Service for verification
-    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={WEB_API_KEY}"
+    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={Config.WEB_API_KEY}"
     payload = {
         "email": email,
         "password": password,

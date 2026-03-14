@@ -11,6 +11,39 @@ import urequests
 import time
 import json
 
+
+
+def hex_to_rgbw(hex_color: str):
+    """
+    Convert HEX color (#RRGGBB) to RGBW.
+
+    Parameters
+    ----------
+    hex_color : str
+        Color string like "#ffaa00"
+
+    Returns
+    -------
+    tuple
+        (r, g, b, w) values from 0–255
+    """
+
+    # Convert HEX → RGB
+    r = int(hex_color[1:3], 16)
+    g = int(hex_color[3:5], 16)
+    b = int(hex_color[5:7], 16)
+
+    # Extract white component
+    w = min(r, g, b)
+
+    # Remove white from RGB
+    r -= w
+    g -= w
+    b -= w
+
+    return r, g, b, w
+
+
 class NetworkingNode:
 
     def __init__(self, ssid, password, server_ip, port=5000):
@@ -63,68 +96,60 @@ class NetworkingNode:
         return True
     
 
+    
+
     '''
+    # LP5811 timing codes: [0h:0s, 1h:0.09s, 2h:0.18s, 3h:0.36s, 4h:0.54s, 5h:0.80s, 6h:1.07s, 7h:1.52s, 8h:2.06s, 9h:2.50s, Ah:3.04s, Bh:4.02s, Ch:5.01s, Dh:5.99s, Eh:7.06s, Fh:8.05s]
+
     Example for reset pull 
     Server: {
         "message": "Demo task reset",
         "task_name": "Demo", 
         "task_time": 600,
         "task_color": #ffaa00,
-        "r_patern": [minimum_intensity time,rise time,peak time,fall time],
-        "g_patern": [5,3,3,4],
-        "b_patern": [5,3,3,4],
-        "w_patern": [5,3,3,4],
+        "timing_patern": [minimum_intensity time,rise time,peak time,fall time],
         "alarm_type": "bell"
     }
 
     '''
     def get_state(self):
+
         if not self.ensure_connection():
             return None
+
         url = f"http://{self.server_ip}:{self.port}/api/esp/config"
 
+        headers = {
+            "Authorization": f"Bearer {self.token}"
+        }
+
         try:
-            response = urequests.get(url)
+            response = urequests.get(url, headers=headers)
             data = response.json()
             response.close()
 
-            # ---- TASK ----
-            task = data.get("task", {})
-            preset_time = task.get("preset_time_sec", 600)
-            self.timer.set_task(
-                task.get("name", "Default"),
-                preset_time
-            )
+            # ---- REQUIRED FIELDS ----
+            required_fields = [
+                "task_name",
+                "task_time",
+                "task_color",
+                "timing_pattern",
+                "alarm_type"
+            ]
 
-            # ---- LED ----
-            led_block = data.get("led", {})
-            channels = led_block.get("channels", {})
+            # ---- VALIDATE JSON ----
+            for field in required_fields:
+                if field not in data:
+                    print("CONFIG FORMAT ERROR: missing field", field)
+                    return None
 
-            for channel_name, cfg in channels.items():
-                pwm_percent = cfg.get("max_pwm_percent", 100)
-                anim = cfg.get("animation", {})
-
-                self.led.configure_channel(
-                    channel_name=channel_name,
-                    pwm_percent=pwm_percent,
-                    t1_code=anim.get("t1_code", 0),
-                    t2_code=anim.get("t2_code", 0),
-                    t3_code=anim.get("t3_code", 0),
-                    t4_code=anim.get("t4_code", 0)
-                )
-
-            # ---- RETURN ALARM CONFIG ONLY ----
-            alarm_config = {
-                "alarm1": data.get("alarm1", {}),
-                "alarm2": data.get("alarm2", {})
-            }
-
-            return alarm_config
+            # If validation passes, return the JSON unchanged
+            return data
 
         except Exception as e:
             print("GET error:", e)
             return None
-        
+            
 
     '''
     
@@ -137,7 +162,7 @@ class NetworkingNode:
     }
 
     Cube:{
-        "task": "MEDITATION",
+        "task": "MEDITATION",   
         "action": "STOP",
         "time_elapsed": 123124:
     }
@@ -149,24 +174,53 @@ class NetworkingNode:
 
     # HTTP POST occurs when buttons is pressed singleTap or doubleTap
     # The purpose of this is to save data into server.
-    def send_command(self, command, timeElapsed=-1, presetTime=-1, task="Meditation"):
+    def send_command(self):
 
         if not self.ensure_connection():
             return False
-        
+
         url = f"http://{self.server_ip}:{self.port}/api/esp/telemetry"
 
-        payload = {
-            "device_id": "cube_01",
-            "task": task,
-            "COMMAND": command,
-            "timestamp": time.time(),
-            "timeElapsed": timeElapsed,
-            "preset time": presetTime
+        headers = {
+            "Authorization": f"Bearer {self.token}"
         }
 
+        # ---------- PAYLOAD BASE ----------
+        payload = {
+            # "device_id": "cube_01"
+        }
+
+        # ---------- MODE HANDLING ----------
+
+        if self.mode == "START":
+
+            payload = {
+                "task": self.task,
+                "action": "START",
+                "timestamp": time.time()
+            }
+
+        elif self.mode == "STOP":
+
+            payload = {
+                "task": self.task,
+                "action": "STOP",
+                "time_elapsed": self.time_elapsed
+            }
+
+        elif self.mode == "RESET":
+
+            payload = {
+                "action": "RESET"
+            }
+
+        else:
+            print("Unknown mode:", self.mode)
+            return False
+
+        # ---------- SEND ----------
         try:
-            response = urequests.post(url, json=payload)
+            response = urequests.post(url, json=payload, headers=headers)
             response.close()
             return True
 

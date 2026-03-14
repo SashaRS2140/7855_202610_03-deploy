@@ -75,7 +75,11 @@ class CubeController:
         return True
 
     def init_network(self):
-        self.network.connect_wifi()
+        try:
+            self.network.connect_wifi()
+        except Exception as e:
+            print("Failed to connect to WiFi:", e)
+
         try:
             state = self.network.get_state()
             print(state)
@@ -131,7 +135,6 @@ class CubeController:
 
         while True:
             self.timer.process() 
-
             press = self.piezo.buttonPress()
             if press == 1:
                 self.handle_single_tap()

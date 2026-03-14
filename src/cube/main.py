@@ -54,8 +54,10 @@ class CubeController:
             secrets.SERVER_PORT,
         )
         # THE DIFFERENT MODES ARE PAUSE and RUNNING
-        self.mode = MODE_PAUSE
+        self.mode = MODE_RUNNING
         self.stopWatchPresetTime = 20*60   # 20 minutes in seconds
+
+        self.bearerToken = "supersecretbearertoken"  
 
     # ---------- Callbacks ----------
     def on_session_complete(self):
@@ -79,7 +81,6 @@ class CubeController:
             self.network.connect_wifi()
         except Exception as e:
             print("Failed to connect to WiFi:", e)
-
         try:
             state = self.network.get_state()
             print(state)
@@ -111,6 +112,9 @@ class CubeController:
 
     def handle_double_tap(self):
         # Send REST command
+
+        self.lp.stop_cmd()
+        self.timer.pause()
         success = self.network.send_command("RESET")
         if success:
             print("Command sent successfully")
@@ -143,11 +147,9 @@ class CubeController:
 
             # time.sleep_ms(5)
 
-
 def main():
     controller = CubeController()
     controller.run()
-
 
 if __name__ == "__main__":
     main()

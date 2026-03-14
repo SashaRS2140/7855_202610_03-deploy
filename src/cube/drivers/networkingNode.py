@@ -19,6 +19,7 @@ class NetworkingNode:
         self.server_ip = server_ip
         self.port = port
         self.wlan = network.WLAN(network.STA_IF)
+        
 
     # WiFi Connection
     def connect_wifi(self, timeout=5):        
@@ -60,7 +61,23 @@ class NetworkingNode:
             print("offline mode")
             return False
         return True
+    
 
+    '''
+    Example for reset pull 
+    Server: {
+        "message": "Demo task reset",
+        "task_name": "Demo", 
+        "task_time": 600,
+        "task_color": #ffaa00,
+        "r_patern": [minimum_intensity time,rise time,peak time,fall time],
+        "g_patern": [5,3,3,4],
+        "b_patern": [5,3,3,4],
+        "w_patern": [5,3,3,4],
+        "alarm_type": "bell"
+    }
+
+    '''
     def get_state(self):
         if not self.ensure_connection():
             return None
@@ -108,6 +125,27 @@ class NetworkingNode:
             print("GET error:", e)
             return None
         
+
+    '''
+    
+    //example for posts but be made using device_id as key in header of json !!!!!!!!!!!        
+    // on start command dabase utc starttime from firebase 
+    // on stop cube sends elapsed time and it is stored in database
+    Cube:{
+        "task": "MEDITATION",
+        "action": "START",
+    }
+
+    Cube:{
+        "task": "MEDITATION",
+        "action": "STOP",
+        "time_elapsed": 123124:
+    }
+    // Reset command is basically just an api call 
+    Cube:{
+        "action": "reset"
+    }
+    '''
 
     # HTTP POST occurs when buttons is pressed singleTap or doubleTap
     # The purpose of this is to save data into server.

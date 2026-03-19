@@ -18,7 +18,7 @@
             <div class="alert error">{{ error }}</div>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('web.signup') }}">
+        <form method="POST" action="{{ url_for('auth.signup') }}">
             <div class="form-group">
                 <input type="text" name="email" placeholder="email" required>
             </div>
@@ -35,7 +35,7 @@
         </form>
 
         <div class="footer-links">
-            <p>Already have an account? <a href="{{ url_for('web.login') }}">Log in</a></p>
+            <p>Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
         </div>
     </div>
 </div>

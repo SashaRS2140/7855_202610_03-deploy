@@ -22,5 +22,4 @@ venv.bak/
 #  and can be added to the global gitignore or merged into this file.
 .idea/
 
-src/server/serviceAccountKey.json
-src/server/static/js/firebase-config.js
+serviceAccountKey.json

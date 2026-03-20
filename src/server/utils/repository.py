@@ -129,7 +129,16 @@ def get_session(uid: str):
     return session_history
 
 
-def save_session(uid: str, task: str, elapsed_time: int):
+def save_session(uid: str, task: str, elapsed_time: int, task_color: str = None):
+    from datetime import datetime
+
     doc_ref = user_profiles.document(uid)
-    data = {"task": task, "elapsed_time": elapsed_time}
+    data = {
+        "task": task,
+        "elapsed_time": elapsed_time,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+    if task_color:
+        data["task_color"] = task_color
+
     doc_ref.set({"session_history": data}, merge=True)

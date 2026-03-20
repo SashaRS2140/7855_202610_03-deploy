@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Stats - CUBE{% endblock %}
+
+{% block content %}
+<div class="task-widget-container">
+    <div class="task-card">
+        <h2 class="widget-header">Latest Session</h2>
+        <div class="stats-grid">
+            <div><strong>Task:</strong> <span id="stats-task">--</span></div>
+            <div><strong>Duration:</strong> <span id="stats-duration">--</span></div>
+            <div><strong>Started:</strong> <span id="stats-timestamp">--</span></div>
+            <div><strong>Color:</strong> <span id="stats-color" class="stats-color-swatch">--</span></div>
+        </div>
+        <p id="stats-message" class="stats-message"></p>
+    </div>
+</div>
+
+<script type="module">
+    async function loadLatestSession() {
+        const taskEl = document.getElementById('stats-task');
+        const durEl = document.getElementById('stats-duration');
+        const tsEl = document.getElementById('stats-timestamp');
+        const colorEl = document.getElementById('stats-color');
+        const msgEl = document.getElementById('stats-message');
+
+        try {
+            const res = await fetch('/session/latest');
+            const body = await res.json();
+
+            if (!res.ok) {
+                msgEl.textContent = body.error || 'No latest session available';
+                return;
+            }
+
+            taskEl.textContent = body.task || 'N/A';
+            const secs = Number(body.elapsed_time || 0);
+            const h = Math.floor(secs / 3600);
+            const m = Math.floor((secs % 3600) / 60);
+            const s = secs % 60;
+            durEl.textContent = `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            tsEl.textContent = body.timestamp || 'N/A';
+            colorEl.style.background = body.task_color || '#000000ff';
+            colorEl.textContent = body.task_color || '--';
+        } catch (err) {
+            msgEl.textContent = 'Failed to load latest session data';
+            console.error(err);
+        }
+    }
+
+    loadLatestSession();
+</script>
+{% endblock %}

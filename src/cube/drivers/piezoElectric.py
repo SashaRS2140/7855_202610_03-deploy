@@ -25,8 +25,8 @@ class PiezoButton:
         fs_hz: int = 1000,        # ADC sampling frequency
         threshold_high: int = 400,# Upper trigger threshold: delta above baseline required to detect the start of a tap.
         threshold_low: int = 50,  # Lower release threshold: delta below this means vibration has settled.
-        baseline_alpha: float = 0.5, # Low-pass filter coefficient for baseline tracking (0→slow, 1→fast adaptation).
-        settle_ms: int = 40,      # Minimum quiet time after vibration before confirming a valid tap (debounce).
+        baseline_alpha: float = 0.3, # Low-pass filter coefficient for baseline tracking (0→slow, 1→fast adaptation).
+        settle_ms: int = 50,      # Minimum quiet time after vibration before confirming a valid tap (debounce).
         double_tap_ms: int = 1000 # Maximum time window between taps to count as a double tap.
     ):
         # ADC setup

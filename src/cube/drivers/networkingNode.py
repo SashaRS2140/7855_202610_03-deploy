@@ -52,7 +52,7 @@ class NetworkingNode:
         self.server_ip = server_ip
         self.port = port
         self.wlan = network.WLAN(network.STA_IF)
-        
+        self.bearerToken = "supersecretbearertoken" 
 
     # WiFi Connection
     def connect_wifi(self, timeout=5):        
@@ -94,9 +94,7 @@ class NetworkingNode:
             print("offline mode")
             return False
         return True
-    
 
-    
 
     '''
     # LP5811 timing codes: [0h:0s, 1h:0.09s, 2h:0.18s, 3h:0.36s, 4h:0.54s, 5h:0.80s, 6h:1.07s, 7h:1.52s, 8h:2.06s, 9h:2.50s, Ah:3.04s, Bh:4.02s, Ch:5.01s, Dh:5.99s, Eh:7.06s, Fh:8.05s]
@@ -120,7 +118,7 @@ class NetworkingNode:
         url = f"http://{self.server_ip}:{self.port}/api/esp/config"
 
         headers = {
-            "Authorization": f"Bearer {self.token}"
+            "Authorization": f"Bearer {self.bearerToken}"
         }
 
         try:
@@ -174,53 +172,29 @@ class NetworkingNode:
 
     # HTTP POST occurs when buttons is pressed singleTap or doubleTap
     # The purpose of this is to save data into server.
-    def send_command(self):
-
+    def send_command(self, payload: dict):
         if not self.ensure_connection():
             return False
+
+        action = payload.get("action")
+
+        #cleanup payload to remove whitespace and ensure task is string
+        if "task" in payload:
+            payload["task"] = str(payload["task"]).strip()
 
         url = f"http://{self.server_ip}:{self.port}/api/esp/telemetry"
 
         headers = {
-            "Authorization": f"Bearer {self.token}"
+            "Authorization": f"Bearer {self.bearerToken}",
+            "Content-Type": "application/json"
         }
 
-        # ---------- PAYLOAD BASE ----------
-        payload = {
-            # "device_id": "cube_01"
-        }
-
-        # ---------- MODE HANDLING ----------
-
-        if self.mode == "START":
-
-            payload = {
-                "task": self.task,
-                "action": "START",
-                "timestamp": time.time()
-            }
-
-        elif self.mode == "STOP":
-
-            payload = {
-                "task": self.task,
-                "action": "STOP",
-                "time_elapsed": self.time_elapsed
-            }
-
-        elif self.mode == "RESET":
-
-            payload = {
-                "action": "RESET"
-            }
-
-        else:
-            print("Unknown mode:", self.mode)
-            return False
-
-        # ---------- SEND ----------
         try:
             response = urequests.post(url, json=payload, headers=headers)
+
+            print("STATUS:", response.status_code)
+            print("RESPONSE:", response.text)
+
             response.close()
             return True
 

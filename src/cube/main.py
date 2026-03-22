@@ -11,7 +11,7 @@ from drivers.pomodoroTimer import PomodoroTimer
 from drivers.alarm import Alarm
 from drivers.networkingNode import NetworkingNode  # adjust import to your actual path/name
 
-MODE_PAUSE   = 0
+MODE_STOP   = 0
 MODE_RUNNING = 1
 MODE_CONFIG  = 2
 MODE_ERROR   = 3
@@ -54,11 +54,14 @@ class CubeController:
             secrets.SERVER_PORT,
         )
         # THE DIFFERENT MODES ARE PAUSE and RUNNING
+        self.task = "Nothing"
         self.mode = MODE_RUNNING
         self.stopWatchPresetTime = 20*60   # 20 minutes in seconds
 
         self.bearerToken = "supersecretbearertoken"  
 
+    def error_animation(self):
+        print("Error mode: flashing red")
     # ---------- Callbacks ----------
     def on_session_complete(self):
         print("Timer finished")
@@ -87,15 +90,35 @@ class CubeController:
         except Exception as e:
             print("Failed to fetch server state:", e)
 
-    # ---------- Behavior ----------
+    # ---------- Upon single tap, will toggle mode and send respective commands to server----------
     def handle_single_tap(self):
         print("Single tap")
         self.toggle_mode()
-
+        json_payload = {}
         if self.mode == MODE_RUNNING:# then STOP
+            # JSON payload upon stopping
+            # Cube:{
+            #     "task": "MEDITATION",
+            #     "action": "STOP",
+            #     "time_elapsed": 123124:
+            # }
+            json_payload = {
+                "task": self.task,
+                "action": "STOP",
+                "time_elapsed": self.timer.session_elapsed_ms /1000 # convert ms to seconds
+            }
             self.lp.stop_cmd()
             self.timer.pause()
-        elif self.mode == MODE_PAUSE: # then START
+        elif self.mode == MODE_STOP: # then START
+            # JSON payload upon starting
+            # Cube:{
+            #     "task": "MEDITATION",
+            #     "action": "START",
+            # }
+            json_payload = {
+                "task": self.task,
+                "action": "START",
+            }
             # LED breathing
             self.timer.set_time(self.stopWatchPresetTime)
             self.timer.start()
@@ -103,29 +126,40 @@ class CubeController:
             self.lp.led_all_breathing([255, 0, 0, 0])
             self.lp.start_cmd()
 
-        # Send REST command at end so it does not stop animation.
-        success = self.network.send_command(self.mode)
+        # Send REST command at end so it does not stop animation. 
+
+        #    def send_command(self, task , mode, time_elapsed=None):
+        success = self.network.send_command(json_payload)
         if success:
             print(str(self.mode) + " Command sent successfully")
         else:
-            print(str(self.mode) + " Failed to send command")
+            self.error_animation()
 
     def handle_double_tap(self):
         # Send REST command
 
         self.lp.stop_cmd()
         self.timer.pause()
-        success = self.network.send_command("RESET")
+        # JSON payload upon reset
+        # Cube:{
+        #     "task": "Meditation",      
+        #     "action": "reset"
+        # }
+        json_payload = {
+            "task": self.task,
+            "action": "RESET",
+        }
+        success = self.network.send_command(json_payload)
         if success:
             print("Command sent successfully")
         else:
             print("Failed to send command")
 
     def toggle_mode(self):
-        if self.mode == MODE_PAUSE:
+        if self.mode == MODE_STOP:
             self.mode = MODE_RUNNING
         else:
-            self.mode = MODE_PAUSE
+            self.mode = MODE_STOP
 
 
     # ---------- Main loop ----------

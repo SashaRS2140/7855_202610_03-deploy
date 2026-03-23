@@ -10,15 +10,28 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
  * @returns {Object} - An API to control the cube (setColor, destroy, etc.)
  */
 export function mountGlowingCube(container) {
-    if (!container) return;
+    if (!container) return null;
 
-    // 1. SETUP
-    // Prevent 0x0 dimension crashes by forcing a minimum of 1 pixel
-    const width = Math.max(1, container.clientWidth);
-    const height = Math.max(1, container.clientHeight);
+    const parseHexRGBW = (hexColor) => {
+        if (!hexColor || typeof hexColor !== 'string' || !/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(hexColor)) {
+            return {rgb: new THREE.Color(0xffaa00), white: 1};
+        }
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x161514);
+        const cleaned = hexColor.replace('#', '');
+        const rgb = new THREE.Color(`#${cleaned.slice(0, 6)}`);
+        const white = cleaned.length === 8 ? parseInt(cleaned.slice(6), 16) / 255 : 1;
+
+        return { rgb, white };
+    };
+
+    try {
+        // 1. SETUP
+        // Prevent 0x0 dimension crashes by forcing a minimum of 1 pixel
+        const width = Math.max(1, container.clientWidth);
+        const height = Math.max(1, container.clientHeight);
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x161514);
 
     const camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100);
     camera.position.set(0, 0, 14);
@@ -182,14 +195,27 @@ export function mountGlowingCube(container) {
     // 8. PUBLIC API (The "Remote Control")
     return {
         setColor: (hexColor) => {
-            const c = new THREE.Color(hexColor);
-            shellMaterial.attenuationColor.set(c);
-            coreMaterial.color.set(c);
-            coreLight.color.set(c);
-            lightsGroup.children.forEach(l => l.color.set(c));
+            const parsed = parseHexRGBW(hexColor);
+            const baseColor = parsed.rgb;
+            const whiteIntensity = parsed.white;
+
+            shellMaterial.attenuationColor.set(baseColor);
+            coreMaterial.color.set(baseColor);
+            coreLight.color.set(baseColor);
+
+            // Mix with white channel to boost brightness and keep hue
+            const whiteColor = new THREE.Color(0xffffff);
+            const mixedColor = baseColor.clone().lerp(whiteColor, whiteIntensity * 0.35);
+
+            lightsGroup.children.forEach(l => {
+                l.color.set(mixedColor);
+                l.intensity = 2 + whiteIntensity * 2;
+            });
+
+            coreLight.intensity = 10 + whiteIntensity * 15;
         },
         setBreathing: (state) => {
-        isBreathing = Boolean(state);
+            isBreathing = Boolean(state);
         },
         toggleBreathing: () => {
             isBreathing = !isBreathing;
@@ -213,4 +239,16 @@ export function mountGlowingCube(container) {
             container.innerHTML = '';
         }
     };
+
+    } catch (error) {
+        console.error('Cube initialization failed:', error);
+        container.innerHTML = '<div class="cube-error">Cube failed to initialize. Please reload.</div>';
+
+        return {
+            setColor: () => undefined,
+            setBreathing: () => undefined,
+            toggleBreathing: () => false,
+            destroy: () => { container.innerHTML = ''; }
+        };
+    }
 }

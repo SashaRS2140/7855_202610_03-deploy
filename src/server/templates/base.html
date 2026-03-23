@@ -28,7 +28,8 @@
 </nav>
 
     <div id="sideMenu" class="mobile-menu">
-        <a href="/server/static" onclick="toggleMenu()">Home</a>
+        <a href="{{ url_for('dashboard.home') }}" onclick="toggleMenu()">Home</a>
+        <a href="{{ url_for('sessions.stats') }}" onclick="toggleMenu()">Stats</a>
         {% if session.get('logged_in') %}
             <a href="{{ url_for('auth.logout') }}" hx-boost="false">Logout</a>
         {% else %}

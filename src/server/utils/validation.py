@@ -79,12 +79,12 @@ def validate_preset(data: dict):
     if task_time == 0:
         errors.append("Task time must be greater than zero")
 
-    # Pattern Validation for task_color
+    # Pattern Validation for task_color (RGB or RGBW)
     task_color = data.get("task_color", "")
 
     if task_color:
-        if not isinstance(task_color, str) or not re.compile(r"^#[0-9a-fA-F]{6}$").fullmatch(task_color):
-            errors.append("Task color must be a valid hex RGB string (e.g., '#0000ff')")
+        if not isinstance(task_color, str) or not re.compile(r"^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$").fullmatch(task_color):
+            errors.append("Task color must be a valid hex RGB or RGBW string (e.g., '#0000ff' or '#0000ffff')")
 
     return errors  # Return ALL errors
 

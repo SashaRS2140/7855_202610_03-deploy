@@ -86,6 +86,8 @@ def client(monkeypatch, mock_firestore):
     app = app_module.create_app()
     app.config.update(TESTING=True)
 
+    app.timer = MagicMock(name="mock_timer")
+
     with app.test_client() as test_client:
         yield test_client
 
@@ -97,7 +99,25 @@ def mock_firebase_auth(monkeypatch):
     monkeypatch.setattr("decorators.auth.auth.verify_id_token", verify_mock)
     return verify_mock
 
+
 @pytest.fixture
 def repo(mock_firestore):
     import src.server.utils.repository
     return importlib.reload(src.server.utils.repository)
+
+@pytest.fixture
+def mock_task_control(monkeypatch):
+    monkeypatch.setattr(
+        "src.server.routes.cube_routes.get_cube_user",
+        lambda cube_uuid: "test_uid"
+    )
+
+    monkeypatch.setattr(
+        "src.server.routes.cube_routes.get_current_task",
+        lambda uid: "Meditation"
+    )
+
+    monkeypatch.setattr(
+        "src.server.routes.cube_routes.get_task_preset",
+        lambda uid, task: {"task_time": 600}
+    )

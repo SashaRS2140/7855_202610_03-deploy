@@ -25,7 +25,7 @@ def test_task_control_no_api_key(client):
     assert data["error"] == "Missing X-API-Key header"
 
 
-def test_task_control_wrong_key(client):
+def test_task_control_wrong_key(client, monkeypatch):
     # Arrange
     url = "http://localhost:5000/api/task/control"
     headers = {"X-API-Key": "wrong-key"}
@@ -40,8 +40,20 @@ def test_task_control_wrong_key(client):
 
 
 ### NOT FINISHED ###
-def test_task_control_valid_key(client):
+def test_task_control_valid_key(client, monkeypatch):
     # Arrange
     url = "http://localhost:5000/api/task/control"
-    headers = {"X-API-Key": "test-sensor-key"}
-    pass
+    headers = {"X-API-Key": "test-key"}
+    payload = {"action": "start"}
+
+    # Act
+    response = client.post(url, json=payload, headers=headers)
+
+    # Assert
+    #assert response.status_code == 200
+    data = response.get_json()
+    assert data["error"] == "Cube not registered with user account"
+    #assert data["message"] == "Meditation task started"
+
+
+

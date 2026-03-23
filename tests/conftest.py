@@ -1,9 +1,8 @@
-import importlib
 import sys
 import types
-from unittest.mock import MagicMock
-
 import pytest
+import importlib
+from unittest.mock import MagicMock
 
 
 @pytest.fixture
@@ -14,17 +13,17 @@ def mock_firestore(monkeypatch):
     require real Firebase credentials or network access.
     """
     mock_user_profiles = MagicMock(name="mock_user_profiles")
-    mock_doc_ref = MagicMock(name="mock_doc_ref")
-    mock_snapshot = MagicMock(name="mock_snapshot")
+    mock_user_doc_ref = MagicMock(name="mock_user_doc_ref")
+    mock_user_snapshot = MagicMock(name="mock_user_snapshot")
 
     # Default chain used by routes/helpers:
     # db.collection(...).document(...).get()/set()/update()/delete()
-    mock_user_profiles.document.return_value = mock_doc_ref
-    mock_doc_ref.get.return_value = mock_snapshot
+    mock_user_profiles.document.return_value = mock_user_doc_ref
+    mock_user_doc_ref.get.return_value = mock_user_snapshot
 
     # Default user profile response.
-    mock_snapshot.exists = True
-    mock_snapshot.to_dict.return_value = {
+    mock_user_snapshot.exists = True
+    mock_user_snapshot.to_dict.return_value = {
         "current_task": "Meditation",
         "presets": {
             "Meditation": {
@@ -70,16 +69,18 @@ def mock_firestore(monkeypatch):
 
     return {
         "user_profiles": mock_user_profiles,
-        "mock_cubes": mock_cubes,
-        "doc_ref": mock_doc_ref,
-        "snapshot": mock_snapshot,
+        "user_doc_ref": mock_user_doc_ref,
+        "user_snapshot": mock_user_snapshot,
+        "cubes": mock_cubes,
+        "cube_doc_ref": mock_cubes_doc_ref,
+        "cube_snapshot": mock_cubes_snapshot,
     }
 
 
 @pytest.fixture
 def client(monkeypatch, mock_firestore):
     """Flask test client fixture with TESTING enabled."""
-    monkeypatch.setenv("CUBE_API_KEY", "test-sensor-key")
+    monkeypatch.setenv("CUBE_API_KEY", "test-key")
 
     app_module = importlib.import_module("run")
     app = app_module.create_app()
@@ -97,7 +98,6 @@ def mock_firebase_auth(monkeypatch):
     return verify_mock
 
 @pytest.fixture
-def mock_require_api_key(monkeypatch):
-    verify_mock = MagicMock(return_value={"uid": "test_cube_uuid"})
-    monkeypatch.setattr("decorators.auth.require_api_key", verify_mock)
-    return verify_mock
+def repo(mock_firestore):
+    import src.server.utils.repository
+    return importlib.reload(src.server.utils.repository)

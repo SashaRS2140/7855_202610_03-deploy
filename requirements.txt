@@ -5,3 +5,4 @@ bcrypt
 firebase_admin
 numpy
 protobuf
+pytest

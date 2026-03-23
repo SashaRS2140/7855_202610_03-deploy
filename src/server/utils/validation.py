@@ -17,14 +17,27 @@ def validate_login_data(data: dict[str, str]):
     if unknown := set(data.keys()) - allowed:
         errors.append(f"Unknown fields: {unknown}")
 
+    # Reject None value inputs
+    for key, value in data.items():
+        if value is None:
+            errors.append(f"{key} cannot be None")
+
     # Bounds Checking - enforce length limits
-    if len(data.get("email", "")) > 50:
-        errors.append("email must be 50 chars or less")
+    email = data.get("email", "")
+    if email:
+        if len(email) > 50:
+            errors.append("Email must be 50 chars or less")
 
     # Pattern Validation - enforce format rules
     password = data.get("password", "")
-    if not re.match(r"^[A-Za-z0-9]{7,50}$", password):
-        errors.append("password invalid")
+    if password:
+        if not re.match(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]{8,50}$", password):
+            errors.append("Password invalid")
+
+    confirm_password = data.get("confirm_password", "")
+    if confirm_password:
+        if not re.match(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]{8,50}$", confirm_password):
+            errors.append("Confirmation Password invalid")
 
     return errors  # Return ALL errors
 
@@ -33,25 +46,38 @@ def validate_preset(data: dict):
     errors = []
     allowed = {"task_name", "task_time", "task_color"}
 
-    # Whitelist Check - reject unknown fields
+    # Whitelist Checks
     if unknown := set(data.keys()) - allowed:
         errors.append(f"Unknown fields: {unknown}")
 
+    # Reject None value inputs
+    for key, value in data.items():
+        if value is None:
+            errors.append(f"{key} cannot be None")
+
     # Bounds Checking for task_name
-    if len(data.get("task_name", "")) > 30:
-        errors.append("Task name must be 30 chars or less")
+    task_name = data.get("task_name", "")
+
+    if task_name:
+        if not isinstance(task_name, str):
+            errors.append("task_name must be a string")
+        else:
+            if len(task_name) > 30:
+                errors.append("task_name must be 30 chars or less")
 
     # Type / Value Validation for task_time
     task_time = data.get("task_time", "")
 
     if task_time:
         if isinstance(task_time, int):
-            if task_time <= 0:
+            if task_time < 0:
                 errors.append("Task time must be a positive integer")
             if task_time > 5940:
                 errors.append("Task time must be less then 99 minutes")
         else:
             errors.append("Task time must be a positive integer")
+    if task_time == 0:
+        errors.append("Task time must be greater than zero")
 
     # Pattern Validation for task_color
     task_color = data.get("task_color", "")
@@ -63,7 +89,7 @@ def validate_preset(data: dict):
     return errors  # Return ALL errors
 
 
-def validate_user_info(data: dict):
+def validate_user_info(data: dict[str, str]):
     errors = []
     allowed = {"first_name", "last_name"}
 
@@ -71,13 +97,21 @@ def validate_user_info(data: dict):
     if unknown := set(data.keys()) - allowed:
         errors.append(f"Unknown fields: {unknown}")
 
-    # Bounds Checking - enforce length limits
-    if len(data.get("last_name", "")) > 50:
-        errors.append("last name must be 50 chars or less")
+    # Reject None value inputs
+    for key, value in data.items():
+        if value is None:
+            errors.append(f"{key} cannot be None")
 
     # Bounds Checking - enforce length limits
-    if len(data.get("first_name", "")) > 50:
-        errors.append("first must be 50 chars or less")
+    first_name = data.get("first_name", "")
+    if first_name:
+        if len(first_name) > 50:
+            errors.append("first_name must be 50 chars or less")
+
+    last_name = data.get("last_name", "")
+    if last_name:
+        if len(last_name) > 50:
+            errors.append("last_name must be 50 chars or less")
 
     return errors  # Return ALL errors
 

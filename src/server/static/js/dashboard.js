@@ -1,10 +1,12 @@
 import { mountGlowingCube } from './cube.js';
 
 // --- CONFIGURATION ---
+const API_BASE = "";
+
 const PALETTE = [
-    "#ffaa00", "#d65200", "#ff69b4",
-    "#ff92f0", "#ff00ff", "#6f00d6",
-    "#0000ff", "#60ffff", "#00ff00"
+    "#ffaa00ff", "#d65200ff", "#ff69b4ff",
+    "#ff92f0ff", "#ff00ffff", "#6f00d6ff",
+    "#0000ffff", "#60ffffff", "#00ff00ff"
 ];
 
 // --- STATE ---
@@ -12,12 +14,13 @@ let totalSeconds = 600;
 let isRunning = false;
 let cubeAPI = null;
 let evtSource = null;
-let currentColor = "#ffaa00"; // NEW: Track color for API saves
+let reconnectAttempts = 0;
+const MAX_RECONNECT = 5;
+let currentColor = "#ffaa00ff"; // NEW: Track color for API saves
 let hasUnsavedChanges = false;
 // --- DOM ELEMENTS ---
 const timerDisplay = document.getElementById('timer-display');
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
+const breathingBtn = document.getElementById('breathingBtn');
 const cubeContainer = document.getElementById('cube-wrapper');
 const colorMenu = document.getElementById('color-menu');
 const colorTrigger = document.getElementById('color-trigger');
@@ -35,10 +38,24 @@ const saveTimerBtn = document.getElementById("saveTimerBtn");
 // 1. SERVER-SENT TIMER STREAM
 // ======================================================
 
+function closeTimerStream() {
+    if (evtSource) {
+        evtSource.close();
+        evtSource = null;
+    }
+}
+
 function connectTimerStream() {
     if (!timerDisplay) return;
 
+    closeTimerStream();
+
     evtSource = new EventSource("/task/timer");
+
+    evtSource.onopen = () => {
+        reconnectAttempts = 0;
+        timerDisplay.classList.remove('stream-error');
+    };
 
     evtSource.onmessage = (event) => {
         try {
@@ -61,8 +78,19 @@ function connectTimerStream() {
         }
     };
 
-    evtSource.onerror = (err) => {
-        console.error("Timer stream connection error:", err);
+    evtSource.onerror = () => {
+        console.error("Timer stream connection error");
+
+        if (reconnectAttempts < MAX_RECONNECT) {
+            reconnectAttempts += 1;
+            closeTimerStream();
+            setTimeout(connectTimerStream, 1000 * reconnectAttempts);
+            timerDisplay.classList.add('stream-error');
+            timerDisplay.innerText = "Reconnecting...";
+        } else {
+            timerDisplay.classList.add('stream-error');
+            timerDisplay.innerText = "Timer unavailable";
+        }
     };
 }
 
@@ -86,12 +114,93 @@ async function syncCurrentTask() {
 
         if (option) {
             taskSelect.value = option.value;
+            await applyTaskPreset(current);
         }
     } catch (err) {
         console.error("Failed to sync current task:", err);
     }
 }
 
+function displayToSeconds(display) {
+    if (!display) return 0;
+    const parts = display.split(':').map(Number);
+    if (parts.length === 2) {
+        return parts[0] * 60 + parts[1];
+    }
+    if (parts.length === 3) {
+        return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    return 0;
+}
+
+function rgbwToRgb(hexColor) {
+    if (!hexColor) return '#ffffff';
+
+    const h = hexColor.trim().toLowerCase();
+    if (/^#[0-9a-f]{8}$/.test(h)) {
+        return `#${h.slice(1, 7)}`;
+    }
+    if (/^#[0-9a-f]{6}$/.test(h)) {
+        return h;
+    }
+    return '#ffffff';
+}
+
+async function setActiveTask(taskName) {
+    if (!taskName || taskName === 'new_task_trigger') return;
+    hasUnsavedChanges = false;
+
+    try {
+        closeTimerStream();
+        const res = await fetch("/task/current", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ task_name: taskName })
+        });
+
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            console.error("Failed to set active task:", data);
+            return;
+        }
+
+        timerDisplay.classList.remove('overtime');
+        timerDisplay.classList.remove('stream-error');
+        setTimeout(connectTimerStream, 150);
+
+        await applyTaskPreset(taskName);
+    } catch (err) {
+        console.error("Error setting active task:", err);
+    }
+}
+
+
+async function applyTaskPreset(taskName) {
+    if (!taskName || taskName === 'new_task_trigger') return;
+
+    try {
+        const res = await fetch(`/profile/preset/${encodeURIComponent(taskName)}`);
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const taskTime = Number(data.task_time || 0);
+        const taskColor = data.task_color || currentColor;
+
+        totalSeconds = taskTime;
+        const mm = String(Math.floor(taskTime / 60)).padStart(2, '0');
+        const ss = String(taskTime % 60).padStart(2, '0');
+        timerDisplay.innerText = `${mm}:${ss}`;
+
+        currentColor = taskColor;
+        const cssColor = rgbwToRgb(taskColor);
+        if (colorTrigger) colorTrigger.style.backgroundColor = cssColor;
+        if (cubeAPI) cubeAPI.setColor(taskColor);
+
+        return data;
+    } catch (err) {
+        console.error('Failed to apply task preset:', err);
+    }
+}
 
 // ======================================================
 // 2. EDIT INPUT (ATM / MICROWAVE STYLE)
@@ -201,6 +310,7 @@ if (timerDisplay) {
 // TASK MANAGEMENT (CREATE, SELECT, UPDATE)
 // ======================================================
 let previousTaskValue = taskSelect ? taskSelect.value : "";
+let openingNewTask = false;
 
 if (taskSelect) {
     taskSelect.addEventListener("change", async (e) => {
@@ -209,27 +319,47 @@ if (taskSelect) {
 
         // 1. Toggle "Create New Task" UI
         if (selectedTask === "new_task_trigger") {
+            openingNewTask = true;
             taskSelect.classList.add("hidden");
             newTaskForm.classList.remove("hidden");
             newTaskInput.focus();
+
+            setTimeout(() => {
+                openingNewTask = false;
+            }, 250);
             return;
         }
 
         previousTaskValue = selectedTask;
 
-        // 2. Set Current Task on Server
-        try {
-            await fetch("/task/current", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ task_name: selectedTask })
-            });
-            // Hide the save button if it was exposed from a previous task
-            if (saveTimerBtn) saveTimerBtn.classList.add("hidden");
-        } catch (err) {
-            console.error("Failed to set current task:", err);
+        // 2. Set Current Task on Server and reconnect timer stream
+        await setActiveTask(selectedTask);
+
+        // Hide the save button if it was exposed from a previous task
+        if (saveTimerBtn) saveTimerBtn.classList.add("hidden");
+    });
+
+    // Close new task form when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!newTaskForm || !taskSelect) return;
+
+        if (openingNewTask) {
+            return;
+        }
+
+        if (!newTaskForm.classList.contains('hidden')) {
+            if (!newTaskForm.contains(e.target) && e.target !== taskSelect) {
+                newTaskForm.classList.add('hidden');
+                taskSelect.classList.remove('hidden');
+
+                // Restore previous selection so user can retry create flow
+                taskSelect.value = previousTaskValue || "";
+                newTaskInput.value = "";
+            }
         }
     });
+
+    newTaskForm.addEventListener('click', (e) => e.stopPropagation());
 }
 
 // 3. Cancel Creating a Task
@@ -253,7 +383,7 @@ if (saveNewTaskBtn) {
 
         try {
             // FIX: Added /api prefix
-            const res = await fetch("/profile/preset", {
+            const res = await fetch(`${API_BASE}/profile/preset`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -291,11 +421,7 @@ if (saveNewTaskBtn) {
                 setTimeout(() => timerDisplay.classList.remove("flash-success"), 1000);
 
                 // Set as active task
-                await fetch("/task/current", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ task_name: taskName })
-                });
+                await setActiveTask(taskName);
             } else {
                 alert(data.error || `Failed to create task (Status: ${res.status}).`);
             }
@@ -314,7 +440,7 @@ if (saveTimerBtn) {
         if (!currentTask || currentTask === "new_task_trigger") return;
 
         try {
-            const res = await fetch("/profile/preset", {
+            const res = await fetch(`${API_BASE}/profile/preset`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -339,11 +465,7 @@ if (saveTimerBtn) {
                 setTimeout(() => timerDisplay.classList.remove("flash-success"), 1000);
 
                 // Update the timer service backend
-                await fetch("/task/current", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ task_name: currentTask })
-                });
+                await setActiveTask(currentTask);
             } else {
                 alert(data.error || `Failed to update task (Status: ${res.status}).`);
             }
@@ -355,46 +477,73 @@ if (saveTimerBtn) {
 }
 
 // ======================================================
-// 3. PLAYBACK CONTROLS (SERVER-DRIVEN TIMER)
+// 3. DRIVING CONTROLS (BREATHING FOCUS UX)
 // ======================================================
 
-if (startBtn) {
-    startBtn.addEventListener('click', () => {
-        if (isRunning) return;
-        isRunning = true;
+const timerToSeconds = () => displayToSeconds(timerDisplay?.innerText || "00:00");
 
-        if (cubeAPI) cubeAPI.setBreathing(true);
+if (breathingBtn) {
+    breathingBtn.addEventListener('click', async () => {
+        if (!cubeAPI) return;
 
-        // Tell server to start timer
-        fetch("/task/control", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ action: "start" })
-        }).catch(console.error);
+        const nextState = cubeAPI.toggleBreathing();
+        breathingBtn.textContent = nextState ? 'Pause' : 'Resume';
+
+        const action = nextState ? 'start' : 'stop';
+        const elapsed = timerToSeconds();
+
+        try {
+            await fetch(`${API_BASE}/task/control`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, elapsed_seconds: elapsed })
+            });
+        } catch (err) {
+            console.error('Failed to send task.control:', err);
+        }
+
+        if (!nextState) {
+            hasUnsavedChanges = false;
+        }
     });
 }
-
-if (stopBtn) {
-    stopBtn.addEventListener('click', () => {
-        isRunning = false;
-        if (cubeAPI) cubeAPI.setBreathing(false);
-
-        fetch("/task/control", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ action: "stop" })
-        }).catch(console.error);
-    });
-}
-
 
 // ======================================================
 // 4. COLOR PICKER & CUBE INIT
 // ======================================================
 
-// Initialize Cube
+// Initialize Cube with retry and visual status
+async function initCube() {
+    if (!cubeContainer) return;
+
+    if (cubeAPI && typeof cubeAPI.destroy === 'function') {
+        cubeAPI.destroy();
+    }
+
+    let attempt = 0;
+    let configured = false;
+
+    while (!configured && attempt < 3) {
+        try {
+            cubeAPI = mountGlowingCube(cubeContainer);
+            if (cubeAPI) {
+                cubeAPI.setColor(currentColor);
+                configured = true;
+            }
+        } catch (err) {
+            console.error('Cube init attempt failed', attempt + 1, err);
+            attempt += 1;
+            await new Promise(r => setTimeout(r, 250));
+        }
+    }
+
+    if (!configured) {
+        cubeContainer.innerHTML = '<div class="cube-error">Unable to load cube. Please reload.</div>';
+    }
+}
+
 if (cubeContainer) {
-    cubeAPI = mountGlowingCube(cubeContainer);
+    initCube();
 }
 
 // Initialize Color Picker
@@ -402,12 +551,12 @@ if (colorMenu && colorTrigger) {
     PALETTE.forEach(color => {
         const btn = document.createElement('button');
         btn.className = 'swatch';
-        btn.style.backgroundColor = color;
+        btn.style.backgroundColor = rgbwToRgb(color);
 
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (cubeAPI) cubeAPI.setColor(color);
-            colorTrigger.style.backgroundColor = color;
+            colorTrigger.style.backgroundColor = rgbwToRgb(color);
             currentColor = color;
             colorMenu.classList.remove('active');
         });

@@ -1,8 +1,25 @@
+import re
 from . import api_bp
 from flask import request, jsonify, current_app
 from src.server.decorators.auth import require_jwt, require_api_key
 from src.server.utils.validation import require_json_content_type, validate_preset, validate_user_info
 from src.server.utils.repository import save_user_info, save_cube_uuid, get_user_info, get_all_user_info, get_session, set_current_task, delete_task_preset, update_task_preset, get_all_task_presets, get_profile, get_cube_user, get_current_task, save_session, get_task_preset
+
+
+def normalize_task_color(task_color):
+    if not task_color or not isinstance(task_color, str):
+        return task_color
+
+    task_color = task_color.strip().lower()
+
+    if re.fullmatch(r"^#[0-9a-f]{6}$", task_color):
+        return task_color + "ff"
+
+    if re.fullmatch(r"^#[0-9a-f]{8}$", task_color):
+        return task_color
+
+    # fallback as provided
+    return task_color
 
 
 ##########################################################################
@@ -54,7 +71,8 @@ def task_control(cube_uuid: str):
     # Stop action logic
     if action == "stop":
         timer.stop()
-        save_session(uid, current_task, elapsed_time)
+        task_color = task_data.get("task_color")
+        save_session(uid, current_task, elapsed_time, task_color)
         if elapsed_time <= task_time:
             min = elapsed_time // 60
             sec = elapsed_time % 60
@@ -241,7 +259,7 @@ def api_create_preset(uid: str):
     if not task_time:
         return jsonify({"error": "task time required"}), 400
 
-    task_color = data.get("task_color").lower()
+    task_color = normalize_task_color(data.get("task_color"))
     if not task_color:
         return jsonify({"error": "task color required"}), 400
 
@@ -281,7 +299,7 @@ def api_update_preset(uid: str):
     if task_time is not None:
         updated_preset_data["task_time"] = task_time if task_time else ""
     if task_color is not None:
-        updated_preset_data["task_color"] = task_color.lower() if task_color else ""
+        updated_preset_data["task_color"] = normalize_task_color(task_color) if task_color else ""
 
     # Save updated preset task in database
     update_task_preset(uid, task_name, updated_preset_data)
@@ -373,15 +391,20 @@ def api_set_task(uid: str):
 def api_get_latest_session(uid: str):
 
     latest_session = get_session(uid)
-    task = latest_session.get("task")
-    time = latest_session.get("elapsed_time")
-
     if not latest_session:
         return jsonify({"error": "No recorded session history."}), 400
 
-    return jsonify({"task": task,
-                    "time": time,
-                    }), 200
+    task = latest_session.get("task")
+    elapsed_time = latest_session.get("elapsed_time")
+    timestamp = latest_session.get("timestamp")
+    task_color = latest_session.get("task_color")
+
+    return jsonify({
+        "task": task,
+        "elapsed_time": elapsed_time,
+        "timestamp": timestamp,
+        "task_color": task_color,
+    }), 200
 
 
 ##########################################################################

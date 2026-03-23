@@ -4,7 +4,7 @@ from . import dashboard_bp
 from src.server.decorators.auth import login_required
 from src.server.utils.validation import require_json_content_type, validate_preset
 from flask import render_template, redirect, url_for, current_app, Response, jsonify, request
-from src.server.utils.repository import get_all_task_presets, get_task_preset, set_current_task, update_task_preset, get_current_task
+from src.server.utils.repository import get_all_task_presets, get_task_preset, set_current_task, update_task_preset, get_current_task, get_session
 
 
 @dashboard_bp.route("/")
@@ -93,9 +93,41 @@ def set_task(uid: str):
 
     task_time = preset_data.get("task_time")
     timer = current_app.timer
+    timer.stop()
     timer.reset(task_time)
 
     return jsonify({"current_task": task_name}), 200
+
+
+@dashboard_bp.get("/profile/preset/<task_name>")
+@login_required
+def get_preset(uid: str, task_name: str):
+    """Get task preset data for dashboard UI via session auth."""
+    task_name = task_name.strip().title()
+    preset_data = get_task_preset(uid, task_name)
+    if not preset_data:
+        return jsonify({"error": "Preset not found"}), 404
+
+    return jsonify({
+        "task_name": task_name,
+        "task_time": preset_data.get("task_time"),
+        "task_color": preset_data.get("task_color"),
+    }), 200
+
+
+@dashboard_bp.get('/session/latest')
+@login_required
+def session_latest(uid: str):
+    latest_session = get_session(uid)
+    if not latest_session:
+        return jsonify({"error": "No recorded session history."}), 400
+
+    return jsonify({
+        "task": latest_session.get("task"),
+        "elapsed_time": latest_session.get("elapsed_time"),
+        "timestamp": latest_session.get("timestamp"),
+        "task_color": latest_session.get("task_color"),
+    }), 200
 
 
 @dashboard_bp.post("/profile/preset")

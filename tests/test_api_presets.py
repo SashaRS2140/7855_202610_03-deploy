@@ -116,15 +116,180 @@ def test_api_get_preset_success(client, mock_firebase_auth, mock_presets_reposit
     mock_firebase_auth.assert_called_once()
 
 
-def test_api_create_preset_content_error(client, mock_firebase_auth, mock_presets_repository):
+def test_api_create_preset_no_task_name(client, mock_firebase_auth, mock_presets_repository):
     # Arrange
     url = "http://localhost:5000/api/profile/preset"
     headers = {"Authorization": "Bearer valid_jwt_token"}
-    payload = {"study": {"task_color": "#ffaa00", "task_time": 900}}
+    payload = {"task_color": "#ffaa00"}
 
     # Act
     response = client.post(url, json=payload, headers=headers)
 
     # Assert
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data["error"] == "task name required"
+    mock_firebase_auth.assert_called_once()
+
+
+def test_api_create_preset_no_task_time(client, mock_firebase_auth, mock_presets_repository):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {"task_name": "study"}
+
+    # Act
+    response = client.post(url, json=payload, headers=headers)
+
+    # Assert
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data["error"] == "task time required"
+    mock_firebase_auth.assert_called_once()
+
+
+def test_api_create_preset_no_task_color(client, mock_firebase_auth, mock_presets_repository):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {"task_name": "study", "task_time": 900}
+
+    # Act
+    response = client.post(url, json=payload, headers=headers)
+
+    # Assert
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data["error"] == "task color required"
+    mock_firebase_auth.assert_called_once()
+
+
+def test_api_create_preset_success(client, mock_firebase_auth, mock_presets_repository):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {"task_name": "study", "task_color": "#ffaa00", "task_time": 900}
+
+    # Act
+    response = client.post(url, json=payload, headers=headers)
+
+    # Assert
+    assert response.status_code == 201
+    mock_firebase_auth.assert_called_once()
+
+
+def test_api_update_preset_no_task_name(client, mock_firebase_auth, mock_presets_repository):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {"task_color": "#ffaa00"}
+
+    # Act
+    response = client.put(url, json=payload, headers=headers)
+
+    # Assert
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data["error"] == "Task name required"
+    mock_firebase_auth.assert_called_once()
+
+
+def test_api_update_preset_task_not_found(client, mock_firebase_auth, mock_presets_repository, monkeypatch):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {"task_name": "study", "task_color": "#ffaa00", "task_time": 900}
+    monkeypatch.setattr(
+        "src.server.blueprints.api_presets.routes.get_task_preset",
+        lambda uid, task_name: None
+    )
+
+    # Act
+    response = client.put(url, json=payload, headers=headers)
+
+    # Assert
+    assert response.status_code == 404
+    data = response.get_json()
+    assert data["error"] == "Task not found"
+    mock_firebase_auth.assert_called_once()
+
+
+def test_api_update_preset_success(client, mock_firebase_auth, mock_presets_repository):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {"task_name": "study", "task_color": "#ffaa00", "task_time": 900}
+
+    # Act
+    response = client.put(url, json=payload, headers=headers)
+
+    # Assert
+    assert response.status_code == 200
+    mock_firebase_auth.assert_called_once()
+
+
+def test_api_delete_preset_no_data(client, mock_firebase_auth, mock_presets_repository):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {}
+
+    # Act
+    response = client.delete(url, json=payload, headers=headers)
+
+    # Assert
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data["error"] == "Invalid JSON"
+    mock_firebase_auth.assert_called_once()
+
+
+def test_api_delete_preset_content_error(client, mock_firebase_auth, mock_presets_repository):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {"task_name": "study"}
+
+    # Act
+    response = client.delete(url, data=payload, headers=headers)
+
+    # Assert
     assert response.status_code == 415
     mock_firebase_auth.assert_called_once()
+
+
+def test_api_delete_preset_no_task_name(client, mock_firebase_auth, mock_presets_repository):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {"test": "test"}
+
+    # Act
+    response = client.delete(url, json=payload, headers=headers)
+
+    # Assert
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data["error"] == "task name required"
+    mock_firebase_auth.assert_called_once()
+
+
+def test_api_delete_preset_not_found(client, mock_firebase_auth, mock_presets_repository, monkeypatch):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {"task_name": "study"}
+    monkeypatch.setattr(
+        "src.server.blueprints.api_presets.routes.get_task_preset",
+        lambda uid, task_name: None
+    )
+
+    # Act
+    response = client.delete(url, json=payload, headers=headers)
+
+    # Assert
+    assert response.status_code == 404
+    data = response.get_json()
+    assert data["error"] == "Preset not found"
+    mock_firebase_auth.assert_called_once()
+

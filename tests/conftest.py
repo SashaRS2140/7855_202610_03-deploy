@@ -67,7 +67,7 @@ def mock_firestore():
 def mock_firebase_auth(monkeypatch):
     """Patch JWT verification to return a known test uid by default."""
     verify_mock = MagicMock(return_value={"uid": "test_user_123"})
-    monkeypatch.setattr("src.server.decorators.auth.auth.verify_id_token", verify_mock)
+    monkeypatch.setattr("firebase_admin.auth.verify_id_token", verify_mock)
     return verify_mock
 
 
@@ -122,3 +122,16 @@ def mock_presets_repository(monkeypatch):
         lambda uid, task_name: None
     )
     return presets_repository_mock
+
+
+@pytest.fixture
+def bypass_auth(monkeypatch):
+    def fake_require_jwt(f):
+        def wrapper(*args, **kwargs):
+            return f(*args, uid="test_user_123", **kwargs)
+        return wrapper
+
+    monkeypatch.setattr(
+        "src.server.decorators.auth.require_jwt",
+        fake_require_jwt
+    )

@@ -45,6 +45,46 @@ class SessionStats {
         this.updateHeroStats();
         this.renderVerticalCalendar(monthsInfo);
         this.setupInteractions();
+        await this.loadLatestSession();
+    }
+
+    async loadLatestSession() {
+        const card = document.getElementById('recentSessionCard');
+        if (!card) return;
+
+        try {
+            const res = await fetch('/session/latest');
+            if (!res.ok) {
+                card.innerHTML = '<p style="color:#999;">No recent session yet.</p>';
+                return;
+            }
+
+            const data = await res.json();
+            if (!data || !data.task) {
+                card.innerHTML = '<p style="color:#999;">No recent session yet.</p>';
+                return;
+            }
+
+            const elapsed = Number(data.elapsed_time || 0);
+            const h = Math.floor(elapsed / 3600);
+            const m = Math.floor((elapsed % 3600) / 60);
+            const s = elapsed % 60;
+            const duration = `${h}h ${m}m ${s}s`;
+            const ts = data.timestamp ? new Date(data.timestamp).toLocaleString() : 'Unknown date';
+
+            card.innerHTML = `
+                <div class="session-line">
+                    <span>${data.task || 'Unnamed Session'}</span>
+                    <span class="session-color" style="background: ${data.task_color || '#ccc'};"></span>
+                </div>
+                <div>Duration: ${duration}</div>
+                <div>Completed: ${ts}</div>
+                <div class="session-summary">${data.task_type || 'Meditation'} • ${data.subject || 'General'}</div>
+            `;
+        } catch (err) {
+            console.error('Failed to load latest session:', err);
+            card.innerHTML = '<p style="color:#999;">Unable to load latest session.</p>';
+        }
     }
 
     calculateStreak() {

@@ -11,10 +11,10 @@
     <link rel="stylesheet" href="{{ url_for('auth.static', filename='css/style.css') }}">
 
 </head>
-<body hx-boost="true">
+<body>
 
   <nav>
-    <a href="/server/static" class="nav-brand">
+    <a href="{{ url_for('dashboard.home') }}" class="nav-brand">
         <div class="logo-container">
             <div class="logo-sq-orange"></div>
             <div class="logo-sq-red"></div>

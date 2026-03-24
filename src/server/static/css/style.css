@@ -910,3 +910,292 @@ input:-webkit-autofill:active{
         margin-bottom: 25px;
     }
 }
+
+/* --- NEW STATS DASHBOARD STYLES --- */
+.stats-dashboard {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 2rem 20px 6rem 20px; /* Extra bottom padding for scroll */
+}
+
+.stats-title {
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 2.5rem;
+    letter-spacing: -2px;
+    line-height: 0.9;
+    color: var(--text-white);
+}
+
+/* Hero Stats Grid */
+.stats-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 3rem;
+}
+
+.stat-box {
+    background: var(--bg-card);
+    padding: 24px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 140px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.stat-box.full-width {
+    grid-column: 1 / -1;
+    justify-content: center;
+    min-height: 120px;
+}
+
+.stat-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.stat-value {
+    font-size: 3.5rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+/* Colors matching the React mock */
+.stat-box:nth-child(1) .stat-value { color: var(--accent); }
+.stat-box:nth-child(2) .stat-value { color: var(--accent-2); }
+.stat-box.full-width .stat-value { color: var(--text-white); }
+
+.stat-unit {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-left: 5px;
+    margin-right: 15px;
+}
+
+/* Intensity Map */
+.intensity-map-section {
+    margin-bottom: 3rem;
+}
+
+.map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+}
+
+.map-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.map-header span {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+}
+
+.map-container {
+    background: var(--bg-card);
+    border-radius: 30px;
+    padding: 24px 20px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+/* Sticky Header inside the scroll box */
+.floating-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    background: rgba(22, 21, 20, 0.95); /* Matches --bg-card */
+    backdrop-filter: blur(8px);
+    z-index: 10;
+    padding-bottom: 12px;
+    margin-bottom: 10px;
+}
+
+.floating-days span {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 900;
+    color: rgba(204, 204, 204, 0.4);
+}
+
+.scrollable-heatmap {
+    height: 320px; /* Fixed height forces internal scrolling */
+    overflow-y: auto;
+    padding-right: 5px;
+    /* Custom mask to fade out the top/bottom */
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+}
+
+/* Scrollbar tweaks */
+.scrollable-heatmap::-webkit-scrollbar { width: 4px; }
+.scrollable-heatmap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+.month-block {
+    margin-bottom: 24px;
+}
+
+.month-label {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Map Grid Constraints */
+.month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+.heat-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.heat-cell:not(.level-0):hover {
+    transform: scale(1.15);
+    z-index: 2;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* The 5 Intensity Levels */
+.heat-cell.level-0 { background: rgba(255, 255, 255, 0.05); }
+.heat-cell.level-1 { background: rgba(234, 128, 0, 0.4); }   /* Low Orange */
+.heat-cell.level-2 { background: var(--accent); }             /* Full Orange */
+.heat-cell.level-3 { background: rgba(215, 0, 34, 0.6); }     /* Low Red */
+.heat-cell.level-4 { background: var(--accent-2); }           /* Full Red */
+
+.map-legend {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.legend-swatches {
+    display: flex;
+    gap: 6px;
+}
+
+.legend-swatches div {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.swatch-0 { background: rgba(255, 255, 255, 0.05); }
+.swatch-1 { background: rgba(234, 128, 0, 0.4); }
+.swatch-2 { background: var(--accent); }
+.swatch-3 { background: rgba(215, 0, 34, 0.6); }
+.swatch-4 { background: var(--accent-2); }
+
+/* --- DAILY DETAILS POPOUT --- */
+.day-popover {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(120%); /* Hidden below screen */
+    width: 100%;
+    max-width: 500px;
+    background: rgba(22, 21, 20, 0.95);
+    backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 40px 40px 0 0;
+    padding: 30px;
+    z-index: 1000;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.day-popover.active {
+    transform: translateX(-50%) translateY(0); /* Slide up */
+}
+
+.popover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.popover-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-white);
+}
+
+/* Reusing your glass button style for the close button */
+#closePopover {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.popover-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.pop-stat {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.pop-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.pop-val {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--accent);
+}

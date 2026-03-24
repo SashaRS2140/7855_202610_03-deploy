@@ -1,5 +1,9 @@
 from src.server import create_app
+from dotenv import load_dotenv
+import os
+from functools import wraps
 
+load_dotenv()
 
 # Create the application instance
 app = create_app()

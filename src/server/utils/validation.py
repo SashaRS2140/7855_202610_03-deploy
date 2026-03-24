@@ -116,3 +116,19 @@ def validate_user_info(data: dict[str, str]):
     return errors  # Return ALL errors
 
 
+def normalize_task_color(task_color):
+    if not task_color or not isinstance(task_color, str):
+        return task_color
+
+    task_color = task_color.strip().lower()
+
+    if re.fullmatch(r"^#[0-9a-f]{6}$", task_color):
+        return task_color + "ff"
+
+    if re.fullmatch(r"^#[0-9a-f]{8}$", task_color):
+        return task_color
+
+    # fallback as provided
+    return task_color
+
+

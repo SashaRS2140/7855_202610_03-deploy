@@ -1,5 +1,5 @@
 import pytest
-from src.server.utils.validation import validate_login_data, validate_preset, validate_user_info
+from src.server.utils.validation import validate_login_data, validate_preset, validate_user_info, normalize_task_color
 
 @pytest.mark.parametrize("email, password, confirm_password, expected",
     [
@@ -47,6 +47,8 @@ def test_validate_login_data(email, password, confirm_password, expected):
     [
         # Valid partition
         ("meditate", 30, "#0000ff", []),
+        # Valid partition 2
+        ("meditate", 30, "#0000ffff", []),
         # task_name None
         (None, 30, "#0000ff", ["task_name cannot be None"]),
         # task_time None
@@ -66,15 +68,15 @@ def test_validate_login_data(email, password, confirm_password, expected):
         # task_time zero
         ("meditate", 0, "#0000ff", ["Task time must be greater than zero"]),
         # task_color invalid type
-        ("meditate", 30, 223344, ["Task color must be a valid hex RGB string (e.g., '#0000ff')"]),
+        ("meditate", 30, 223344, ["Task color must be a valid hex RGB or RGBW string (e.g., '#0000ff' or '#0000ffff')"]),
         # task_color no #
-        ("meditate", 30, "0000ff", ["Task color must be a valid hex RGB string (e.g., '#0000ff')"]),
+        ("meditate", 30, "0000ff", ["Task color must be a valid hex RGB or RGBW string (e.g., '#0000ff' or '#0000ffff')"]),
         # task_color out of bounds letters
-        ("meditate", 30, "#0000fg", ["Task color must be a valid hex RGB string (e.g., '#0000ff')"]),
+        ("meditate", 30, "#0000fg", ["Task color must be a valid hex RGB or RGBW string (e.g., '#0000ff' or '#0000ffff')"]),
         # task_color too long
-        ("meditate", 30, "#0000fff", ["Task color must be a valid hex RGB string (e.g., '#0000ff')"]),
+        ("meditate", 30, "#0000fff", ["Task color must be a valid hex RGB or RGBW string (e.g., '#0000ff' or '#0000ffff')"]),
         # task_color too short
-        ("meditate", 30, "#0000f", ["Task color must be a valid hex RGB string (e.g., '#0000ff')"]),
+        ("meditate", 30, "#0000f", ["Task color must be a valid hex RGB or RGBW string (e.g., '#0000ff' or '#0000ffff')"]),
     ]
 )
 def test_validate_preset(task_name, task_time, task_color, expected):
@@ -106,3 +108,22 @@ def test_validate_user_info(first_name, last_name, expected):
     data = {"unknown": "unknown"}
     assert validate_user_info(data) == ["Unknown fields: {'unknown'}"]
 
+
+@pytest.mark.parametrize("task_color, expected",
+    [
+        # Valid partition
+        ("#0000ff", "#0000ffff"),
+        # Valid partition 2
+        ("#0000ffff", "#0000ffff"),
+        # task_color None
+        (None, None),
+        # task_color not string
+        (42, 42),
+        # task_color with white spaces
+        (" #0000ff ", "#0000ffff"),
+        # task_color with upper case
+        ("#0000FF", "#0000ffff"),
+    ]
+)
+def test_normalize_task_color(task_color, expected):
+    assert normalize_task_color(task_color) == expected

@@ -58,12 +58,17 @@ def api_set_task(uid: str):
 def api_get_latest_session(uid: str):
 
     latest_session = get_session(uid)
-    task = latest_session.get("task")
-    time = latest_session.get("elapsed_time")
-
     if not latest_session:
         return jsonify({"error": "No recorded session history."}), 400
 
-    return jsonify({"task": task,
-                    "time": time,
-                    }), 200
+    task = latest_session.get("task")
+    elapsed_time = latest_session.get("elapsed_time")
+    timestamp = latest_session.get("timestamp")
+    task_color = latest_session.get("task_color")
+
+    return jsonify({
+        "task": task,
+        "elapsed_time": elapsed_time,
+        "timestamp": timestamp,
+        "task_color": task_color,
+    }), 200

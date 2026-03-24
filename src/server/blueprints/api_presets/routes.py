@@ -1,7 +1,7 @@
 from . import api_presets_bp
 from flask import request, jsonify
 from src.server.decorators.auth import require_jwt
-from src.server.utils.validation import require_json_content_type, validate_preset
+from src.server.utils.validation import normalize_task_color, require_json_content_type, validate_preset
 from src.server.utils.repository import delete_task_preset, update_task_preset, get_all_task_presets, get_task_preset
 
 
@@ -68,7 +68,7 @@ def api_create_preset(uid: str):
     if not task_time:
         return jsonify({"error": "task time required"}), 400
 
-    task_color = data.get("task_color").lower()
+    task_color = normalize_task_color(data.get("task_color"))
     if not task_color:
         return jsonify({"error": "task color required"}), 400
 
@@ -108,7 +108,7 @@ def api_update_preset(uid: str):
     if task_time is not None:
         updated_preset_data["task_time"] = task_time if task_time else ""
     if task_color is not None:
-        updated_preset_data["task_color"] = task_color.lower() if task_color else ""
+        updated_preset_data["task_color"] = normalize_task_color(task_color) if task_color else ""
 
     # Save updated preset task in database
     update_task_preset(uid, task_name, updated_preset_data)

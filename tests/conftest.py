@@ -18,8 +18,8 @@ mock_user_doc.get.return_value.to_dict.return_value = {
     "session_history": [{"elapsed_time": 300, "task": "Meditation", "timestamp": "2023-01-01T00:00:00"}],
     "user_info": {"email": "test_email@gmail.com", "first_name": "Johnny", "last_name": "Test", "role": "user"}
 }
-mock_cube_doc.get.return_value.exists = False
-mock_cube_doc.get.return_value.to_dict.return_value = {}
+mock_cube_doc.get.return_value.exists = True
+mock_cube_doc.get.return_value.to_dict.return_value = {"user uid": "test_user_uid"}
 
 fake_firebase = types.ModuleType("firebase")
 fake_firebase.user_profiles = mock_user_profiles
@@ -32,8 +32,7 @@ patch('firebase_admin.initialize_app').start()
 # Now your original imports and fixtures
 import pytest
 import importlib
-from unittest.mock import MagicMock
-
+#from unittest.mock import MagicMock
 
 
 @pytest.fixture
@@ -62,9 +61,13 @@ def mock_firestore():
         "cube_doc_ref": mock_cube_doc,
         "cube_snapshot": mock_cube_doc.get.return_value,
     }
+
+
+@pytest.fixture
+def mock_firebase_auth(monkeypatch):
     """Patch JWT verification to return a known test uid by default."""
     verify_mock = MagicMock(return_value={"uid": "test_user_123"})
-    monkeypatch.setattr("decorators.auth.auth.verify_id_token", verify_mock)
+    monkeypatch.setattr("src.server.decorators.auth.auth.verify_id_token", verify_mock)
     return verify_mock
 
 
@@ -74,19 +77,48 @@ def repo():
     import src.server.utils.repository
     return importlib.reload(src.server.utils.repository)
 
+
 @pytest.fixture
-def mock_task_control(monkeypatch):
+def mock_cube_request(monkeypatch):
+    """Mock cube_request fixture."""
+    cube_request_mock = MagicMock()
     monkeypatch.setattr(
-        "src.server.routes.cube_routes.get_cube_user",
+        "src.server.blueprints.api_cube.routes.get_cube_user",
         lambda cube_uuid: "test_uid"
     )
-
     monkeypatch.setattr(
-        "src.server.routes.cube_routes.get_current_task",
+        "src.server.blueprints.api_cube.routes.get_current_task",
         lambda uid: "Meditation"
     )
-
     monkeypatch.setattr(
-        "src.server.routes.cube_routes.get_task_preset",
+        "src.server.blueprints.api_cube.routes.get_task_preset",
         lambda uid, task: {"task_time": 600}
     )
+    monkeypatch.setattr(
+        "src.server.blueprints.api_cube.routes.save_session",
+        lambda uid, current_task, elapsed_time: None
+    )
+    return cube_request_mock
+
+
+@pytest.fixture
+def mock_presets_repository(monkeypatch):
+    """Mock presets repository fixture."""
+    presets_repository_mock = MagicMock()
+    monkeypatch.setattr(
+        "src.server.blueprints.api_presets.routes.get_all_task_presets",
+        lambda uid: {"Meditation": {"task_color": "#ffaa00", "task_time": 600}}
+    )
+    monkeypatch.setattr(
+        "src.server.blueprints.api_presets.routes.get_task_preset",
+        lambda uid, task_name: {"task_color": "#ffaa00", "task_time": 600}
+    )
+    monkeypatch.setattr(
+        "src.server.blueprints.api_presets.routes.update_task_preset",
+        lambda uid, task_name, updated_preset_data: None
+    )
+    monkeypatch.setattr(
+        "src.server.blueprints.api_presets.routes.delete_task_preset",
+        lambda uid, task_name: None
+    )
+    return presets_repository_mock

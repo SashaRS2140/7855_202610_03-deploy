@@ -15,8 +15,8 @@ mock_user_doc.get.return_value.exists = True
 mock_user_doc.get.return_value.to_dict.return_value = {
     "current_task": "Meditation",
     "presets": {"Meditation": {"task_color": "#ffaa00", "task_time": 600}},
-    "session_history": [{"elapsed_time": 300, "task": "Meditation"}],
-    "user_info": {"email": "test@example.com", "first_name": "Test", "last_name": "User"}
+    "session_history": [{"elapsed_time": 300, "task": "Meditation", "timestamp": "2023-01-01T00:00:00"}],
+    "user_info": {"email": "test_email@gmail.com", "first_name": "Johnny", "last_name": "Test", "role": "user"}
 }
 mock_cube_doc.get.return_value.exists = False
 mock_cube_doc.get.return_value.to_dict.return_value = {}

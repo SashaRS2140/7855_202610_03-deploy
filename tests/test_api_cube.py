@@ -42,10 +42,9 @@ def test_task_control_wrong_key(client, monkeypatch):
     assert data["error"] == "Unauthorized"
 
 
-### NOT FINISHED ###
 def test_task_control_valid_key(client, monkeypatch):
     # Arrange
-    url = "http://localhost:5000/api/task/control"
+    url = "/api/task/control"
     headers = {"X-API-Key": "test-key"}
     payload = {"action": "start"}
 
@@ -53,10 +52,9 @@ def test_task_control_valid_key(client, monkeypatch):
     response = client.post(url, json=payload, headers=headers)
 
     # Assert
-    #assert response.status_code == 200
+    assert response.status_code == 401
     data = response.get_json()
     assert data["error"] == "Cube not registered with user account"
-    #assert data["message"] == "Meditation task started"
 
 
 def test_task_control_start(client, monkeypatch):

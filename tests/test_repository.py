@@ -28,6 +28,10 @@ def test_get_all_user_info_no_data(mock_firestore, repo):
 
 
 def test_get_cube_user_success(mock_firestore, repo):
+    # Override global mock for this test
+    mock_firestore["cube_doc_ref"].get.return_value.exists = True
+    mock_firestore["cube_snapshot"].to_dict.return_value = {"user uid": "test_user_uid"}
+    
     result = repo.get_cube_user("test_uid")
 
     assert result == "test_user_uid"

@@ -1,5 +1,35 @@
+# Add this at the VERY TOP, before any other imports
 import sys
+from unittest.mock import MagicMock, patch
 import types
+
+# Early mock to prevent firebase.py from running
+mock_user_profiles = MagicMock(name="mock_user_profiles")
+mock_cubes = MagicMock(name="mock_cubes")
+mock_user_doc = MagicMock()
+mock_cube_doc = MagicMock()
+mock_user_profiles.document.return_value = mock_user_doc
+mock_cubes.document.return_value = mock_cube_doc
+
+mock_user_doc.get.return_value.exists = True
+mock_user_doc.get.return_value.to_dict.return_value = {
+    "current_task": "Meditation",
+    "presets": {"Meditation": {"task_color": "#ffaa00", "task_time": 600}},
+    "session_history": [{"elapsed_time": 300, "task": "Meditation"}],
+    "user_info": {"email": "test@example.com", "first_name": "Test", "last_name": "User"}
+}
+mock_cube_doc.get.return_value.exists = True
+mock_cube_doc.get.return_value.to_dict.return_value = {"user uid": "test_uid"}
+
+fake_firebase = types.ModuleType("firebase")
+fake_firebase.user_profiles = mock_user_profiles
+fake_firebase.cubes = mock_cubes
+sys.modules["firebase"] = fake_firebase
+
+# Prevent real init
+patch('firebase_admin.initialize_app').start()
+
+# Now your original imports and fixtures
 import pytest
 import importlib
 from unittest.mock import MagicMock

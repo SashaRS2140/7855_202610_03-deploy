@@ -5,7 +5,7 @@ import importlib
 from unittest.mock import MagicMock
 
 
-@pytest.fixture
+@pytest.fixture(scope="session", autouse=True)
 def mock_firestore(monkeypatch):
     """Starter Firestore mock fixture.
 

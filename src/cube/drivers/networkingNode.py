@@ -12,41 +12,10 @@ import time
 import json
 
 
-
-def hex_to_rgbw(hex_color: str):
-    """
-    Convert HEX color (#RRGGBB) to RGBW.
-
-    Parameters
-    ----------
-    hex_color : str
-        Color string like "#ffaa00"
-
-    Returns
-    -------
-    tuple
-        (r, g, b, w) values from 0–255
-    """
-
-    # Convert HEX → RGB
-    r = int(hex_color[1:3], 16)
-    g = int(hex_color[3:5], 16)
-    b = int(hex_color[5:7], 16)
-
-    # Extract white component
-    w = min(r, g, b)
-
-    # Remove white from RGB
-    r -= w
-    g -= w
-    b -= w
-
-    return r, g, b, w
-
-
 class NetworkingNode:
 
     def __init__(self, ssid, password, server_ip, port=5000):
+        self.connected = False
         self.ssid = ssid
         self.password = password
         self.server_ip = server_ip
@@ -55,61 +24,31 @@ class NetworkingNode:
         self.bearerToken = "supersecretbearertoken" 
 
     # WiFi Connection
-    def connect_wifi(self, timeout=5):        
-        # Turn on the WiFi interface if it's not already active
+    def connect_wifi(self, timeout=5):
         if not self.wlan.active():
             self.wlan.active(True)
 
-        # Only try to connect if we're not already connected
         if not self.wlan.isconnected():
             print("Connecting to WiFi...")
             self.wlan.connect(self.ssid, self.password)
 
-            # Start a timer to enforce a connection timeout
             start_time = time.time()
             while not self.wlan.isconnected():
-                # If we've waited longer than 'timeout' seconds, give up
                 if time.time() - start_time > timeout:
-                    self.wlan.active(False)  # turn off radio to save power
                     raise RuntimeError("WiFi connection timeout")
+                    self.connected = False
                 time.sleep(1)
-        # If we reach this point, we're connected
+
         print("WiFi connected:", self.wlan.ifconfig())
+        self.connected = True
 
-            # -------- SERVER CHECK --------
-        url = f"http://{self.server_ip}:{self.port}/api/esp/config"
 
-        try:
-            response = urequests.get(url)
-            response.close()
-            print("Server reachable")
-
-        except Exception:
-            print("Server unreachable, disabling WiFi")
-            self.wlan.active(False)
-            raise RuntimeError("Server not reachable")
-#  or not self.check_server()
     def ensure_connection(self):
         if not self.wlan.isconnected():
             print("offline mode")
             return False
         return True
 
-
-    '''
-    # LP5811 timing codes: [0h:0s, 1h:0.09s, 2h:0.18s, 3h:0.36s, 4h:0.54s, 5h:0.80s, 6h:1.07s, 7h:1.52s, 8h:2.06s, 9h:2.50s, Ah:3.04s, Bh:4.02s, Ch:5.01s, Dh:5.99s, Eh:7.06s, Fh:8.05s]
-
-    Example for reset pull 
-    Server: {
-        "message": "Demo task reset",
-        "task_name": "Demo", 
-        "task_time": 600,
-        "task_color": #ffaa00,
-        "timing_patern": [minimum_intensity time,rise time,peak time,fall time],
-        "alarm_type": "bell"
-    }
-
-    '''
     def get_state(self):
 
         if not self.ensure_connection():
@@ -121,11 +60,17 @@ class NetworkingNode:
             "Authorization": f"Bearer {self.bearerToken}"
         }
 
+        print("➡️ Sending GET to:", url)
+
         try:
             response = urequests.get(url, headers=headers)
+            print("⬅️ Status:", response.status_code)
+            raw = response.text
+            print("⬅️ Raw response:", raw)
+
             data = response.json()
             response.close()
-
+            print("Received config:", data)
             # ---- REQUIRED FIELDS ----
             required_fields = [
                 "task_name",
@@ -147,57 +92,126 @@ class NetworkingNode:
         except Exception as e:
             print("GET error:", e)
             return None
-            
-
-    '''
-    
-    //example for posts but be made using device_id as key in header of json !!!!!!!!!!!        
-    // on start command dabase utc starttime from firebase 
-    // on stop cube sends elapsed time and it is stored in database
-    Cube:{
-        "task": "MEDITATION",
-        "action": "START",
-    }
-
-    Cube:{
-        "task": "MEDITATION",   
-        "action": "STOP",
-        "time_elapsed": 123124:
-    }
-    // Reset command is basically just an api call 
-    Cube:{
-        "action": "reset"
-    }
-    '''
 
     # HTTP POST occurs when buttons is pressed singleTap or doubleTap
     # The purpose of this is to save data into server.
-    def send_command(self, payload: dict):
-        if not self.ensure_connection():
-            return False
 
-        action = payload.get("action")
+    '''
+    EXAMPLE POST JSON PAYLOAD
+    {
+      "device_id": "cube_01",
+      "task": "Meditation",
+      "COMMAND": "START",
+      "timestamp": 1719954000, # UNIX timestamp in seconds, may be useful for future iterations of project
+      "timeElapsed": 0,
+      "preset time": 1200
+    }
 
-        #cleanup payload to remove whitespace and ensure task is string
-        if "task" in payload:
-            payload["task"] = str(payload["task"]).strip()
-
+    '''
+    def send_command(self, command, timeElapsed = -1, presetTime = -1,task = "Meditation" ):
+        self.ensure_connection()
+  
         url = f"http://{self.server_ip}:{self.port}/api/esp/telemetry"
-
-        headers = {
-            "Authorization": f"Bearer {self.bearerToken}",
-            "Content-Type": "application/json"
-        }
-
+        payload = {
+            "device_id": "cube_01",
+            "task": task,
+            "COMMAND": command, # "START", "STOP", "RESET"
+            "timestamp": time.time(), # UNIX timestamp in seconds, may be useful for future iterations of project
+            "timeElapsed": timeElapsed,
+            "preset time": presetTime          
+            }
+            
         try:
-            response = urequests.post(url, json=payload, headers=headers)
-
-            print("STATUS:", response.status_code)
-            print("RESPONSE:", response.text)
-
+            response = urequests.post(url, json=payload)
             response.close()
             return True
-
         except Exception as e:
             print("POST error:", e)
             return False
+
+
+
+'''
+ALARM 1: SETS OFF AT PRESET TIME.
+ALARM 2 SIMPLY DOES NOTHING OTHER THAN PLAYS SOUND. EX, EVERY 1 MINUTE REMINDER MAY PLAY. WILL BE USEFUL FOR FUTURE ITERATIONS OF PROJECT
+
+# Animation timing values (X) correspond to LED auto engine register values:
+# 
+# 0x0  = 0.00 s   (no pause)
+# 0x1  = 0.09 s
+# 0x2  = 0.18 s
+# 0x3  = 0.36 s
+# 0x4  = 0.54 s
+# 0x5  = 0.80 s
+# 0x6  = 1.07 s
+# 0x7  = 1.52 s
+# 0x8  = 2.06 s
+# 0x9  = 2.50 s
+# 0xA  = 3.04 s
+# 0xB  = 4.02 s
+# 0xC  = 5.01 s
+# 0xD  = 5.99 s
+# 0xE  = 7.06 s
+# 0xF  = 8.05 s
+
+EXAMPLE JSON FILE EXPECTED
+{
+  "task": {
+    "name": "Meditation",
+    "preset_time_sec": 20*60
+  },
+
+  "led0_W": {
+    "max_pwm_percent": 100,
+    "animation": {
+      "T1_code": 0x0B,  # pause at minimum
+      "T2_code": 0x0B,  # ramp up
+      "T3_code": 0x0B,  # hold at maximum
+      "T4_code": 0x0B   # ramp down
+    }
+  },
+
+  "led1_B": {
+    "max_pwm_percent": 100,
+    "animation": {
+      "T1_code": 0x04,
+      "T2_code": 0x08,
+      "T3_code": 0x05,
+      "T4_code": 0x08
+    }
+  },
+
+  "led2_G": {
+    "max_pwm_percent": 100,
+    "animation": {
+      "T1_code": 0x04,
+      "T2_code": 0x08,
+      "T3_code": 0x05,
+      "T4_code": 0x08
+    }
+  },
+
+  "led3_R": {
+    "max_pwm_percent": 100,
+    "animation": {
+      "T1_code": 0x04,
+      "T2_code": 0x08,
+      "T3_code": 0x05,
+      "T4_code": 0x08
+    }
+  },
+
+  "alarm1": {
+    "enabled": True,
+    "type": "bell",
+    "time_sec": 1200
+  },
+
+  "alarm2": {
+    "enabled": True,
+    "type": "wood",
+    "interval_sec": 60,
+    "times_sec": [60,120,180,240,300]
+  }
+}
+'''

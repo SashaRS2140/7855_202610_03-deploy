@@ -1,10 +1,12 @@
 # main.py (MicroPython / ESP32)
 # .\push.ps1
+
+
+# one button, one led, one timer, and a dream
+
 import time
 from machine import ADC, I2C, Pin, PWM
-
 import secrets  # secrets.WIFI_SSID, WIFI_PASSWORD, SERVER_IP, SERVER_PORT
-
 from drivers.lp5811_ledDriver import LP5811
 from drivers.piezoElectric import PiezoButton
 from drivers.pomodoroTimer import PomodoroTimer
@@ -147,7 +149,7 @@ class CubeController:
             wifi_ok = True
         except Exception as e:
             print("Failed to connect to WiFi:", e)
-        self.lp.stop_cmd()
+
 
         try:
             state = self.network_inst.get_state()
@@ -157,6 +159,7 @@ class CubeController:
         except Exception as e:
             print("Failed to fetch server state:", e)
 
+        self.lp.stop_cmd()
         # FINAL PRINT
         if wifi_ok and server_ok:
             self.connected = True   
@@ -210,6 +213,9 @@ class CubeController:
         success = self.network_inst.send_command(json_payload)
         if success:
             print(str(self.mode) + " Command sent successfully")
+        else: 
+            print(str(self.mode) + " Command failed to send, entering disconnection mode")
+            self.network_inst.connected = False
 
 
     def handle_double_tap(self):
@@ -228,6 +234,10 @@ class CubeController:
         success = self.network_inst.send_command(json_payload)
         if success:
             print("Command sent successfully")
+        else:
+            print(str(self.mode) + " Command failed to send, entering disconnection mode")
+            self.network_inst.connected = False
+
         if self.network_inst.connected == False:
             print("Retrying to connect to server")
             self.init_network()

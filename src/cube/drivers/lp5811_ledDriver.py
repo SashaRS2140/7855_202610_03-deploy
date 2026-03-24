@@ -510,15 +510,6 @@ class LP5811:
         b -= w
 
         return [r, g, b, w]
-    
-
-            # self.lp.init_auto()
-            # self.lp.led_all_breathing(
-            #     RGBW=self.RGBW,
-            #     duration_ms=self.animation_pattern
-            # )
-            # self.lp.start_cmd()
-
 
     def success_animation(self):
         self.init_auto()
@@ -526,10 +517,10 @@ class LP5811:
         self.led_all_breathing(RGBW=[0, 255, 0, 0], duration_ms=[0x02, 0x03, 0x04, 0x05], repeat_times=0x00)  # Green breathing, fast, play twice
         time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
         self.start_cmd()
+
     def fail_animation(self):
         self.init_auto()
         self.led_all_breathing(RGBW=[255, 0, 0, 0], duration_ms=[0x02, 0x03, 0x04, 0x05], repeat_times=0x00)  # Red breathing, fast, play twice   
-
         time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
         self.start_cmd()
 
@@ -538,7 +529,12 @@ class LP5811:
         self.led_all_breathing(RGBW=[126, 126, 0, 0], duration_ms=[0x0F, 0x0F, 0x0F, 0x0F], repeat_times=0x02)  # Green breathing, fast, play twice
         time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
         self.start_cmd()
-
+    # Animation for when device is broken and cannot be operated
+    def broken_animation(self):
+        self.init_auto()
+        self.led_all_breathing(RGBW=[126, 0, 0, 0], duration_ms=[0x0F, 0x0F, 0x0F, 0x0F], repeat_times=0x02)  # Green breathing, fast, play twice
+        time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
+        self.start_cmd()
 
     def led_all_breathing(self, RGBW:list , duration_ms:list = [0x08,0x08,0x08,0x08], repeat_times: int = 0xF):
 

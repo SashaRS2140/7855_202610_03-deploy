@@ -130,13 +130,14 @@ def get_session(uid: str):
 
 
 def save_session(uid: str, task: str, elapsed_time: int, task_color: str = None):
-    from datetime import datetime
+    from datetime import datetime, UTC
 
     doc_ref = user_profiles.document(uid)
     data = {
         "task": task,
         "elapsed_time": elapsed_time,
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        #"timestamp": datetime.utcnow().isoformat() + "Z", ## DeprecationWarning ##
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
     }
     if task_color:
         data["task_color"] = task_color

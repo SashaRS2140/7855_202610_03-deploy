@@ -60,7 +60,7 @@ def api_create_preset(uid: str):
     data = extract_preset_data()
 
     # Organize preset task data
-    task_name = data.get("task_name").strip().title()
+    task_name = (data.get("task_name") or "").strip().title()
     if not task_name:
         return jsonify({"error": "task name required"}), 400
 
@@ -92,7 +92,7 @@ def api_update_preset(uid: str):
     data = extract_preset_data()
 
     # Prepare updated preset task data (only include provided fields)
-    task_name = data.get("task_name").strip().title()
+    task_name = (data.get("task_name") or "").strip().title()
     if not task_name:
         return jsonify({"error": "Task name required"}), 400
 
@@ -133,7 +133,7 @@ def api_delete_preset(uid: str):
     if not data:
         return jsonify({"error": "Invalid JSON"}), 400
 
-    task_name = data.get("task_name").strip().title()
+    task_name = (data.get("task_name") or "").strip().title()
     if not task_name:
         return jsonify({"error": "task name required"}), 400
 

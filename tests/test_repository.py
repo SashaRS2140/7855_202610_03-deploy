@@ -190,7 +190,7 @@ def test_get_session_success(mock_firestore, repo):
         "user_info": {"email": "test_email@gmail.com", "first_name": "Johnny", "last_name": "Test", "role": "user"}
     }
     result = repo.get_session("test_uid")
-    assert result == [{"elapsed_time": 300, "task": "Meditation", "timestamp": "2023-01-01T00:00:00"}]
+    assert result == {"elapsed_time": 300, "task": "Meditation", "timestamp": "2023-01-01T00:00:00"}
 
 
 def test_get_session_no_doc(mock_firestore, repo):

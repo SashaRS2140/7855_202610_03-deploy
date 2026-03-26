@@ -96,29 +96,32 @@ function connectTimerStream() {
 
 
 async function syncCurrentTask() {
-    if (!taskSelect) return;
+  if (!taskSelect) return;
+  try {
+    const res = await fetch("/task/current");
+    if (!res.ok) return;
+    const data = await res.json();
+    const current = data.current_task;
 
-    try {
-        const res = await fetch("/task/current");
-        if (!res.ok) return;
-
-        const data = await res.json();
-        const current = data.current_task;
-
-        if (!current) return;
-
-        // Match option by value (task.id assumed to equal stored name)
-        const option = [...taskSelect.options].find(
-            opt => opt.value.toUpperCase() === current
-        );
-
-        if (option) {
-            taskSelect.value = option.value;
-            await applyTaskPreset(current);
-        }
-    } catch (err) {
-        console.error("Failed to sync current task:", err);
+    if (current) {
+      const option = [...taskSelect.options].find(opt => opt.value.toUpperCase() === current.toUpperCase());
+      if (option) {
+        taskSelect.value = option.value;
+        await applyTaskPreset(option.value);
+        return;
+      }
     }
+
+    // fallback: if no current_task, apply first real option (not create-new)
+    const fallback = [...taskSelect.options].find(opt => opt.value && opt.value !== "new_task_trigger");
+    if (fallback) {
+      taskSelect.value = fallback.value;
+      await applyTaskPreset(fallback.value);
+      await setActiveTask(fallback.value);
+    }
+  } catch (err) {
+    console.error("Failed to sync current task:", err);
+  }
 }
 
 function displayToSeconds(display) {
@@ -542,8 +545,14 @@ async function initCube() {
     }
 }
 
-if (cubeContainer) {
-    initCube();
+// Initialize Cube on DOM ready (ensures re-initialization on page navigation)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (cubeContainer) initCube();
+    });
+} else {
+    // DOM already loaded (module cached)
+    if (cubeContainer) initCube();
 }
 
 // Initialize Color Picker

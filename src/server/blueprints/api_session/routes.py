@@ -72,3 +72,38 @@ def api_get_latest_session(uid: str):
         "timestamp": timestamp,
         "task_color": task_color,
     }), 200
+
+
+@api_session_bp.get("/sessions")
+@require_jwt
+def api_get_sessions(uid: str):
+    """Get paginated session list for a user."""
+    from src.server.utils.repository import get_sessions
+
+    limit = request.args.get("limit", default=100, type=int)
+    offset = request.args.get("offset", default=0, type=int)
+
+    all_sessions = get_sessions(uid, limit=limit + offset)
+    paginated = all_sessions[offset:offset+limit]
+
+    return jsonify({
+        "sessions": paginated,
+        "total": len(all_sessions)
+    }), 200
+
+
+@api_session_bp.get("/sessions/range")
+@require_jwt
+def api_get_sessions_range(uid: str):
+    """Get sessions within a date range."""
+    from src.server.utils.repository import get_sessions_by_date_range
+
+    start = request.args.get("start")  # YYYY-MM-DD
+    end = request.args.get("end")
+
+    if not start or not end:
+        return jsonify({"error": "start and end dates required (YYYY-MM-DD)"}), 400
+
+    sessions = get_sessions_by_date_range(uid, start, end)
+
+    return jsonify({"sessions": sessions}), 200

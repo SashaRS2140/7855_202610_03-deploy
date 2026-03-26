@@ -130,6 +130,46 @@ def session_latest(uid: str):
     }), 200
 
 
+@dashboard_bp.get('/sessions/calendar')
+@login_required
+def sessions_calendar(uid: str):
+    """Return session data aggregated by day for calendar heatmap."""
+    from datetime import datetime
+    from src.server.utils.repository import get_sessions
+
+    year = request.args.get("year", default=datetime.now().year, type=int)
+    month = request.args.get("month", default=datetime.now().month, type=int)
+
+    sessions = get_sessions(uid, limit=365)
+
+    # Aggregate by date (filtered to requested month/year only)
+    daily_totals = {}
+
+    for session in sessions:
+        ts = session.get("timestamp", "")[:10]  # YYYY-MM-DD
+        try:
+            session_year = int(ts[:4])
+            session_month = int(ts[5:7])
+            
+            # Only include sessions from the requested month
+            if session_year == year and session_month == month:
+                if ts not in daily_totals:
+                    daily_totals[ts] = {"count": 0, "total_time": 0}
+
+                daily_totals[ts]["count"] += 1
+                daily_totals[ts]["total_time"] += session.get("elapsed_time", 0)
+        except (ValueError, IndexError):
+            # Skip malformed timestamps
+            continue
+
+    return jsonify({
+        "year": year,
+        "month": month,
+        "daily_data": daily_totals,
+        "max_sessions": max([d["count"] for d in daily_totals.values()]) if daily_totals else 1
+    }), 200
+
+
 @dashboard_bp.post("/profile/preset")
 @login_required
 def create_preset(uid: str):

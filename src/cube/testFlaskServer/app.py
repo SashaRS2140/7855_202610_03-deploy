@@ -3,60 +3,65 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # ---- server state ----
-state = {
-    "mode": "idle",
-    "last_command": None
-}
+state = {}
 
-# ---- CONFIG (GET) ----
+# ---- CONFIG (GET) ---- This gets called upon RESET command
 @app.route("/api/esp/config", methods=["GET"])
 def get_config():
-    # This must match what your ESP32 expects
     config = {
         "task_name": "Meditation",
-        "task_time": 600,
-        "task_color": "#ffaa00",
-        "timing_pattern": [1, 2, 3, 4],
+        "task_time":10,
+        "task_color": "#0004D4",
+        "timing_pattern": [4, 4, 4, 4],
         "alarm_type": "bell"
     }
-
     return jsonify(config), 200
 
 
-# ---- TELEMETRY (POST) ----
+# ---- TELEMETRY (POST) ---- This gets called upon START/STOP COMMAND command
 @app.route("/api/esp/telemetry", methods=["POST"])
 def telemetry():
     data = request.get_json()
+    # print("RAW DATA:", data)
+    action = None
 
-    if not data or "action" not in data:
-        return jsonify({"error": "Invalid payload"}), 400
+    config = {
+        "task_name": "CHANGE TASK",
+        "task_time":10,
+        "task_color": "#FF9900",
+        "timing_pattern": [4, 4, 4, 4],
+        "alarm_type": "bell"
+    }
+    if data:
+        action = data.get("action") or data.get("COMMAND") 
 
-    action = data["action"]
 
-    print("Received:", data)
-
-    # ---- Handle actions ----
     if action == "START":
         state["mode"] = "running"
-        state["last_command"] = data
+        state["task"] = data.get('task')
+        state["time Elapsed"] = data.get('timeElapsed')
 
     elif action == "STOP":
         state["mode"] = "stopped"
-        state["last_command"] = data
+        state["timeElapsed"] = data.get('timeElapsed')
 
     elif action == "RESET":
-        state["mode"] = "idle"
-        state["last_command"] = data
+        state["mode"] = "stopped"
+        state["timeElapsed"] = 0
+    elif not action:
+        return jsonify({"error": "Invalid payload", "received": data}), 400
+    
+    print("Parsed action:", action)
 
-    else:
-        return jsonify({"error": "Unknown action"}), 400
-
-    return jsonify({
+    response = {
         "status": "ok",
         "state": state
-    }), 200
+    }
+    if config:   # If there is data to be uploaded onto cube, then upload it alongside the acknowledgement package
+        response["config"] = config
 
+    return jsonify(response), 200
 
 # ---- RUN SERVER ----
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)

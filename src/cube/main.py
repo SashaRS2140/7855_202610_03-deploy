@@ -12,11 +12,18 @@ from drivers.piezoElectric import PiezoButton
 from drivers.pomodoroTimer import PomodoroTimer
 from drivers.alarm import Alarm
 from drivers.networkingNode import NetworkingNode  # adjust import to your actual path/name
+import socket
 
 MODE_STOP   = 0
 MODE_RUNNING = 1
 MODE_CONFIG  = 2
 MODE_ERROR   = 3
+
+
+OFFLINE_RGBW = [0,0,0,255] # default white color, can be changed by server config
+OFFLINE_PATTERN = [0x08, 0x08, 0x08, 0x08] # default animation pattern, can be changed by server config
+
+
 
 class CubeController:
     def __init__(self):
@@ -48,6 +55,10 @@ class CubeController:
             on_reminder=self.on_reminder,
         )
 
+        print("Server IP:",  secrets.SERVER_IP)
+        print("Port:", secrets.SERVER_PORT)
+
+
         # Networking
         self.network_inst = NetworkingNode(
             secrets.WIFI_SSID,
@@ -59,8 +70,8 @@ class CubeController:
         self.task = "Nothing"
         self.mode = MODE_RUNNING
         self.stopWatchPresetTime = 20*60   # 20 minutes in seconds
-        self.RGBW = [0,0,0,255] # default white color, can be changed by server config
-        self.animation_pattern = [0x08, 0x08, 0x08, 0x08] # default animation pattern, can be changed by server config
+        self.RGBW = OFFLINE_RGBW # default white color, can be changed by server config
+        self.animation_pattern = OFFLINE_PATTERN # default animation pattern, can be changed by server config
         self.bearerToken = "supersecretbearertoken"  
 
     def controller_success_animation(self):
@@ -74,7 +85,7 @@ class CubeController:
     def on_session_complete(self):
         print("Timer finished")
         self.alarm.bell()
-        self.lp.stop_cmd()
+        # self.lp.stop_cmd()
 
     def on_reminder(self):
         print("Reminder!")
@@ -124,8 +135,9 @@ class CubeController:
         try:
             self.RGBW = self.lp.hex_to_rgbw(color)
             self.animation_pattern = pattern
-            self.timer.set_time(int(payload["task_time"]))
-            self.task = payload["task_name"].strip().title()
+            self.stopWatchPresetTime = (int(payload["task_time"]))
+
+            self.task = payload["task_name"].strip()
             self.alarm.alarmType = payload["alarm_type"].strip().lower()
             return True
         except Exception as e:
@@ -142,16 +154,16 @@ class CubeController:
     def init_network(self):
         wifi_ok = False
         server_ok = False
-
+        print("Connecting to WiFi and server...")
         try:
             self.lp.loading_animation()
             self.network_inst.connect_wifi()
             wifi_ok = True
         except Exception as e:
             print("Failed to connect to WiFi:", e)
-
-
+            
         try:
+            print("network_inst", self.network_inst)
             state = self.network_inst.get_state()
             print(state)
             self.upload_configSettings(state)
@@ -170,7 +182,6 @@ class CubeController:
 
     # ---------- Upon single tap, will toggle mode and send respective commands to server----------
     def handle_single_tap(self):
-        print("Single tap")
         self.toggle_mode()
         json_payload = {}
         if self.mode == MODE_RUNNING:# then STOP
@@ -185,8 +196,6 @@ class CubeController:
                 "action": "STOP",
                 "time_elapsed": self.timer.session_elapsed_ms /1000 # convert ms to seconds
             }
-            self.lp.stop_cmd()
-            self.timer.pause()
         elif self.mode == MODE_STOP: # then START
             # JSON payload upon starting
             # Cube:{
@@ -197,7 +206,30 @@ class CubeController:
                 "task": self.task,
                 "action": "START",
             }
-            # LED breathing
+        # Send REST command at end so it does not stop animation. 
+
+        print(json_payload)
+        success = self.network_inst.send_command(json_payload)
+        if success is not None:
+
+            print("RECEIVED", success)
+            self.network_inst.connected = True
+
+            config = success.get("config")
+
+            if config:
+                print("Applying config:", config)
+                self.upload_configSettings(config)
+        else: 
+            print(str(self.mode) + " Command failed to send, entering disconnection mode")
+            self.network_inst.connected = False
+            self.RGBW = OFFLINE_RGBW # default white color, can be changed by server config
+            self.animation_pattern = OFFLINE_PATTERN # default animation pattern, can be changed by server config 
+
+        if self.mode == MODE_RUNNING:# then STOP
+            self.lp.stop_cmd()
+            self.timer.pause()
+        elif self.mode == MODE_STOP: # then START
             self.timer.set_time(self.stopWatchPresetTime)
             self.timer.start()
             self.lp.init_auto()
@@ -207,19 +239,12 @@ class CubeController:
             )
             self.lp.start_cmd()
 
-        # Send REST command at end so it does not stop animation. 
-
-        #def send_command(self, task , mode, time_elapsed=None):
-        success = self.network_inst.send_command(json_payload)
-        if success:
-            print(str(self.mode) + " Command sent successfully")
-        else: 
-            print(str(self.mode) + " Command failed to send, entering disconnection mode")
-            self.network_inst.connected = False
 
 
     def handle_double_tap(self):
         # Send REST command
+        self.mode = MODE_STOP
+        self.toggle_mode()
         self.lp.stop_cmd()
         self.timer.pause()
         # JSON payload upon reset
@@ -232,15 +257,27 @@ class CubeController:
             "action": "RESET",
         }
         success = self.network_inst.send_command(json_payload)
-        if success:
-            print("Command sent successfully")
+        if success is not None:
+            print("RECEIVED", success)
+
+            config = success.get("config")
+
+            if config:
+                print("Applying config:", config)
+                self.upload_configSettings(config)
+
+
         else:
             print(str(self.mode) + " Command failed to send, entering disconnection mode")
             self.network_inst.connected = False
+            self.RGBW = OFFLINE_RGBW # default white color, can be changed by server config
+            self.animation_pattern = OFFLINE_PATTERN # default animation pattern, can be changed by server config 
 
-        if self.network_inst.connected == False:
-            print("Retrying to connect to server")
-            self.init_network()
+        self.init_network()
+
+        # if self.network_inst.connected == False:
+        #     print("Retrying to connect to server")
+        #     self.init_network()
 
     def toggle_mode(self):
         if self.mode == MODE_STOP:

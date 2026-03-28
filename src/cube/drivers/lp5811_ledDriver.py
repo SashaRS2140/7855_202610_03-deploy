@@ -472,7 +472,7 @@ class LP5811:
             led_num=led_num,
             pause_time_start=0, # does not matter for 1 AEU
             pause_time_end=0, # does not matter for 1 AEU
-            playback_times=repeat_times,#0XF - infinite playback
+            playback_times=repeat_times,#0XF - infinite playback , 0x00 PLAY ONCE
             aeu_select=0
         )
         # ---- AEU1 ---
@@ -514,25 +514,26 @@ class LP5811:
     def success_animation(self):
         self.init_auto()
         print("Success mode: flashing green")
-        self.led_all_breathing(RGBW=[0, 255, 0, 0], duration_ms=[0x02, 0x03, 0x04, 0x05], repeat_times=0x00)  # Green breathing, fast, play twice
+        self.led_all_breathing(RGBW=[0, 255, 0, 0], duration_ms=[0x02, 0x03, 0x04, 0x05], repeat_times=0x00)  # Green breathing, fast, play once
         time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
         self.start_cmd()
 
     def fail_animation(self):
         self.init_auto()
-        self.led_all_breathing(RGBW=[255, 0, 0, 0], duration_ms=[0x02, 0x03, 0x04, 0x05], repeat_times=0x00)  # Red breathing, fast, play twice   
+        self.led_all_breathing(RGBW=[255, 0, 0, 0], duration_ms=[0x02, 0x03, 0x04, 0x05], repeat_times=0x00)  # Red breathing, fast, play once   
         time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
         self.start_cmd()
-
+    #animation for when trying to connect to server/wifi
     def loading_animation(self):
         self.init_auto()
-        self.led_all_breathing(RGBW=[126, 126, 0, 0], duration_ms=[0x0F, 0x0F, 0x0F, 0x0F], repeat_times=0x02)  # Green breathing, fast, play twice
+        self.led_all_breathing(RGBW=[126, 126, 0, 0], duration_ms=[0x0F, 0x0F, 0x0F, 0x0F], repeat_times=0x02)  # YELLOW slow breathing, play infinite
         time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
         self.start_cmd()
+    
     # Animation for when device is broken and cannot be operated
     def broken_animation(self):
         self.init_auto()
-        self.led_all_breathing(RGBW=[126, 0, 0, 0], duration_ms=[0x0F, 0x0F, 0x0F, 0x0F], repeat_times=0x02)  # Green breathing, fast, play twice
+        self.led_all_breathing(RGBW=[126, 0, 0, 0], duration_ms=[0x0F, 0x0F, 0x0F, 0x0F], repeat_times=0x02)  # Green breathing, fast, play once
         time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
         self.start_cmd()
 

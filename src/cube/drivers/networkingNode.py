@@ -23,6 +23,9 @@ class NetworkingNode:
         self.wlan = network.WLAN(network.STA_IF)
         self.bearerToken = "supersecretbearertoken" 
 
+        print("Server IP:", self.server_ip)
+        print("Port:", self.port)
+
     # WiFi Connection
     def connect_wifi(self, timeout=5):
         if not self.wlan.active():
@@ -106,30 +109,37 @@ class NetworkingNode:
       "timeElapsed": 0,
       "preset time": 1200
     }
-
-    '''
-    def send_command(self, command, timeElapsed = -1, presetTime = -1,task = "Meditation" ):
+    # '''
+    def send_command(self, command, timeElapsed=-1, presetTime=-1, task="Meditation"):
         self.ensure_connection()
-  
+
         url = f"http://{self.server_ip}:{self.port}/api/esp/telemetry"
+
         payload = {
             "device_id": "cube_01",
             "task": task,
-            "COMMAND": command, # "START", "STOP", "RESET"
-            "timestamp": time.time(), # UNIX timestamp in seconds, may be useful for future iterations of project
+            "COMMAND": command,   # "START", "STOP", "RESET"
+            "timestamp": time.time(),
             "timeElapsed": timeElapsed,
-            "preset time": presetTime          
-            }
-            
+            "presetTime": presetTime   # fixed key (no space)
+        }
+
         try:
             response = urequests.post(url, json=payload)
+
+            print("Status code:", response.status_code)
+            try:
+                data = response.json()
+            except:
+                print("Invalid JSON response")
+                data = None
+
             response.close()
-            return True
+            return data   # return actual response (NOT True)
+
         except Exception as e:
             print("POST error:", e)
-            return False
-
-
+            return None   # return None on failure
 
 '''
 ALARM 1: SETS OFF AT PRESET TIME.

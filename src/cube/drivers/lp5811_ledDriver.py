@@ -274,10 +274,12 @@ class LP5811:
 
     def start_cmd(self):
         """Equivalent to Start_CMD()"""
+        print("Sending START command to LP5811")
         self.write_reg(START_CMD_REG, START_CMD_VALUE)
 
     def stop_cmd(self):
         """Equivalent to Stop_CMD()"""
+        print("Sending STOP command to LP5811")
         self.write_reg(STOP_CMD_REG, STOP_CMD_VALUE)
 
     def pause_cmd(self):
@@ -539,8 +541,7 @@ class LP5811:
 
     def led_all_breathing(self, RGBW:list , duration_ms:list = [0x08,0x08,0x08,0x08], repeat_times: int = 0xF):
 
-        print("Setting breathing animation: RGBW=%s, duration_ms=%s" % (RGBW, duration_ms))
-
+        print("Setting breathing animation: RGBW=%s, duration_ms=%s, repeat_times=%s" % (RGBW, duration_ms, repeat_times))
         # Convert RGBW → WBGR
         # [R, G, B, W] → [W, B, G, R]
         R, G, B, W = RGBW

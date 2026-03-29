@@ -25,13 +25,6 @@ def telemetry():
     # print("RAW DATA:", data)
     action = None
 
-    config = {
-        "task_name": "CHANGE TASK",
-        "task_time":10,
-        "task_color": "#FF9900",
-        "timing_pattern": [4, 4, 4, 4],
-        "alarm_type": "bell"
-    }
     if data:
         action = data.get("action") or data.get("COMMAND") 
 
@@ -57,8 +50,6 @@ def telemetry():
         "status": "ok",
         "state": state
     }
-    if config:   # If there is data to be uploaded onto cube, then upload it alongside the acknowledgement package
-        response["config"] = config
 
     return jsonify(response), 200
 

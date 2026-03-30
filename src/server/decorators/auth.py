@@ -2,10 +2,7 @@ import os
 from functools import wraps
 from firebase_admin import auth
 from flask import request, jsonify, redirect, url_for, session
-from dotenv import load_dotenv
-
-
-load_dotenv()
+    
 
 def login_required(f):
     @wraps(f)

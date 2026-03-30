@@ -10,7 +10,7 @@
 - **Perry:** 
   -   ![alt text]()
 - **Sasha:** 
-  -   ![alt text]()
+  -   ![alt text](image-8.png)
 - **Kale:** 
   -   ![alt text]()
 - **Bryce:** 

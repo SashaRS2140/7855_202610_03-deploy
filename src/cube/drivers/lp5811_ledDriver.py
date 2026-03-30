@@ -274,10 +274,12 @@ class LP5811:
 
     def start_cmd(self):
         """Equivalent to Start_CMD()"""
+        print("Sending START command to LP5811")
         self.write_reg(START_CMD_REG, START_CMD_VALUE)
 
     def stop_cmd(self):
         """Equivalent to Stop_CMD()"""
+        print("Sending STOP command to LP5811")
         self.write_reg(STOP_CMD_REG, STOP_CMD_VALUE)
 
     def pause_cmd(self):
@@ -329,7 +331,7 @@ class LP5811:
                 led_num: int,aeu_num: int,      # 0,1,2 → AEU1,2,3
                 pwm1: int,pwm2: int,pwm3: int,pwm4: int,pwm5: int,
                 t1: int,t2: int,t3: int,t4: int,# 0–15
-                pt: int):          # 0–15 (0xF = infinite)
+                pt: int):          # playback time 0h = 0 time, 1h = 1 time, 2h = 2 times, 3h = infinite times
         """
         Configure one AEU (animation engine unit) for one LED.
         """
@@ -444,11 +446,13 @@ class LP5811:
 
 
     ##function to call for AUTOMODE
+
     def led_dot_breathing(self,
                         led_num: int,
                         gs_start: int,
                         gs_end: int,
-                        duration_ms: list
+                        duration_ms: list,
+                        repeat_times: int = 0xF # 0x01 
                         ):
         """
         Configure a 3-AEU breathing animation for one LED.
@@ -456,6 +460,10 @@ class LP5811:
         led_num  : 0–3 (LED0–LED3)
         gs_start : starting PWM value (0–255)
         gs_end   : ending PWM value (0–255)
+        duration_ms : list of 4 duration values for each segment of the animation (0–15, representing 0–4000ms)
+        LP5811 timing codes: [0h:0s, 1h:0.09s, 2h:0.18s, 3h:0.36s, 4h:0.54s, 5h:0.80s, 6h:1.07s, 7h:1.52s, 8h:2.06s, 9h:2.50s, Ah:3.04s, Bh:4.02s, Ch:5.01s, Dh:5.99s, Eh:7.06s, Fh:8.05s]
+        Repeat times: (0X01 = play once, 0X02 = play twice,  0X03 = infinite)
+
         """
 
         # Pause time + playback control
@@ -466,7 +474,7 @@ class LP5811:
             led_num=led_num,
             pause_time_start=0, # does not matter for 1 AEU
             pause_time_end=0, # does not matter for 1 AEU
-            playback_times=0xF,#infinite playback
+            playback_times=repeat_times,#0XF - infinite playback , 0x00 PLAY ONCE
             aeu_select=0
         )
         # ---- AEU1 ---
@@ -475,17 +483,78 @@ class LP5811:
             aeu_num=0,
             pwm1=gs_start,pwm2=gs_end,pwm3=gs_end,pwm4=gs_start,pwm5=gs_start,
             t1=duration_ms[0], t2=duration_ms[1], t3=duration_ms[2], t4=duration_ms[3],
-            pt=0x03 # infinite playback
+            pt=repeat_times # infinite playback
         )
+    def hex_to_rgbw(self, hex_color: str):
+        """
+        Convert HEX color (#RRGGBB) to RGBW.
+        Parameters
+        ----------
+        hex_color : str
+            Color string like "#ffaa00"
+        Returns
+        -------
+        tuple
+            (r, g, b, w) values from 0–255
+        """
+
+        # Convert HEX → RGB
+        r = int(hex_color[1:3], 16)
+        g = int(hex_color[3:5], 16)
+        b = int(hex_color[5:7], 16)
+
+        # Extract white component
+        w = min(r, g, b)
+
+        # Remove white from RGB
+        r -= w
+        g -= w
+        b -= w
+
+        return [r, g, b, w]
+
+    def success_animation(self):
+        self.init_auto()
+        print("Success mode: flashing green")
+        self.led_all_breathing(RGBW=[0, 255, 0, 0], duration_ms=[0x02, 0x03, 0x04, 0x05], repeat_times=0x00)  # Green breathing, fast, play once
+        time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
+        self.start_cmd()
+
+    def fail_animation(self):
+        self.init_auto()
+        self.led_all_breathing(RGBW=[255, 0, 0, 0], duration_ms=[0x02, 0x03, 0x04, 0x05], repeat_times=0x00)  # Red breathing, fast, play once   
+        time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
+        self.start_cmd()
+    #animation for when trying to connect to server/wifi
+    def loading_animation(self):
+        self.init_auto()
+        self.led_all_breathing(RGBW=[126, 126, 0, 0], duration_ms=[0x0F, 0x0F, 0x0F, 0x0F], repeat_times=0x02)  # YELLOW slow breathing, play infinite
+        time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
+        self.start_cmd()
     
-    def led_all_breathing(self, RGBW:list , duration_ms:list = [0x08,0x08,0x08,0x08]):
+    # Animation for when device is broken and cannot be operated
+    def broken_animation(self):
+        self.init_auto()
+        self.led_all_breathing(RGBW=[126, 0, 0, 0], duration_ms=[0x0F, 0x0F, 0x0F, 0x0F], repeat_times=0x02)  # Green breathing, fast, play once
+        time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
+        self.start_cmd()
 
+    def led_all_breathing(self, RGBW:list , duration_ms:list = [0x08,0x08,0x08,0x08], repeat_times: int = 0xF):
+
+        print("Setting breathing animation: RGBW=%s, duration_ms=%s, repeat_times=%s" % (RGBW, duration_ms, repeat_times))
+        # Convert RGBW → WBGR
+        # [R, G, B, W] → [W, B, G, R]
+        R, G, B, W = RGBW
+        WBGR = [W, B, G, R]
+        # duration_ms = [1,2,3,4]
         #RGBW gives target brightness for each LED
-        self.led_dot_breathing(LED0, 0, RGBW[0], duration_ms)
-        self.led_dot_breathing(LED1, 0, RGBW[1], duration_ms)
-        self.led_dot_breathing(LED2, 0, RGBW[2], duration_ms)
-        self.led_dot_breathing(LED3, 0, RGBW[3], duration_ms)
+        self.led_dot_breathing(LED0, 0, WBGR[0], duration_ms, repeat_times)  # W
+        self.led_dot_breathing(LED1, 0, WBGR[1], duration_ms, repeat_times)  # B
+        self.led_dot_breathing(LED2, 0, WBGR[2], duration_ms, repeat_times)  # G
+        self.led_dot_breathing(LED3, 0, WBGR[3], duration_ms, repeat_times)  # R
 
-        self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)   # Update LED params
+        self.write_reg(UPDATE_CMD_REG, UPDATE_CMD_VALUE)
+
+
         time.sleep_ms(5) # 5ms delay to ensure settings are applied before starting
         # self.write_reg(START_CMD_REG, START_CMD_VALUE)   # Update LED params

@@ -25,6 +25,7 @@ class Alarm:
         self.speaker = PWM(Pin(speaker_pin))
         self.speaker.freq(freq)
         self.speaker.duty_u16(0)  # silent by default
+        self.alarmType = "bell"
 
     # ============================================
     # Low-level control

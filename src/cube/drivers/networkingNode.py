@@ -11,14 +11,20 @@ import urequests
 import time
 import json
 
+
 class NetworkingNode:
 
     def __init__(self, ssid, password, server_ip, port=5000):
+        self.connected = False
         self.ssid = ssid
         self.password = password
         self.server_ip = server_ip
         self.port = port
         self.wlan = network.WLAN(network.STA_IF)
+        self.bearerToken = "supersecretbearertoken" 
+
+        print("Server IP:", self.server_ip)
+        print("Port:", self.port)
 
     # WiFi Connection
     def connect_wifi(self, timeout=5):
@@ -33,14 +39,107 @@ class NetworkingNode:
             while not self.wlan.isconnected():
                 if time.time() - start_time > timeout:
                     raise RuntimeError("WiFi connection timeout")
+                    self.connected = False
                 time.sleep(1)
 
         print("WiFi connected:", self.wlan.ifconfig())
+        self.connected = True
+
 
     def ensure_connection(self):
         if not self.wlan.isconnected():
-            print("WiFi lost. Reconnecting...")
-            self.connect_wifi()
+            print("offline mode")
+            return False
+        return True
+
+    def get_state(self):
+
+        if not self.ensure_connection():
+            return None
+
+        url = f"http://{self.server_ip}:{self.port}/api/esp/config"
+
+        headers = {
+            "Authorization": f"Bearer {self.bearerToken}"
+        }
+
+        print("➡️ Sending GET to:", url)
+
+        try:
+            response = urequests.get(url, headers=headers)
+            print("⬅️ Status:", response.status_code)
+            raw = response.text
+            print("⬅️ Raw response:", raw)
+
+            data = response.json()
+            response.close()
+            print("Received config:", data)
+            # ---- REQUIRED FIELDS ----
+            required_fields = [
+                "task_name",
+                "task_time",
+                "task_color",
+                "timing_pattern",
+                "alarm_type"
+            ]
+
+            # ---- VALIDATE JSON ----
+            for field in required_fields:
+                if field not in data:
+                    print("CONFIG FORMAT ERROR: missing field", field)
+                    return None
+
+            # If validation passes, return the JSON unchanged
+            return data
+
+        except Exception as e:
+            print("GET error:", e)
+            return None
+
+    # HTTP POST occurs when buttons is pressed singleTap or doubleTap
+    # The purpose of this is to save data into server.
+
+    '''
+    EXAMPLE POST JSON PAYLOAD
+    {
+      "device_id": "cube_01",
+      "task": "Meditation",
+      "COMMAND": "START",
+      "timestamp": 1719954000, # UNIX timestamp in seconds, may be useful for future iterations of project
+      "timeElapsed": 0,
+      "preset time": 1200
+    }
+    # '''
+    def send_command(self, command, timeElapsed=-1, presetTime=-1, task="Meditation"):
+        self.ensure_connection()
+
+        url = f"http://{self.server_ip}:{self.port}/api/esp/telemetry"
+
+        payload = {
+            "device_id": "cube_01",
+            "task": task,
+            "COMMAND": command,   # "START", "STOP", "RESET"
+            "timestamp": time.time(),
+            "timeElapsed": timeElapsed,
+            "presetTime": presetTime   # fixed key (no space)
+        }
+
+        try:
+            response = urequests.post(url, json=payload)
+
+            print("Status code:", response.status_code)
+            try:
+                data = response.json()
+            except:
+                print("Invalid JSON response")
+                data = None
+
+            response.close()
+            return data   # return actual response (NOT True)
+
+        except Exception as e:
+            print("POST error:", e)
+            return None   # return None on failure
 
 '''
 ALARM 1: SETS OFF AT PRESET TIME.
@@ -126,86 +225,3 @@ EXAMPLE JSON FILE EXPECTED
   }
 }
 '''
-
-def get_state(self):
-    self.ensure_connection()
-    url = f"http://{self.server_ip}:{self.port}/api/esp/config"
-
-    try:
-        response = urequests.get(url)
-        data = response.json()
-        response.close()
-
-        # ---- TASK ----
-        task = data.get("task", {})
-        preset_time = task.get("preset_time_sec", 600)
-        self.timer.set_task(
-            task.get("name", "Default"),
-            preset_time
-        )
-
-        # ---- LED ----
-        led_block = data.get("led", {})
-        channels = led_block.get("channels", {})
-
-        for channel_name, cfg in channels.items():
-            pwm_percent = cfg.get("max_pwm_percent", 100)
-            anim = cfg.get("animation", {})
-
-            self.led.configure_channel(
-                channel_name=channel_name,
-                pwm_percent=pwm_percent,
-                t1_code=anim.get("t1_code", 0),
-                t2_code=anim.get("t2_code", 0),
-                t3_code=anim.get("t3_code", 0),
-                t4_code=anim.get("t4_code", 0)
-            )
-
-        # ---- RETURN ALARM CONFIG ONLY ----
-        alarm_config = {
-            "alarm1": data.get("alarm1", {}),
-            "alarm2": data.get("alarm2", {})
-        }
-
-        return alarm_config
-
-    except Exception as e:
-        print("GET error:", e)
-        return None
-    
-
-# HTTP POST occurs when buttons is pressed singleTap or doubleTap
-# The purpose of this is to save data into server.
-
-'''
-EXAMPLE POST JSON PAYLOAD
-{
-  "device_id": "cube_01",
-  "task": "Meditation",
-  "COMMAND": "START",
-  "timestamp": 1719954000, # UNIX timestamp in seconds, may be useful for future iterations of project
-  "timeElapsed": 0,
-  "preset time": 1200
-}
-
-'''
-def send_command(self, command, timeElapsed = -1, presetTime = -1,task = "Meditation" ):
-    self.ensure_connection()
-
-    url = f"http://{self.server_ip}:{self.port}/api/esp/telemetry"
-    payload = {
-        "device_id": "cube_01",
-        "task": task,
-        "COMMAND": command, # "START", "STOP", "RESET"
-        "timestamp": time.time(), # UNIX timestamp in seconds, may be useful for future iterations of project
-        "timeElapsed": timeElapsed,
-        "preset time": presetTime          
-        }
-        
-    try:
-        response = urequests.post(url, json=payload)
-        response.close()
-        return True
-    except Exception as e:
-        print("POST error:", e)
-        return False

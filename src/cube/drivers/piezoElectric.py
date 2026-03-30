@@ -22,12 +22,12 @@ class PiezoButton:
     def __init__(
         self,
         pin: int,
-        fs_hz: int = 1000,
-        threshold_high: int = 400,
-        threshold_low: int = 50,
-        baseline_alpha: float = 0.5,
-        settle_ms: int = 20,
-        double_tap_ms: int = 1000
+        fs_hz: int = 1000,        # ADC sampling frequency
+        threshold_high: int = 400,# Upper trigger threshold: delta above baseline required to detect the start of a tap.
+        threshold_low: int = 50,  # Lower release threshold: delta below this means vibration has settled.
+        baseline_alpha: float = 0.3, # Low-pass filter coefficient for baseline tracking (0→slow, 1→fast adaptation).
+        settle_ms: int = 50,      # Minimum quiet time after vibration before confirming a valid tap (debounce).
+        double_tap_ms: int = 1000 # Maximum time window between taps to count as a double tap.
     ):
         # ADC setup
         self.adc = ADC(Pin(pin))
@@ -84,7 +84,6 @@ class PiezoButton:
                 if diffTime > self.settle_ms:
                     print(str(self.doubleTap) + " taps, " + str(diffTime) + " ms\n")
                     self.state = 0
-                    result = 1  # SINGLE TAP
                     self.doubleTap += 1 
                     print("Double Tap Count: " + str(self.doubleTap))
                     self.last_double_tap_time = now  #start timer for double tap
@@ -98,6 +97,10 @@ class PiezoButton:
             if self.doubleTap >= 2:
                 print("Double Tap Detected!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" + str(self.doubleTap) )
                 result = 2  # DOUBLE TAP
+            else:
+                if self.doubleTap == 1:
+                    print("Single Tap Detected! " + str(self.doubleTap))
+                    result = 1  # SINGLE TAP
             self.doubleTap = 0  # reset tap count if too much time has passed
             
 

@@ -2,33 +2,57 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# ---- server state (in-memory) ----
-state = {
-    "mode": "idle"
-}
+# ---- server state ----
+state = {}
 
-# ---- POST: write state ---- #
-@app.route("/api/command", methods=["POST"])
-def command():
+# ---- CONFIG (GET) ---- This gets called upon RESET command
+@app.route("/api/esp/config", methods=["GET"])
+def get_config():
+    config = {
+        "task_name": "Meditation",
+        "task_time":10,
+        "task_color": "#0004D4",
+        "timing_pattern": [4, 4, 4, 4],
+        "alarm_type": "bell"
+    }
+    return jsonify(config), 200
+
+
+# ---- TELEMETRY (POST) ---- This gets called upon START/STOP COMMAND command
+@app.route("/api/esp/telemetry", methods=["POST"])
+def telemetry():
     data = request.get_json()
+    # print("RAW DATA:", data)
+    action = None
 
-    if not data or "mode" not in data:
-        return jsonify({"error": "Invalid command"}), 400
+    if data:
+        action = data.get("action") or data.get("COMMAND") 
 
-    state["mode"] = data["mode"]
-    print("Mode set to:", state["mode"])
 
-    return jsonify({
+    if action == "START":
+        state["mode"] = "running"
+        state["task"] = data.get('task')
+        state["time Elapsed"] = data.get('timeElapsed')
+
+    elif action == "STOP":
+        state["mode"] = "stopped"
+        state["timeElapsed"] = data.get('timeElapsed')
+
+    elif action == "RESET":
+        state["mode"] = "stopped"
+        state["timeElapsed"] = 0
+    elif not action:
+        return jsonify({"error": "Invalid payload", "received": data}), 400
+    
+    print("Parsed action:", action)
+
+    response = {
         "status": "ok",
         "state": state
-    }), 200
+    }
 
+    return jsonify(response), 200
 
-# ---- GET: read state ----
-@app.route("/api/state", methods=["GET"])
-def get_state():
-    return jsonify(state), 200
-
-
+# ---- RUN SERVER ----
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)

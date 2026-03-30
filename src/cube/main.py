@@ -1,20 +1,29 @@
 # main.py (MicroPython / ESP32)
 # .\push.ps1
+
+
+# one button, one led, one timer, and a dream
+
 import time
 from machine import ADC, I2C, Pin, PWM
-
 import secrets  # secrets.WIFI_SSID, WIFI_PASSWORD, SERVER_IP, SERVER_PORT
-
 from drivers.lp5811_ledDriver import LP5811
 from drivers.piezoElectric import PiezoButton
 from drivers.pomodoroTimer import PomodoroTimer
 from drivers.alarm import Alarm
 from drivers.networkingNode import NetworkingNode  # adjust import to your actual path/name
+import socket
 
-MODE_PAUSE   = 0
+MODE_STOP   = 0
 MODE_RUNNING = 1
 MODE_CONFIG  = 2
 MODE_ERROR   = 3
+
+
+OFFLINE_RGBW = [0,0,0,255] # default white color, can be changed by server config
+OFFLINE_PATTERN = [0x08, 0x08, 0x08, 0x08] # default animation pattern, can be changed by server config
+
+
 
 class CubeController:
     def __init__(self):
@@ -46,78 +55,237 @@ class CubeController:
             on_reminder=self.on_reminder,
         )
 
+        print("Server IP:",  secrets.SERVER_IP)
+        print("Port:", secrets.SERVER_PORT)
+
+
         # Networking
-        self.network = NetworkingNode(
+        self.network_inst = NetworkingNode(
             secrets.WIFI_SSID,
             secrets.WIFI_PASSWORD,
             secrets.SERVER_IP,
             secrets.SERVER_PORT,
         )
         # THE DIFFERENT MODES ARE PAUSE and RUNNING
-        self.mode = MODE_PAUSE
+        self.task = "Nothing"
+        self.mode = MODE_RUNNING
         self.stopWatchPresetTime = 20*60   # 20 minutes in seconds
+        self.RGBW = OFFLINE_RGBW # default white color, can be changed by server config
+        self.animation_pattern = OFFLINE_PATTERN # default animation pattern, can be changed by server config
+        self.bearerToken = "supersecretbearertoken"  
 
+    def controller_success_animation(self):
+        print("Success mode: flashing green")
+        self.lp.success_animation()
+
+    def controller_error_animation(self):
+        print("Error mode: flashing red")
+        self.lp.fail_animation()
     # ---------- Callbacks ----------
     def on_session_complete(self):
         print("Timer finished")
         self.alarm.bell()
-        self.lp.stop_cmd()
+        # self.lp.stop_cmd()
 
     def on_reminder(self):
         print("Reminder!")
 
+    def upload_configSettings(self, payload):
+        errors = []
+
+        # --- timing_pattern ---
+        pattern = payload.get("timing_pattern")
+        if not isinstance(pattern, list):
+            errors.append("timing_pattern must be a list")
+        else:
+            if len(pattern) != 4:
+                errors.append("timing_pattern must have exactly 4 elements")
+
+            if not all(isinstance(x, int) and 1 <= x <= 15 for x in pattern):
+                errors.append("timing_pattern values must be integers 1–15")
+
+        # --- task_name ---
+        if not isinstance(payload.get("task_name"), str) or not payload.get("task_name"):
+            errors.append("task_name must be a non-empty string")
+
+        # --- task_color ---
+        color = payload.get("task_color")
+        if not isinstance(color, str):
+            errors.append("task_color must be a string")
+        elif not (color.startswith("#") and len(color) == 7):
+            errors.append("task_color must be format #RRGGBB")
+
+        # --- task_time ---
+        if not isinstance(payload.get("task_time"), int) or payload.get("task_time") <= 0:
+            errors.append("task_time must be a positive integer")
+
+        # --- alarm_type ---
+        if not isinstance(payload.get("alarm_type"), str) or not payload.get("alarm_type"):
+            errors.append("alarm_type must be a non-empty string")
+
+        # IF ERRORS → STOP
+        if errors:
+            print("Validation errors:")
+            for err in errors:
+                print("-", err)
+            return False
+
+        # APPLY SETTINGS
+        print("Configuration valid, applying settings...")
+        try:
+            self.RGBW = self.lp.hex_to_rgbw(color)
+            self.animation_pattern = pattern
+            self.stopWatchPresetTime = (int(payload["task_time"]))
+
+            self.task = payload["task_name"].strip()
+            self.alarm.alarmType = payload["alarm_type"].strip().lower()
+            return True
+        except Exception as e:
+            print("Apply error:", e)
+            return False
     # ---------- Setup ----------
     def init_lp5811(self) -> bool:
         if not self.lp.ping():
             print("LP5811 not detected (NACK)")
             return False
-        print("✅ LP5811 detected (ACK)")
+        print("LP5811 detected (ACK)")
         return True
 
     def init_network(self):
-        self.network.connect_wifi()
+        wifi_ok = False
+        server_ok = False
+        print("Connecting to WiFi and server...")
         try:
-            state = self.network.get_state()
+            self.lp.loading_animation()
+            self.network_inst.connect_wifi()
+            wifi_ok = True
+        except Exception as e:
+            print("Failed to connect to WiFi:", e)
+            
+        try:
+            print("network_inst", self.network_inst)
+            state = self.network_inst.get_state()
             print(state)
+            self.upload_configSettings(state)
+            server_ok = True
         except Exception as e:
             print("Failed to fetch server state:", e)
 
-    # ---------- Behavior ----------
-    def handle_single_tap(self):
-        print("Single tap")
-        self.toggle_mode()
+        self.lp.stop_cmd()
+        # FINAL PRINT
+        if wifi_ok and server_ok:
+            self.connected = True   
+            self.controller_success_animation()
+        else:
+            self.connected = False
+            self.controller_error_animation()
 
+    # ---------- Upon single tap, will toggle mode and send respective commands to server----------
+    def handle_single_tap(self):
+        self.toggle_mode()
+        json_payload = {}
         if self.mode == MODE_RUNNING:# then STOP
+            # JSON payload upon stopping
+            # Cube:{
+            #     "task": "MEDITATION",
+            #     "action": "STOP",
+            #     "time_elapsed": 123124:
+            # }
+            json_payload = {
+                "task": self.task,
+                "action": "STOP",
+                "time_elapsed": self.timer.session_elapsed_ms /1000 # convert ms to seconds
+            }
             self.lp.stop_cmd()
             self.timer.pause()
-        elif self.mode == MODE_PAUSE: # then START
-            # LED breathing
+        elif self.mode == MODE_STOP: # then START
+            # JSON payload upon starting
+            # Cube:{
+            #     "task": "MEDITATION",
+            #     "action": "START",
+            # }
+            json_payload = {
+                "task": self.task,
+                "action": "START",
+            }
             self.timer.set_time(self.stopWatchPresetTime)
             self.timer.start()
             self.lp.init_auto()
-            self.lp.led_all_breathing([255, 0, 0, 0])
+            self.lp.led_all_breathing(
+                RGBW=self.RGBW,
+                duration_ms=self.animation_pattern
+            )
             self.lp.start_cmd()
+        # Send REST command at end so it does not stop animation. 
 
-        # Send REST command at end so it does not stop animation.
-        success = self.network.send_command(self.mode)
-        if success:
-            print(str(self.mode) + " Command sent successfully")
-        else:
-            print(str(self.mode) + " Failed to send command")
+        print(json_payload)
+        success = self.network_inst.send_command(json_payload)
+        if success is not None:
+
+            print("RECEIVED", success)
+            self.network_inst.connected = True
+
+            # config = success.get("config")
+            # print("Received config:", config)
+            # if config:
+            #     print("Applying config:", config)
+            #     self.upload_configSettings(config)
+        else: 
+            print(str(self.mode) + " Command failed to send, entering disconnection mode")
+            self.network_inst.connected = False
+            self.RGBW = OFFLINE_RGBW # default white color, can be changed by server config
+            self.animation_pattern = OFFLINE_PATTERN # default animation pattern, can be changed by server config 
+
+        # if self.mode == MODE_RUNNING:# then STOP
+
+        # elif self.mode == MODE_STOP: # then START
+
+
+
 
     def handle_double_tap(self):
         # Send REST command
-        success = self.network.send_command("RESET")
-        if success:
-            print("Command sent successfully")
+        self.mode = MODE_STOP
+        self.toggle_mode()
+        self.lp.stop_cmd()
+        self.timer.pause()
+        # JSON payload upon reset
+        # Cube:{
+        #     "task": "Meditation",      
+        #     "action": "reset"
+        # }
+        json_payload = {
+            "task": self.task,
+            "action": "RESET",
+        }
+        success = self.network_inst.send_command(json_payload)
+        if success is not None:
+            print("RECEIVED", success)
+
+            config = success.get("config")
+
+            if config:
+                print("Applying config:", config)
+                self.upload_configSettings(config)
+
+
         else:
-            print("Failed to send command")
+            print(str(self.mode) + " Command failed to send, entering disconnection mode")
+            self.network_inst.connected = False
+            self.RGBW = OFFLINE_RGBW # default white color, can be changed by server config
+            self.animation_pattern = OFFLINE_PATTERN # default animation pattern, can be changed by server config 
+
+        self.init_network()
+
+        # if self.network_inst.connected == False:
+        #     print("Retrying to connect to server")
+        #     self.init_network()
 
     def toggle_mode(self):
-        if self.mode == MODE_PAUSE:
+        if self.mode == MODE_STOP:
             self.mode = MODE_RUNNING
         else:
-            self.mode = MODE_PAUSE
+            self.mode = MODE_STOP
 
 
     # ---------- Main loop ----------
@@ -131,7 +299,6 @@ class CubeController:
 
         while True:
             self.timer.process() 
-
             press = self.piezo.buttonPress()
             if press == 1:
                 self.handle_single_tap()
@@ -140,11 +307,9 @@ class CubeController:
 
             # time.sleep_ms(5)
 
-
 def main():
     controller = CubeController()
     controller.run()
-
 
 if __name__ == "__main__":
     main()

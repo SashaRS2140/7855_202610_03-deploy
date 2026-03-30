@@ -12,6 +12,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 export function mountGlowingCube(container) {
     if (!container) return null;
 
+    // Helper to parse hex color with optional white channel (e.g. #RRGGBBAA) -- DOUBLE CHECK
     const parseHexRGBW = (hexColor) => {
         if (!hexColor || typeof hexColor !== 'string' || !/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(hexColor)) {
             return {rgb: new THREE.Color(0xffaa00), white: 1};

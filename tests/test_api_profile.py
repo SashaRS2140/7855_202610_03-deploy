@@ -23,7 +23,7 @@ def test_api_get_profile_bad_token_format(client):
     assert response.status_code == 401
 
 
-def test_api_get_profile_success(client, mock_firebase_auth, mock_profile_repository):
+def test_api_get_profile_success(client, mock_firebase_auth):
     # Arrange
     url = "http://localhost:5000/api/profile"
     headers = {"Authorization": "Bearer valid_jwt_token"}

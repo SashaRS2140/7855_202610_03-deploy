@@ -32,7 +32,6 @@ patch('firebase_admin.initialize_app').start()
 # Now your original imports and fixtures
 import pytest
 import importlib
-#from unittest.mock import MagicMock
 
 
 @pytest.fixture

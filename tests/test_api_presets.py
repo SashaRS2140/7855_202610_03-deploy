@@ -293,3 +293,18 @@ def test_api_delete_preset_not_found(client, mock_firebase_auth, mock_presets_re
     assert data["error"] == "Preset not found"
     mock_firebase_auth.assert_called_once()
 
+ # TEST #
+def test_api_get_preset_success_2(client, mock_firebase_auth):
+    # Arrange
+    url = "http://localhost:5000/api/profile/preset/meditation"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+
+    # Act
+    response = client.get(url, headers=headers)
+
+    # Assert
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["Meditation"] == {"task_color": "#ffaa00", "task_time": 600}
+    mock_firebase_auth.assert_called_once()
+

@@ -7,8 +7,8 @@
 
 ## 1. Sprint Board Screenshots
 *Provide screenshots of your Sprint 3 board filtered by each team member.*
-- **Perry:** 
-  -   ![alt text]()
+- **Parry:** 
+  -   ![alt text](docs/image-9.png)
 - **Sasha:** 
   -   ![alt text](image-8.png)
 - **Kale:** 
@@ -34,8 +34,9 @@ Cube registration and pattern creation were cut for sprint feasibility
 -	CSR vs SSR – Explain
 -	Check RGBW Hex 
 #### Hardware Goals:
+-   Polish and finalize UI and networking elements of the ESP32-CUBE codebase considering security, and UX.
 -	Connect to back end 
-
+-   Establish 
 ### Not Completed / Partially Completed:
 
 #### Back-End

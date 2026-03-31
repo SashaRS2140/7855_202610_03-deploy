@@ -125,6 +125,34 @@ def mock_presets_repository(monkeypatch):
 
 
 @pytest.fixture
+def mock_profile_repository(monkeypatch):
+    """Mock presets repository fixture."""
+    profile_repository_mock = MagicMock()
+    monkeypatch.setattr(
+        "src.server.blueprints.api_profile.routes.get_profile",
+        lambda uid: {
+            "current_task": "Meditation",
+            "presets": {"Meditation": {"task_color": "#ffaa00", "task_time": 600}},
+            "session_history": [{"elapsed_time": 300, "task": "Meditation", "timestamp": "2023-01-01T00:00:00"}],
+            "user_info": {"email": "test_email@gmail.com", "first_name": "Johnny", "last_name": "Test", "role": "user"}
+        }
+    )
+    monkeypatch.setattr(
+        "src.server.blueprints.api_profile.routes.get_all_user_info",
+        lambda uid: {"user_info": {"email": "test_email@gmail.com",
+                                   "first_name": "Johnny",
+                                   "last_name": "Test",
+                                   "role": "user"}
+        }
+    )
+    monkeypatch.setattr(
+        "src.server.blueprints.api_profile.routes.get_user_info",
+        lambda uid, field: "test_email@gmail.com"
+    )
+    return profile_repository_mock
+
+
+@pytest.fixture
 def bypass_auth(monkeypatch):
     def fake_require_jwt(f):
         def wrapper(*args, **kwargs):

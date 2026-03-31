@@ -14,7 +14,7 @@
 - **Kale:** 
   -   ![alt text]()
 - **Bryce:** 
-  -   ![alt text](docs/sprint3_bryce.png)
+  -   ![alt text](sprint3_bryce.png)
 
 ## 2. Sprint Review (Planned vs. Delivered)
 *Review what you planned to accomplish this sprint versus what was actually completed. Focus on your architecture, testing, and UI goals.*

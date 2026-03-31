@@ -46,6 +46,8 @@ def task_control(cube_uuid: str):
     tt_min = task_time // 60
     tt_sec = task_time % 60
 
+    task_color = task_data.get("task_color")
+
     # Start action logic
     if action == "start":
         timer.start()
@@ -75,5 +77,6 @@ def task_control(cube_uuid: str):
         timer.reset(task_time)
         return jsonify({"message": f"{current_task} task reset",
                         "task_name": current_task,
-                        "task_time": task_time
+                        "task_time": task_time,
+                        "task_color": task_color
                         }), 200

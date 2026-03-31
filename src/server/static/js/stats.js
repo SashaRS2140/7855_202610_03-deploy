@@ -1,3 +1,5 @@
+const POLLING_INTERVAL = 5000; // 30 seconds
+
 class SessionStats {
     constructor() {
         this.monthsToLoad = 6;
@@ -5,7 +7,24 @@ class SessionStats {
         this.totalSessionsCount = 0;
         this.totalSecondsCount = 0;
         this.allData = {}; // Store it globally for streak calculation
+        this.refreshInterval = null; // To store the timer
     }
+
+
+    startLiveUpdates(ms = POLLING_INTERVAL) {
+        if (this.refreshInterval) clearInterval(this.refreshInterval);
+
+        this.refreshInterval = setInterval(async () => {
+            // Reset totals before recalculating from fresh data
+            this.totalSessionsCount = 0;
+            this.totalSecondsCount = 0;
+
+            // Reload the core data and latest session
+            await this.loadData();
+            console.log("Stats updated live.");
+        }, ms);
+    }
+
 
     async loadData() {
         const now = new Date();
@@ -26,6 +45,10 @@ class SessionStats {
             );
         }
 
+        // Reset tracking variables before re-populating
+        this.totalSessionsCount = 0;
+        this.totalSecondsCount = 0;
+
         const results = await Promise.all(promises);
 
         results.forEach(data => {
@@ -44,7 +67,8 @@ class SessionStats {
 
         this.updateHeroStats();
         this.renderVerticalCalendar(monthsInfo);
-        this.setupInteractions();
+        // this.setupInteractions(); Note: Move setupInteractions to the constructor or a separate init
+        // to prevent duplicate event listeners during live updates.
         await this.loadLatestSession();
     }
 
@@ -279,4 +303,8 @@ class SessionStats {
 document.addEventListener('DOMContentLoaded', () => {
     const stats = new SessionStats();
     stats.loadData();
+    stats.setupInteractions(); // Called once to prevent event listener stacking
+
+    // Start polling every 30 seconds
+    stats.startLiveUpdates(POLLING_INTERVAL);
 });

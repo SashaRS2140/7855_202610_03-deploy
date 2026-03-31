@@ -63,7 +63,7 @@ def stream_timer(uid: str):
 
 #--- TEMP WEB API ---#
 
-
+# replace with api_set_task & api_reset_timer #
 @dashboard_bp.post("/task/current")
 @login_required
 def set_task(uid: str):
@@ -99,6 +99,7 @@ def set_task(uid: str):
     return jsonify({"current_task": task_name}), 200
 
 
+# replace with api_get_preset #
 @dashboard_bp.get("/profile/preset/<task_name>")
 @login_required
 def get_preset(uid: str, task_name: str):
@@ -115,6 +116,7 @@ def get_preset(uid: str, task_name: str):
     }), 200
 
 
+# replace with api_get_session_latest #
 @dashboard_bp.get('/session/latest')
 @login_required
 def session_latest(uid: str):
@@ -130,6 +132,7 @@ def session_latest(uid: str):
     }), 200
 
 
+# changed to api implementation #
 @dashboard_bp.get('/sessions/calendar')
 @login_required
 def sessions_calendar(uid: str):
@@ -170,6 +173,7 @@ def sessions_calendar(uid: str):
     }), 200
 
 
+# replace with api_create_preset #
 @dashboard_bp.post("/profile/preset")
 @login_required
 def create_preset(uid: str):
@@ -214,6 +218,7 @@ def create_preset(uid: str):
     return jsonify({f"{task_name}": preset_data,}), 201
 
 
+# replace with api_get_task #
 @dashboard_bp.get("/task/current")
 @login_required
 def get_task(uid: str):
@@ -227,6 +232,7 @@ def get_task(uid: str):
     return jsonify({"current_task": current_task}), 200
 
 
+# replace with api_update_preset #
 @dashboard_bp.put("/profile/preset")
 @login_required
 def update_preset(uid: str):

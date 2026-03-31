@@ -40,6 +40,7 @@ def api_reset_timer(uid: str):
     task_time = preset_data.get("task_time")
 
     # resetting time from preset_data
+    timer.stop()
     timer.reset(task_time)
 
     # return success

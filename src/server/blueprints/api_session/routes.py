@@ -1,8 +1,9 @@
 from . import api_session_bp
+from datetime import datetime
 from flask import request, jsonify
 from src.server.decorators.auth import require_jwt
 from src.server.utils.validation import require_json_content_type
-from src.server.utils.repository import get_session, set_current_task, get_current_task, get_task_preset
+from src.server.utils.repository import get_session, set_current_task, get_current_task, get_task_preset, get_sessions, get_sessions_by_date_range
 
 
 ##########################################################################
@@ -78,7 +79,6 @@ def api_get_latest_session(uid: str):
 @require_jwt
 def api_get_sessions(uid: str):
     """Get paginated session list for a user."""
-    from src.server.utils.repository import get_sessions
 
     limit = request.args.get("limit", default=100, type=int)
     offset = request.args.get("offset", default=0, type=int)
@@ -96,7 +96,6 @@ def api_get_sessions(uid: str):
 @require_jwt
 def api_get_sessions_range(uid: str):
     """Get sessions within a date range."""
-    from src.server.utils.repository import get_sessions_by_date_range
 
     start = request.args.get("start")  # YYYY-MM-DD
     end = request.args.get("end")
@@ -107,3 +106,41 @@ def api_get_sessions_range(uid: str):
     sessions = get_sessions_by_date_range(uid, start, end)
 
     return jsonify({"sessions": sessions}), 200
+
+
+@api_session_bp.get('/sessions/calendar')
+@require_jwt
+def sessions_calendar(uid: str):
+    """Return session data aggregated by day for calendar heatmap."""
+
+    year = request.args.get("year", default=datetime.now().year, type=int)
+    month = request.args.get("month", default=datetime.now().month, type=int)
+
+    sessions = get_sessions(uid, limit=365)
+
+    # Aggregate by date (filtered to requested month/year only)
+    daily_totals = {}
+
+    for session in sessions:
+        ts = session.get("timestamp", "")[:10]  # YYYY-MM-DD
+        try:
+            session_year = int(ts[:4])
+            session_month = int(ts[5:7])
+
+            # Only include sessions from the requested month
+            if session_year == year and session_month == month:
+                if ts not in daily_totals:
+                    daily_totals[ts] = {"count": 0, "total_time": 0}
+
+                daily_totals[ts]["count"] += 1
+                daily_totals[ts]["total_time"] += session.get("elapsed_time", 0)
+        except (ValueError, IndexError):
+            # Skip malformed timestamps
+            continue
+
+    return jsonify({
+        "year": year,
+        "month": month,
+        "daily_data": daily_totals,
+        "max_sessions": max([d["count"] for d in daily_totals.values()]) if daily_totals else 1
+    }), 200

@@ -42,16 +42,16 @@ def test_task_control_wrong_key(client, monkeypatch):
     assert data["error"] == "Unauthorized"
 
 
-def test_task_control_cube_not_registered(client, monkeypatch):
+def test_task_control_cube_not_registered(client, repo, mock_firestore_client):
     # Arrange
     url = "http://localhost:5000/api/task/control"
     headers = {"X-API-Key": "test-key"}
     payload = {"action": "start"}
 
-    monkeypatch.setattr(
-        "src.server.blueprints.api_cube.routes.get_cube_user",
-        lambda cube_uuid: None
-    )
+    # Mock cube document to not exist (cube not registered)
+    mock_cube_doc = MagicMock()
+    mock_cube_doc.exists = False
+    mock_firestore_client['cubes'].document.return_value.get.return_value = mock_cube_doc
 
     # Act
     response = client.post(url, json=payload, headers=headers)
@@ -61,11 +61,17 @@ def test_task_control_cube_not_registered(client, monkeypatch):
     assert response.get_json()["error"] == "Cube not registered with user account"
 
 
-def test_task_control_non_json_data(client, mock_cube_request):
+def test_task_control_non_json_data(client, repo, mock_firestore_client):
     # Arrange
     url = "http://localhost:5000/api/task/control"
     headers = {"X-API-Key": "test-key"}
     payload = {"action": "start"}
+
+    # Mock cube document to exist with user uid (to pass cube check)
+    mock_cube_doc = MagicMock()
+    mock_cube_doc.exists = True
+    mock_cube_doc.to_dict.return_value = {"user uid": "test_user_123"}
+    mock_firestore_client['cubes'].document.return_value.get.return_value = mock_cube_doc
 
     # Act
     response = client.post(url, data=payload, headers=headers)
@@ -75,11 +81,17 @@ def test_task_control_non_json_data(client, mock_cube_request):
     assert response.get_json()["error"] == "Content-Type must be application/json"
 
 
-def test_task_control_no_data(client, mock_cube_request):
+def test_task_control_no_data(client, repo, mock_firestore_client):
     # Arrange
     url = "http://localhost:5000/api/task/control"
     headers = {"X-API-Key": "test-key"}
     payload = {}
+
+    # Mock cube document to exist with user uid (to pass cube check)
+    mock_cube_doc = MagicMock()
+    mock_cube_doc.exists = True
+    mock_cube_doc.to_dict.return_value = {"user uid": "test_user_123"}
+    mock_firestore_client['cubes'].document.return_value.get.return_value = mock_cube_doc
 
     # Act
     response = client.post(url, json=payload, headers=headers)
@@ -89,16 +101,23 @@ def test_task_control_no_data(client, mock_cube_request):
     assert response.get_json()["error"] == "Invalid JSON"
 
 
-def test_task_control_no_current_task(client, mock_cube_request, monkeypatch):
+def test_task_control_no_current_task(client, repo, mock_firestore_client):
     # Arrange
     url = "http://localhost:5000/api/task/control"
     headers = {"X-API-Key": "test-key"}
     payload = {"action": "start"}
 
-    monkeypatch.setattr(
-        "src.server.blueprints.api_cube.routes.get_current_task",
-        lambda uid: None
-    )
+    # Mock cube document to exist with user uid
+    mock_cube_doc = MagicMock()
+    mock_cube_doc.exists = True
+    mock_cube_doc.to_dict.return_value = {"user uid": "test_user_123"}
+    mock_firestore_client['cubes'].document.return_value.get.return_value = mock_cube_doc
+
+    # Mock user profile document without current_task
+    mock_user_doc = MagicMock()
+    mock_user_doc.exists = True
+    mock_user_doc.to_dict.return_value = {}  # No current_task
+    mock_firestore_client['user_profiles'].document.return_value.get.return_value = mock_user_doc
 
     # Act
     response = client.post(url, json=payload, headers=headers)
@@ -108,11 +127,26 @@ def test_task_control_no_current_task(client, mock_cube_request, monkeypatch):
     assert response.get_json()["error"] == "Current task not set"
 
 
-def test_task_control_start_success(client, mock_cube_request):
+def test_task_control_start_success(client, repo, mock_firestore_client):
     # Arrange
     url = "http://localhost:5000/api/task/control"
     headers = {"X-API-Key": "test-key"}
     payload = {"action": "start"}
+
+    # Mock cube document to exist with user uid
+    mock_cube_doc = MagicMock()
+    mock_cube_doc.exists = True
+    mock_cube_doc.to_dict.return_value = {"user uid": "test_user_123"}
+    mock_firestore_client['cubes'].document.return_value.get.return_value = mock_cube_doc
+
+    # Mock user profile document with current_task
+    mock_user_doc = MagicMock()
+    mock_user_doc.exists = True
+    mock_user_doc.to_dict.return_value = {
+        "current_task": "Meditation",
+        "presets": {"Meditation": {"task_time": 600}}
+    }
+    mock_firestore_client['user_profiles'].document.return_value.get.return_value = mock_user_doc
 
     # Act
     response = client.post(url, json=payload, headers=headers)
@@ -123,11 +157,26 @@ def test_task_control_start_success(client, mock_cube_request):
     client.application.timer.start.assert_called_once()
 
 
-def test_task_control_stop_success(client, mock_cube_request):
+def test_task_control_stop_success(client, repo, mock_firestore_client):
     # Arrange
     url = "http://localhost:5000/api/task/control"
     headers = {"X-API-Key": "test-key"}
     payload = {"action": "stop", "elapsed_seconds": 300}
+
+    # Mock cube document to exist with user uid
+    mock_cube_doc = MagicMock()
+    mock_cube_doc.exists = True
+    mock_cube_doc.to_dict.return_value = {"user uid": "test_user_123"}
+    mock_firestore_client['cubes'].document.return_value.get.return_value = mock_cube_doc
+
+    # Mock user profile document with current_task
+    mock_user_doc = MagicMock()
+    mock_user_doc.exists = True
+    mock_user_doc.to_dict.return_value = {
+        "current_task": "Meditation",
+        "presets": {"Meditation": {"task_time": 600}}
+    }
+    mock_firestore_client['user_profiles'].document.return_value.get.return_value = mock_user_doc
 
     # Act
     response = client.post(url, json=payload, headers=headers)
@@ -138,11 +187,26 @@ def test_task_control_stop_success(client, mock_cube_request):
     client.application.timer.stop.assert_called_once()
 
 
-def test_task_control_stop_success_with_overtime(client, mock_cube_request):
+def test_task_control_stop_success_with_overtime(client, repo, mock_firestore_client):
     # Arrange
     url = "http://localhost:5000/api/task/control"
     headers = {"X-API-Key": "test-key"}
     payload = {"action": "stop", "elapsed_seconds": 900}
+
+    # Mock cube document to exist with user uid
+    mock_cube_doc = MagicMock()
+    mock_cube_doc.exists = True
+    mock_cube_doc.to_dict.return_value = {"user uid": "test_user_123"}
+    mock_firestore_client['cubes'].document.return_value.get.return_value = mock_cube_doc
+
+    # Mock user profile document with current_task
+    mock_user_doc = MagicMock()
+    mock_user_doc.exists = True
+    mock_user_doc.to_dict.return_value = {
+        "current_task": "Meditation",
+        "presets": {"Meditation": {"task_time": 600}}
+    }
+    mock_firestore_client['user_profiles'].document.return_value.get.return_value = mock_user_doc
 
     # Act
     response = client.post(url, json=payload, headers=headers)
@@ -153,11 +217,26 @@ def test_task_control_stop_success_with_overtime(client, mock_cube_request):
     client.application.timer.stop.assert_called_once()
 
 
-def test_task_control_reset_success(client, mock_cube_request):
+def test_task_control_reset_success(client, repo, mock_firestore_client):
     # Arrange
     url = "http://localhost:5000/api/task/control"
     headers = {"X-API-Key": "test-key"}
     payload = {"action": "reset"}
+
+    # Mock cube document to exist with user uid
+    mock_cube_doc = MagicMock()
+    mock_cube_doc.exists = True
+    mock_cube_doc.to_dict.return_value = {"user uid": "test_user_123"}
+    mock_firestore_client['cubes'].document.return_value.get.return_value = mock_cube_doc
+
+    # Mock user profile document with current_task and presets
+    mock_user_doc = MagicMock()
+    mock_user_doc.exists = True
+    mock_user_doc.to_dict.return_value = {
+        "current_task": "Meditation",
+        "presets": {"Meditation": {"task_time": 600}}
+    }
+    mock_firestore_client['user_profiles'].document.return_value.get.return_value = mock_user_doc
 
     # Act
     response = client.post(url, json=payload, headers=headers)

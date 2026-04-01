@@ -3,6 +3,11 @@ import pytest
 from unittest.mock import MagicMock, patch
 import importlib
 
+# Patch Firebase to prevent file access and initialization during import
+patch('firebase_admin.credentials.Certificate').start()
+patch('firebase_admin.initialize_app').start()
+patch('firebase_admin.firestore.client').start()
+
 
 @pytest.fixture
 def mock_firestore_client():
@@ -23,13 +28,6 @@ def mock_firestore_client():
             'user_profiles': mock_user_profiles,
             'cubes': mock_cubes
         }
-
-
-@pytest.fixture(autouse=True)
-def mock_firebase_credentials():
-    """Mock Firebase credentials to prevent file access during import."""
-    with patch('firebase_admin.credentials.Certificate'):
-        yield
 
 
 @pytest.fixture

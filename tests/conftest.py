@@ -25,6 +25,13 @@ def mock_firestore_client():
         }
 
 
+@pytest.fixture(autouse=True)
+def mock_firebase_credentials():
+    """Mock Firebase credentials to prevent file access during import."""
+    with patch('firebase_admin.credentials.Certificate'):
+        yield
+
+
 @pytest.fixture
 def mock_firebase_init():
     """Mock Firebase initialization."""

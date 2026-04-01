@@ -93,6 +93,8 @@ def test_api_get_preset_get_all_success(client, mock_firebase_auth, repo, mock_f
     data = response.get_json()
     assert data["presets"] == {"Meditation": {"task_color": "#ffaa00", "task_time": 600}}
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_called_once_with('test_user_123')
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_api_get_preset_not_found(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -116,6 +118,8 @@ def test_api_get_preset_not_found(client, mock_firebase_auth, repo, mock_firesto
     data = response.get_json()
     assert data["error"] == "Preset not found"
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_called_once_with('test_user_123')
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_api_get_preset_success(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -139,6 +143,10 @@ def test_api_get_preset_success(client, mock_firebase_auth, repo, mock_firestore
     data = response.get_json()
     assert data["Meditation"] == {"task_color": "#ffaa00", "task_time": 600}
     mock_firebase_auth.assert_called_once()
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_with('test_user_123')
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_api_create_preset_no_task_name(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -155,6 +163,7 @@ def test_api_create_preset_no_task_name(client, mock_firebase_auth, repo, mock_f
     data = response.get_json()
     assert data["error"] == "task name required"
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_not_called()
 
 
 def test_api_create_preset_no_task_time(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -171,6 +180,7 @@ def test_api_create_preset_no_task_time(client, mock_firebase_auth, repo, mock_f
     data = response.get_json()
     assert data["error"] == "task time required"
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_not_called()
 
 
 def test_api_create_preset_no_task_time(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -187,6 +197,7 @@ def test_api_create_preset_no_task_time(client, mock_firebase_auth, repo, mock_f
     data = response.get_json()
     assert data["error"] == "task color required"
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_not_called()
 
 
 def test_api_create_preset_success(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -207,6 +218,11 @@ def test_api_create_preset_success(client, mock_firebase_auth, repo, mock_firest
     # Assert
     assert response.status_code == 201
     mock_firebase_auth.assert_called_once()
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_with('test_user_123')
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
+    mock_firestore_client['user_profiles'].document.return_value.set.assert_called_once()
 
 
 def test_api_update_preset_no_task_name(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -222,6 +238,8 @@ def test_api_update_preset_no_task_name(client, mock_firebase_auth, repo, mock_f
     assert response.status_code == 400
     data = response.get_json()
     assert data["error"] == "Task name required"
+    mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_not_called()
     mock_firebase_auth.assert_called_once()
 
 
@@ -247,6 +265,9 @@ def test_api_update_preset_task_not_found(client, mock_firebase_auth, repo, mock
     data = response.get_json()
     assert data["error"] == "Task not found"
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_called_once_with('test_user_123')
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
+    mock_firestore_client['user_profiles'].document.return_value.update.assert_not_called()
 
 
 def test_api_update_preset_success(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -269,6 +290,11 @@ def test_api_update_preset_success(client, mock_firebase_auth, repo, mock_firest
     # Assert
     assert response.status_code == 200
     mock_firebase_auth.assert_called_once()
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_with('test_user_123')
+    assert mock_firestore_client['user_profiles'].document.return_value.get.call_count == 3
+    mock_firestore_client['user_profiles'].document.return_value.set.assert_called_once()
 
 
 def test_api_delete_preset_no_data(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -285,6 +311,7 @@ def test_api_delete_preset_no_data(client, mock_firebase_auth, repo, mock_firest
     data = response.get_json()
     assert data["error"] == "Invalid JSON"
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_not_called()
 
 
 def test_api_delete_preset_content_error(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -299,6 +326,7 @@ def test_api_delete_preset_content_error(client, mock_firebase_auth, repo, mock_
     # Assert
     assert response.status_code == 415
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_not_called()
 
 
 def test_api_delete_preset_no_task_name(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -315,6 +343,7 @@ def test_api_delete_preset_no_task_name(client, mock_firebase_auth, repo, mock_f
     data = response.get_json()
     assert data["error"] == "task name required"
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_not_called()
 
 
 def test_api_delete_preset_not_found(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -339,6 +368,9 @@ def test_api_delete_preset_not_found(client, mock_firebase_auth, repo, mock_fire
     data = response.get_json()
     assert data["error"] == "Preset not found"
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_called_once_with('test_user_123')
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
+    mock_firestore_client['user_profiles'].document.return_value.update.assert_not_called()
 
  # TEST #
 def test_api_get_preset_success_2(client, mock_firebase_auth, repo, mock_firestore_client):

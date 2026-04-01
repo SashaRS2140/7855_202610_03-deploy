@@ -55,6 +55,8 @@ def test_api_get_profile_success(client, mock_firebase_auth, repo, mock_firestor
         "user_info": {"email": "test_email@gmail.com", "first_name": "Johnny", "last_name": "Test", "role": "user"}
     }
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_called_once_with('test_user_123')
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_api_get_user_info_no_info(client, mock_firebase_auth, repo, mock_firestore_client):
@@ -76,3 +78,5 @@ def test_api_get_user_info_no_info(client, mock_firebase_auth, repo, mock_firest
     data = response.get_json()
     assert data["error"] == "No information added."
     mock_firebase_auth.assert_called_once()
+    mock_firestore_client['user_profiles'].document.assert_called_once_with('test_user_123')
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()

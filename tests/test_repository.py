@@ -13,6 +13,10 @@ def test_get_user_info_success(mock_firestore_client, repo):
 
     result = repo.get_user_info("test_uid", "email")
     assert result == "test_email@gmail.com"
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_user_info_no_doc(mock_firestore_client, repo):
@@ -23,6 +27,10 @@ def test_get_user_info_no_doc(mock_firestore_client, repo):
 
     result = repo.get_user_info("test_uid", "email")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_user_info_no_data(mock_firestore_client, repo):
@@ -34,6 +42,10 @@ def test_get_user_info_no_data(mock_firestore_client, repo):
 
     result = repo.get_user_info("test_uid", "email")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_user_info_no_field(mock_firestore_client, repo):
@@ -47,6 +59,10 @@ def test_get_user_info_no_field(mock_firestore_client, repo):
 
     result = repo.get_user_info("test_uid", "email")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_all_user_info_success(mock_firestore_client, repo):
@@ -65,6 +81,10 @@ def test_get_all_user_info_success(mock_firestore_client, repo):
         "last_name": "Test",
         "role": "user"
     }
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_all_user_info_no_doc(mock_firestore_client, repo):
@@ -75,6 +95,10 @@ def test_get_all_user_info_no_doc(mock_firestore_client, repo):
 
     result = repo.get_all_user_info("test_uid")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_all_user_info_no_data(mock_firestore_client, repo):
@@ -86,6 +110,10 @@ def test_get_all_user_info_no_data(mock_firestore_client, repo):
 
     result = repo.get_all_user_info("test_uid")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_cube_user_success(mock_firestore_client, repo):
@@ -97,6 +125,10 @@ def test_get_cube_user_success(mock_firestore_client, repo):
 
     result = repo.get_cube_user("test_cube_uuid")
     assert result == "test_user_uid"
+    
+    # Verify Firestore interactions
+    mock_firestore_client['cubes'].document.assert_called_once_with("test_cube_uuid")
+    mock_firestore_client['cubes'].document.return_value.get.assert_called_once()
 
 
 def test_get_cube_user_no_doc(mock_firestore_client, repo):
@@ -107,6 +139,10 @@ def test_get_cube_user_no_doc(mock_firestore_client, repo):
 
     result = repo.get_cube_user("test_cube_uuid")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['cubes'].document.assert_called_once_with("test_cube_uuid")
+    mock_firestore_client['cubes'].document.return_value.get.assert_called_once()
 
 
 def test_get_cube_user_no_data(mock_firestore_client, repo):
@@ -118,6 +154,10 @@ def test_get_cube_user_no_data(mock_firestore_client, repo):
 
     result = repo.get_cube_user("test_cube_uuid")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['cubes'].document.assert_called_once_with("test_cube_uuid")
+    mock_firestore_client['cubes'].document.return_value.get.assert_called_once()
 
 
 def test_get_profile_success(mock_firestore_client, repo):
@@ -139,6 +179,10 @@ def test_get_profile_success(mock_firestore_client, repo):
         "session_history": [{"elapsed_time": 300, "task": "Meditation", "timestamp": "2023-01-01T00:00:00"}],
         "user_info": {"email": "test_email@gmail.com", "first_name": "Johnny", "last_name": "Test", "role": "user"}
     }
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_profile_no_doc(mock_firestore_client, repo):
@@ -149,6 +193,10 @@ def test_get_profile_no_doc(mock_firestore_client, repo):
 
     result = repo.get_profile("test_uid")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_task_preset_success(mock_firestore_client, repo):
@@ -162,6 +210,10 @@ def test_get_task_preset_success(mock_firestore_client, repo):
 
     result = repo.get_task_preset("test_uid", "Meditation")
     assert result == {"task_color": "#ffaa00", "task_time": 600}
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_task_preset_no_doc(mock_firestore_client, repo):
@@ -172,6 +224,10 @@ def test_get_task_preset_no_doc(mock_firestore_client, repo):
 
     result = repo.get_task_preset("test_uid", "Meditation")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_task_preset_no_presets(mock_firestore_client, repo):
@@ -183,6 +239,10 @@ def test_get_task_preset_no_presets(mock_firestore_client, repo):
 
     result = repo.get_task_preset("test_uid", "Meditation")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_task_preset_no_preset(mock_firestore_client, repo):
@@ -196,6 +256,10 @@ def test_get_task_preset_no_preset(mock_firestore_client, repo):
 
     result = repo.get_task_preset("test_uid", "NonExistentTask")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_all_task_presets_success(mock_firestore_client, repo):
@@ -209,6 +273,10 @@ def test_get_all_task_presets_success(mock_firestore_client, repo):
 
     result = repo.get_all_task_presets("test_uid")
     assert result == {"Meditation": {"task_color": "#ffaa00", "task_time": 600}}
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_all_task_presets_no_doc(mock_firestore_client, repo):
@@ -219,6 +287,10 @@ def test_get_all_task_presets_no_doc(mock_firestore_client, repo):
 
     result = repo.get_all_task_presets("test_uid")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_all_task_presets_no_presets(mock_firestore_client, repo):
@@ -230,6 +302,10 @@ def test_get_all_task_presets_no_presets(mock_firestore_client, repo):
 
     result = repo.get_all_task_presets("test_uid")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_current_task_success(mock_firestore_client, repo):
@@ -241,6 +317,10 @@ def test_get_current_task_success(mock_firestore_client, repo):
 
     result = repo.get_current_task("test_uid")
     assert result == "Meditation"
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_current_task_no_doc(mock_firestore_client, repo):
@@ -251,6 +331,10 @@ def test_get_current_task_no_doc(mock_firestore_client, repo):
 
     result = repo.get_current_task("test_uid")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_current_task_no_current_task(mock_firestore_client, repo):
@@ -262,6 +346,10 @@ def test_get_current_task_no_current_task(mock_firestore_client, repo):
 
     result = repo.get_current_task("test_uid")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_session_success(mock_firestore_client, repo):
@@ -275,6 +363,10 @@ def test_get_session_success(mock_firestore_client, repo):
 
     result = repo.get_session("test_uid")
     assert result == {"elapsed_time": 300, "task": "Meditation", "timestamp": "2023-01-01T00:00:00"}
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_get_session_no_doc(mock_firestore_client, repo):
@@ -285,6 +377,10 @@ def test_get_session_no_doc(mock_firestore_client, repo):
 
     result = repo.get_session("test_uid")
     assert result is None
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_once_with("test_uid")
+    mock_firestore_client['user_profiles'].document.return_value.get.assert_called_once()
 
 
 def test_save_session_interaction(mock_firestore_client, repo):

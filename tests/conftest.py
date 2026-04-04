@@ -37,8 +37,10 @@ import importlib
 
 @pytest.fixture
 def client(monkeypatch):
-    """Flask test client fixture with TESTING enabled."""
+    """Flask test client fixture with TESTING enabled and API routes registered."""
+    # Set APP_TYPE=api so API blueprints are registered for testing
     monkeypatch.setenv("CUBE_API_KEY", "test-key")
+    monkeypatch.setenv("APP_TYPE", "api")
 
     app_module = importlib.import_module("run")
     app = app_module.create_app()

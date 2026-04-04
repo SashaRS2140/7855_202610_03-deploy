@@ -134,34 +134,44 @@ We employ a hybrid rendering approach to optimize both initial load times and re
 
 ## 4. Automated Testing & Coverage
 - **Testing Framework:** `pytest`
-- **Current Code Coverage:** [75%]
+- **Current Code Coverage:** [79%]
 - **Mocked Components:** 
     - Client
     - Firestore
     - Firebase Auth
     - Repository Layer
-    - Various API Functions
+- **Post-Demo Update:** Mock firestore has been removed from the global context 
+and is now functioning like in lab 10. Mock Firestore interaction checks have been 
+added to nearly all tests.
 
 **Test Highlight:**
 ```python* 
 # Test Demonstrates the AAA Pattern & Mocking
-def test_task_control_no_current_task(client, mock_cube_request, monkeypatch):
+def test_api_update_preset_success(client, mock_firebase_auth, repo, mock_firestore_client):
     # Arrange
-    url = "http://localhost:5000/api/task/control"
-    headers = {"X-API-Key": "test-key"}
-    payload = {"action": "start"}
+    url = "http://localhost:5000/api/profile/preset"
+    headers = {"Authorization": "Bearer valid_jwt_token"}
+    payload = {"task_name": "study", "task_color": "#ffaa00", "task_time": 900}
 
-    monkeypatch.setattr(
-        "src.server.blueprints.api_cube.routes.get_current_task",
-        lambda uid: None
-    )
+    # Mock user profile document with "Study" preset
+    mock_user_doc = MagicMock()
+    mock_user_doc.exists = True
+    mock_user_doc.to_dict.return_value = {
+        "presets": {"Study": {"task_color": "#ffaa00", "task_time": 600}}
+    }
+    mock_firestore_client['user_profiles'].document.return_value.get.return_value = mock_user_doc
 
     # Act
-    response = client.post(url, json=payload, headers=headers)
+    response = client.put(url, json=payload, headers=headers)
 
     # Assert
-    assert response.status_code == 400
-    assert response.get_json()["error"] == "Current task not set"
+    assert response.status_code == 200
+    mock_firebase_auth.assert_called_once()
+    
+    # Verify Firestore interactions
+    mock_firestore_client['user_profiles'].document.assert_called_with('test_user_123')
+    assert mock_firestore_client['user_profiles'].document.return_value.get.call_count == 3
+    mock_firestore_client['user_profiles'].document.return_value.set.assert_called_once()
 
 
 # Test Demonstrates Parametrization

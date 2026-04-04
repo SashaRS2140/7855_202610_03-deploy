@@ -1,0 +1,341 @@
+{"timestamp":"2026-04-04T00:22:28.831549","level":"INFO","module":"logging_config","function":"setup_logging","message":"Structured logging initialized"}
+{"timestamp":"2026-04-04T00:22:28.879153","level":"INFO","module":"_internal","function":"_log","message":"\u001b[31m\u001b[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.\u001b[0m\n * Running on all addresses (0.0.0.0)\n * Running on http://127.0.0.1:5001\n * Running on http://172.19.0.2:5001"}
+{"timestamp":"2026-04-04T00:22:28.879587","level":"INFO","module":"_internal","function":"_log","message":"\u001b[33mPress CTRL+C to quit\u001b[0m"}
+{"timestamp":"2026-04-04T00:22:28.967169","level":"INFO","module":"logging_config","function":"setup_logging","message":"Structured logging initialized"}
+{"timestamp":"2026-04-04T00:22:28.989383","level":"INFO","module":"_internal","function":"_log","message":"\u001b[31m\u001b[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.\u001b[0m\n * Running on all addresses (0.0.0.0)\n * Running on http://127.0.0.1:5000\n * Running on http://172.19.0.3:5000"}
+{"timestamp":"2026-04-04T00:22:28.990099","level":"INFO","module":"_internal","function":"_log","message":"\u001b[33mPress CTRL+C to quit\u001b[0m"}
+{"timestamp":"2026-04-04T00:22:32.075831","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:22:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:22:32.309848","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:22:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:22:44.172836","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): identitytoolkit.googleapis.com:443","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:22:44.348654","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://identitytoolkit.googleapis.com:443 \"POST /v1/accounts:signInWithPassword?key=AIzaSyAyuzcT80Cgh91lC2-eQLOtZyRHl0ipN68 HTTP/1.1\" 400 None","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:22:44.351150","level":"WARNING","module":"routes","function":"login","message":"Failed login attempt for email 'boom@boomboom.ca'","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1","error_type":"invalid_credentials"}
+{"timestamp":"2026-04-04T00:22:44.419807","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:22:44] \"POST /login HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:22:44.531624","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:22:44] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:22:50.174145","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): oauth2.googleapis.com:443","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"dashboard.home","method":"GET","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:22:50.303615","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://oauth2.googleapis.com:443 \"POST /token HTTP/1.1\" 200 None","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"dashboard.home","method":"GET","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:22:50.617342","level":"INFO","module":"routes","function":"home","message":"Dashboard loaded","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"dashboard.home","method":"GET","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:22:50.669082","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:22:50] \"GET / HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:22:50.797549","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:22:50] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:22:50.872379","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:22:50] \"\u001b[36mGET /static/js/dashboard.js HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:22:50.908538","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:22:50] \"\u001b[36mGET /static/js/cube.js HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:22:52.139094","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:22:52] \"GET /task/timer HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:22:52.308108","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:22:52] \"GET /task/current HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:22:52.517858","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:22:52] \"GET /profile/preset/Bang HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:23:02.170919","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:23:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:23:02.389035","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:23:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:23:22.168403","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): identitytoolkit.googleapis.com:443","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:23:22.351557","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://identitytoolkit.googleapis.com:443 \"POST /v1/accounts:signInWithPassword?key=AIzaSyAyuzcT80Cgh91lC2-eQLOtZyRHl0ipN68 HTTP/1.1\" 400 None","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:23:22.353044","level":"WARNING","module":"routes","function":"login","message":"Failed login attempt for email 'boom@boomboom.ca'","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1","error_type":"invalid_credentials"}
+{"timestamp":"2026-04-04T00:23:22.357087","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:23:22] \"POST /login HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:23:22.539633","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:23:22] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:23:32.703758","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:23:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:23:32.707668","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:23:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:24:02.856673","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:24:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:24:02.857181","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:24:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:24:32.943180","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:24:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:24:32.944374","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:24:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:25:03.040543","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:25:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:25:03.041237","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:25:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:25:33.116419","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:25:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:25:33.120338","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:25:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:26:03.246108","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:26:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:26:03.246692","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:26:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:26:33.315386","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:26:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:26:33.315521","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:26:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:27:03.427613","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:27:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:27:03.432644","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:27:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:27:33.513196","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:27:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:27:33.513240","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:27:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:28:03.611775","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:28:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:28:03.617710","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:28:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:28:33.693206","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:28:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:28:33.717413","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:28:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:29:03.766105","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:29:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:29:03.766112","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:29:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:29:33.839351","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:29:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:29:33.839368","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:29:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:31:27.132613","level":"INFO","module":"logging_config","function":"setup_logging","message":"Structured logging initialized"}
+{"timestamp":"2026-04-04T00:31:27.132613","level":"INFO","module":"logging_config","function":"setup_logging","message":"Structured logging initialized"}
+{"timestamp":"2026-04-04T00:31:27.191241","level":"INFO","module":"_internal","function":"_log","message":"\u001b[31m\u001b[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.\u001b[0m\n * Running on all addresses (0.0.0.0)\n * Running on http://127.0.0.1:5001\n * Running on http://172.19.0.2:5001"}
+{"timestamp":"2026-04-04T00:31:27.191755","level":"INFO","module":"_internal","function":"_log","message":"\u001b[31m\u001b[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.\u001b[0m\n * Running on all addresses (0.0.0.0)\n * Running on http://127.0.0.1:5000\n * Running on http://172.19.0.3:5000"}
+{"timestamp":"2026-04-04T00:31:27.192031","level":"INFO","module":"_internal","function":"_log","message":"\u001b[33mPress CTRL+C to quit\u001b[0m"}
+{"timestamp":"2026-04-04T00:31:27.192548","level":"INFO","module":"_internal","function":"_log","message":"\u001b[33mPress CTRL+C to quit\u001b[0m"}
+{"timestamp":"2026-04-04T00:31:27.908785","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:31:27] \"GET /task/timer HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:31:29.657720","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:31:29] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:31:30.048840","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:31:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:31:59.759993","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:31:59] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:00.141545","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:32:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:20.213913","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): identitytoolkit.googleapis.com:443","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:32:20.520784","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://identitytoolkit.googleapis.com:443 \"POST /v1/accounts:signInWithPassword?key=AIzaSyAyuzcT80Cgh91lC2-eQLOtZyRHl0ipN68 HTTP/1.1\" 400 None","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:32:20.524084","level":"WARNING","module":"routes","function":"login","message":"Failed login attempt for email 'boom@boomboom.ca'","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1","error_type":"invalid_credentials"}
+{"timestamp":"2026-04-04T00:32:20.602006","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:20] \"POST /login HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:20.804877","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:20] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:32:27.710064","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): identitytoolkit.googleapis.com:443","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:32:27.897135","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://identitytoolkit.googleapis.com:443 \"POST /v1/accounts:signInWithPassword?key=AIzaSyAyuzcT80Cgh91lC2-eQLOtZyRHl0ipN68 HTTP/1.1\" 400 None","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:32:27.899662","level":"WARNING","module":"routes","function":"login","message":"Failed login attempt for email 'boom@boomboom.ca'","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1","error_type":"invalid_credentials"}
+{"timestamp":"2026-04-04T00:32:27.906247","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:27] \"POST /login HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:28.167615","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:28] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:32:29.982400","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:32:29] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:30.212787","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:32:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:33.708599","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): oauth2.googleapis.com:443","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"dashboard.home","method":"GET","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:32:33.814324","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://oauth2.googleapis.com:443 \"POST /token HTTP/1.1\" 200 None","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"dashboard.home","method":"GET","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:32:34.159912","level":"INFO","module":"routes","function":"home","message":"Dashboard loaded","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"dashboard.home","method":"GET","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:32:34.201230","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:34] \"GET / HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:34.350241","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:34] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:32:34.446315","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:34] \"\u001b[36mGET /static/js/dashboard.js HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:32:34.497725","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:34] \"\u001b[36mGET /static/js/cube.js HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:32:35.166430","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:35] \"GET /task/timer HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:35.300135","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:35] \"GET /task/current HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:35.482994","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:35] \"GET /profile/preset/Bang HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:38.389575","level":"INFO","module":"routes","function":"stats","message":"Stats page loaded","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"sessions.stats","method":"GET","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:32:38.415744","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:38] \"GET /stats HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:38.546286","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:38] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:32:38.548370","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:38] \"GET /static/js/stats.js HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:38.854424","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:38] \"GET /sessions/calendar?year=2026&month=4 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:38.864513","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:38] \"GET /sessions/calendar?year=2026&month=2 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:38.868466","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:38] \"GET /sessions/calendar?year=2026&month=3 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:38.870703","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:38] \"GET /sessions/calendar?year=2026&month=1 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:38.871673","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:38] \"GET /sessions/calendar?year=2025&month=12 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:39.058603","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:39] \"GET /sessions/calendar?year=2025&month=11 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:43.849228","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:43] \"GET /sessions/calendar?year=2026&month=4 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:43.855298","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:43] \"GET /sessions/calendar?year=2026&month=3 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:43.878305","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:43] \"GET /sessions/calendar?year=2025&month=12 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:43.916348","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:43] \"GET /sessions/calendar?year=2026&month=1 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:43.918387","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:43] \"GET /sessions/calendar?year=2025&month=11 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:45.961533","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:45] \"GET /sessions/calendar?year=2026&month=2 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:49.114034","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:49] \"GET /sessions/calendar?year=2026&month=4 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:49.145793","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:49] \"GET /sessions/calendar?year=2026&month=3 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:49.154187","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:49] \"GET /sessions/calendar?year=2026&month=2 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:49.166491","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:49] \"GET /sessions/calendar?year=2026&month=1 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:49.177263","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:49] \"GET /sessions/calendar?year=2025&month=12 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:49.187318","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:49] \"GET /sessions/calendar?year=2025&month=11 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:53.894334","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:53] \"GET /sessions/calendar?year=2026&month=4 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:53.903220","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:53] \"GET /sessions/calendar?year=2026&month=2 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:53.905316","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:53] \"GET /sessions/calendar?year=2026&month=3 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:53.929508","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:53] \"GET /sessions/calendar?year=2026&month=1 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:53.932970","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:53] \"GET /sessions/calendar?year=2025&month=12 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:53.942049","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:53] \"GET /sessions/calendar?year=2025&month=11 HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:57.552562","level":"INFO","module":"routes","function":"home","message":"Dashboard loaded","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"dashboard.home","method":"GET","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:32:57.555884","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:57] \"GET / HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:57.705664","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:57] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:32:57.848902","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:57] \"\u001b[36mGET /static/js/dashboard.js HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:32:57.919724","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:57] \"\u001b[36mGET /static/js/cube.js HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:32:58.628846","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:58] \"GET /task/timer HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:58.705016","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:58] \"GET /task/current HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:32:58.928111","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:32:58] \"GET /profile/preset/Bang HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:33:00.094800","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:33:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:33:00.290415","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:33:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:33:02.011431","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): identitytoolkit.googleapis.com:443","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:33:02.248466","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://identitytoolkit.googleapis.com:443 \"POST /v1/accounts:signInWithPassword?key=AIzaSyAyuzcT80Cgh91lC2-eQLOtZyRHl0ipN68 HTTP/1.1\" 400 None","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:33:02.250726","level":"WARNING","module":"routes","function":"login","message":"Failed login attempt for email 'boom@boomboom.ca'","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1","error_type":"invalid_credentials"}
+{"timestamp":"2026-04-04T00:33:02.255547","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:33:02] \"POST /login HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:33:02.482807","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:33:02] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:33:14.337363","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): identitytoolkit.googleapis.com:443","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:33:14.490842","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://identitytoolkit.googleapis.com:443 \"POST /v1/accounts:signInWithPassword?key=AIzaSyAyuzcT80Cgh91lC2-eQLOtZyRHl0ipN68 HTTP/1.1\" 400 None","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:33:14.493569","level":"WARNING","module":"routes","function":"login","message":"Failed login attempt for email 'boom@boomboom.ca'","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1","error_type":"invalid_credentials"}
+{"timestamp":"2026-04-04T00:33:14.502698","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:33:14] \"POST /login HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:33:14.740878","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:33:14] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:33:30.199299","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:33:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:33:30.376190","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:33:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:00.294573","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:34:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:00.442925","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:34:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:05.595476","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:05.597491","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:05.600700","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:34:05] \"POST /api/task/control HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:08.363904","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:08.364956","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:08.366496","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:34:08] \"POST /api/task/control HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:15.221355","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:15.223165","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:15.224430","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:34:15] \"POST /api/task/control HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:30.378639","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:34:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:30.524612","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:34:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:35.175052","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:35.177032","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:35.178527","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:34:35] \"POST /api/task/control HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:36.521051","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:36.522227","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:36.523952","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:34:36] \"POST /api/task/control HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:37.535195","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:37.536558","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:37.538356","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:34:37] \"POST /api/task/control HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:34:38.367857","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:38.369308","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:34:38.371369","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:34:38] \"POST /api/task/control HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:35:00.496139","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:35:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:35:00.610365","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:35:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:35:30.568992","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:35:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:35:30.694341","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:35:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:36:00.667648","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:36:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:36:00.764675","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:36:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:36:30.753004","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:36:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:36:30.836826","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:36:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:37:00.848309","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:37:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:37:00.894454","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:37:00] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:37:30.948305","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:37:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:37:30.948509","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:37:30] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:38:01.082876","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:38:01] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:38:01.083286","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:38:01] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:38:31.200808","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:38:31] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:38:31.202118","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:38:31] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:39:01.309286","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:39:01] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:39:01.309725","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:39:01] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:39:31.430184","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:39:31] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:39:31.430666","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:39:31] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:40:01.499904","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:40:01] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:40:01.501605","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:40:01] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:40:31.598210","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:40:31] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:40:31.598389","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:40:31] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:41:01.718030","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:41:01] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:41:01.719411","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:41:01] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:41:31.830320","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:41:31] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:41:31.831169","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:41:31] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:42:01.956471","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:42:01] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:42:01.957404","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:42:01] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:42:32.067660","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:42:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:42:32.067948","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:42:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:43:02.172067","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:43:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:43:02.172070","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:43:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:43:32.273338","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:43:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:43:32.274449","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:43:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:44:02.349903","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:44:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:44:02.350148","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:44:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:44:32.433150","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:44:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:44:32.433637","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:44:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:45:02.529601","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:45:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:45:02.529773","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:45:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:45:32.599976","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:45:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:45:32.600108","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:45:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:46:02.697790","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:46:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:46:02.698379","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:46:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:46:32.802563","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:46:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:46:32.802872","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:46:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:47:02.900309","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:47:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:47:02.901524","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:47:02] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:47:32.981235","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:47:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:47:32.981418","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:47:32] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:48:03.074501","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:48:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:48:03.074650","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:48:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:48:33.165335","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:48:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:48:33.166948","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:48:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:49:03.256786","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:49:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:49:03.257461","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:49:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:49:33.361346","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:49:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:49:33.362686","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:49:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:50:03.460276","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:50:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:50:03.460862","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:50:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:50:33.542747","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:50:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:50:33.543483","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:50:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:51:03.643406","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:51:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:51:03.643603","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:51:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:51:33.731563","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:51:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:51:33.731673","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:51:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:52:03.825404","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:52:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:52:03.825436","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:52:03] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:52:33.936309","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:52:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:52:33.936497","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:52:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:00.372652","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): identitytoolkit.googleapis.com:443","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:53:00.686403","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://identitytoolkit.googleapis.com:443 \"POST /v1/accounts:signInWithPassword?key=AIzaSyAyuzcT80Cgh91lC2-eQLOtZyRHl0ipN68 HTTP/1.1\" 400 None","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:53:00.688718","level":"WARNING","module":"routes","function":"login","message":"Failed login attempt for email 'boom@boomboom.ca'","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1","error_type":"invalid_credentials"}
+{"timestamp":"2026-04-04T00:53:00.694306","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:53:00] \"POST /login HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:01.032341","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:53:01] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:53:04.023945","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:53:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:04.024271","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:53:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:08.562087","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): identitytoolkit.googleapis.com:443","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:53:08.787494","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://identitytoolkit.googleapis.com:443 \"POST /v1/accounts:signInWithPassword?key=AIzaSyAyuzcT80Cgh91lC2-eQLOtZyRHl0ipN68 HTTP/1.1\" 200 None","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:53:08.789280","level":"INFO","module":"routes","function":"login","message":"User 'boom@boom.ca' logged in successfully","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"auth.login","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:53:08.797378","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:53:08] \"\u001b[32mPOST /login HTTP/1.1\u001b[0m\" 302 -"}
+{"timestamp":"2026-04-04T00:53:09.293776","level":"INFO","module":"routes","function":"home","message":"Dashboard loaded","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"dashboard.home","method":"GET","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T00:53:09.296445","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:53:09] \"GET / HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:09.649466","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:53:09] \"\u001b[36mGET /static/css/style.css HTTP/1.1\u001b[0m\" 304 -"}
+{"timestamp":"2026-04-04T00:53:09.887131","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:53:09] \"GET /static/js/dashboard.js HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:10.014529","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:53:10] \"GET /static/js/cube.js HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:11.255941","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:53:11] \"GET /task/timer HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:11.371084","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:53:11] \"GET /task/current HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:11.585664","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 00:53:11] \"GET /profile/preset/Bang HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:34.123530","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:53:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:53:34.123550","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:53:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:54:04.236573","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:54:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:54:04.236725","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:54:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:54:34.312572","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:54:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:54:34.313940","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:54:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:55:04.390127","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:55:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:55:04.390227","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:55:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:55:34.472857","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:55:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:55:34.472864","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:55:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:56:04.554225","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:56:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:56:04.554806","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:56:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:56:34.658488","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:56:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:56:34.658681","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:56:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:57:04.764110","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:57:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:57:04.764303","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:57:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:57:34.865204","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:57:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:57:34.866319","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:57:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:58:04.935517","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:58:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:58:04.935579","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:58:04] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:58:35.030353","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:58:35] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:58:35.031453","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:58:35] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:59:05.120826","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:59:05] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:59:05.121323","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:59:05] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:59:35.222479","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:59:35] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T00:59:35.223167","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 00:59:35] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:00:05.313440","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:00:05] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:00:05.313627","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:00:05] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:00:35.419089","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:00:35] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:00:35.419099","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:00:35] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:01:05.560244","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:01:05] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:01:05.560295","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:01:05] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:01:35.658699","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:01:35] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:01:35.658741","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:01:35] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:02:05.761589","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:02:05] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:02:05.762348","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:02:05] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:02:35.842219","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:02:35] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:02:35.842225","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:02:35] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:03:05.923587","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:03:05] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:03:05.927450","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:03:05] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:03:36.003377","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:03:36] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:03:36.003410","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:03:36] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:04:06.077479","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:04:06] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:04:06.077692","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:04:06] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:04:36.154268","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:04:36] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:04:36.154522","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:04:36] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:05:06.237871","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:05:06] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:05:06.239009","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:05:06] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:05:36.366001","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:05:36] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:05:36.366192","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:05:36] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:06:06.481840","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:06:06] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:06:06.481926","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:06:06] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:06:36.595044","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:06:36] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:06:36.595079","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:06:36] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:07:06.693057","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:07:06] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:07:06.693184","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:07:06] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:07:36.788683","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:07:36] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:07:36.788903","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:07:36] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:08:06.895496","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:08:06] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:08:06.895927","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:08:06] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:08:14.137393","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): oauth2.googleapis.com:443","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:14.274665","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://oauth2.googleapis.com:443 \"POST /token HTTP/1.1\" 200 None","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:15.026717","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:15.028251","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:15.030687","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 01:08:15] \"POST /api/task/control HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:08:31.793024","level":"INFO","module":"logging_config","function":"setup_logging","message":"Structured logging initialized"}
+{"timestamp":"2026-04-04T01:08:31.793024","level":"INFO","module":"logging_config","function":"setup_logging","message":"Structured logging initialized"}
+{"timestamp":"2026-04-04T01:08:31.820225","level":"INFO","module":"_internal","function":"_log","message":"\u001b[31m\u001b[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.\u001b[0m\n * Running on all addresses (0.0.0.0)\n * Running on http://127.0.0.1:5000\n * Running on http://172.19.0.3:5000"}
+{"timestamp":"2026-04-04T01:08:31.820488","level":"INFO","module":"_internal","function":"_log","message":"\u001b[31m\u001b[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.\u001b[0m\n * Running on all addresses (0.0.0.0)\n * Running on http://127.0.0.1:5001\n * Running on http://172.19.0.2:5001"}
+{"timestamp":"2026-04-04T01:08:31.820881","level":"INFO","module":"_internal","function":"_log","message":"\u001b[33mPress CTRL+C to quit\u001b[0m"}
+{"timestamp":"2026-04-04T01:08:31.821287","level":"INFO","module":"_internal","function":"_log","message":"\u001b[33mPress CTRL+C to quit\u001b[0m"}
+{"timestamp":"2026-04-04T01:08:33.341822","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 01:08:33] \"GET /task/timer HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:08:33.744936","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:08:33] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:08:33.785370","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 01:08:33] \"GET /task/timer HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:08:34.193098","level":"INFO","module":"_internal","function":"_log","message":"127.0.0.1 - - [04/Apr/2026 01:08:34] \"GET /health HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:08:35.160360","level":"DEBUG","module":"connectionpool","function":"_new_conn","message":"Starting new HTTPS connection (1): oauth2.googleapis.com:443","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:35.270151","level":"DEBUG","module":"connectionpool","function":"_make_request","message":"https://oauth2.googleapis.com:443 \"POST /token HTTP/1.1\" 200 None","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:35.901465","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:35.904115","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:35.905944","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 01:08:35] \"POST /api/task/control HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:08:35.922505","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:35.925776","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:35.930096","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 01:08:35] \"POST /api/task/control HTTP/1.1\" 200 -"}
+{"timestamp":"2026-04-04T01:08:36.324952","level":"INFO","module":"timer_sevice","function":"reset","message":"Timer reset to 660s","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:36.326342","level":"INFO","module":"routes","function":"task_control","message":"Task 'Bang' reset via cube","user_id":"FCAiLmKpOHTexZU1Ymus7lm3Pbo2","endpoint":"api_cube.task_control","method":"POST","ip_address":"172.19.0.1"}
+{"timestamp":"2026-04-04T01:08:36.328575","level":"INFO","module":"_internal","function":"_log","message":"172.19.0.1 - - [04/Apr/2026 01:08:36] \"POST /api/task/control HTTP/1.1\" 200 -"}

@@ -2,8 +2,11 @@ from . import api_session_bp
 from datetime import datetime
 from flask import request, jsonify
 from src.server.decorators.auth import require_jwt
+from src.server.logging_config import get_logger
 from src.server.utils.validation import require_json_content_type
 from src.server.utils.repository import get_session, set_current_task, get_current_task, get_task_preset, get_sessions, get_sessions_by_date_range
+
+logger = get_logger(__name__)
 
 
 ##########################################################################
@@ -19,7 +22,20 @@ def api_get_task(uid: str):
     current_task = get_current_task(uid)
 
     if not current_task:
+        logger.warning(f"Current task not set", extra={
+            'user_id': uid,
+            'endpoint': '/api/task/current',
+            'method': 'GET',
+            'error_type': 'no_current_task'
+        })
         return jsonify({"error": "Current task not set"}), 400
+    
+    logger.info(f"Retrieved current task: {current_task}", extra={
+        'user_id': uid,
+        'endpoint': '/api/task/current',
+        'method': 'GET',
+        'task_name': current_task
+    })
 
     return jsonify({"current_task": current_task}), 200
 
@@ -50,6 +66,13 @@ def api_set_task(uid: str):
         return jsonify({"error": "Preset not found"}), 404
 
     set_current_task(uid, task_name)
+    
+    logger.info(f"Current task set: {task_name}", extra={
+        'user_id': uid,
+        'endpoint': '/api/task/current',
+        'method': 'POST',
+        'task_name': task_name
+    })
 
     return jsonify({"current_task": task_name}), 200
 
@@ -60,12 +83,26 @@ def api_get_latest_session(uid: str):
 
     latest_session = get_session(uid)
     if not latest_session:
+        logger.warning(f"No session history found", extra={
+            'user_id': uid,
+            'endpoint': '/api/session/latest',
+            'method': 'GET',
+            'error_type': 'no_session_history'
+        })
         return jsonify({"error": "No recorded session history."}), 400
 
     task = latest_session.get("task")
     elapsed_time = latest_session.get("elapsed_time")
     timestamp = latest_session.get("timestamp")
     task_color = latest_session.get("task_color")
+    
+    logger.info(f"Retrieved latest session: {task}", extra={
+        'user_id': uid,
+        'endpoint': '/api/session/latest',
+        'method': 'GET',
+        'task_name': task,
+        'elapsed_seconds': elapsed_time
+    })
 
     return jsonify({
         "task": task,
@@ -85,6 +122,16 @@ def api_get_sessions(uid: str):
 
     all_sessions = get_sessions(uid, limit=limit + offset)
     paginated = all_sessions[offset:offset+limit]
+    
+    logger.info(f"Retrieved sessions", extra={
+        'user_id': uid,
+        'endpoint': '/api/sessions',
+        'method': 'GET',
+        'limit': limit,
+        'offset': offset,
+        'total_count': len(all_sessions),
+        'returned_count': len(paginated)
+    })
 
     return jsonify({
         "sessions": paginated,
@@ -101,9 +148,24 @@ def api_get_sessions_range(uid: str):
     end = request.args.get("end")
 
     if not start or not end:
+        logger.warning(f"Date range query missing parameters", extra={
+            'user_id': uid,
+            'endpoint': '/api/sessions/range',
+            'method': 'GET',
+            'error_type': 'missing_params'
+        })
         return jsonify({"error": "start and end dates required (YYYY-MM-DD)"}), 400
 
     sessions = get_sessions_by_date_range(uid, start, end)
+    
+    logger.info(f"Retrieved sessions by date range", extra={
+        'user_id': uid,
+        'endpoint': '/api/sessions/range',
+        'method': 'GET',
+        'start_date': start,
+        'end_date': end,
+        'session_count': len(sessions)
+    })
 
     return jsonify({"sessions": sessions}), 200
 
@@ -137,6 +199,15 @@ def sessions_calendar(uid: str):
         except (ValueError, IndexError):
             # Skip malformed timestamps
             continue
+
+    logger.info(f"Retrieved calendar data", extra={
+        'user_id': uid,
+        'endpoint': '/api/sessions/calendar',
+        'method': 'GET',
+        'year': year,
+        'month': month,
+        'days_with_sessions': len(daily_totals)
+    })
 
     return jsonify({
         "year": year,

@@ -1,8 +1,11 @@
 from . import api_cube_bp
 from flask import request, jsonify, current_app
 from src.server.decorators.auth import require_api_key
+from src.server.logging_config import get_logger
 from src.server.utils.validation import require_json_content_type
 from src.server.utils.repository import get_cube_user, get_current_task, save_session, get_task_preset
+
+logger = get_logger(__name__)
 
 
 ##########################################################################
@@ -21,6 +24,11 @@ def task_control(cube_uuid: str):
     # Extract associated user account from CUBE UUID
     uid = get_cube_user(cube_uuid)
     if not uid:
+        logger.warning(f"Task control attempted with unregistered cube '{cube_uuid}'", extra={
+            'endpoint': '/api/task/control',
+            'method': 'POST',
+            'error_type': 'unregistered_cube'
+        })
         return jsonify({"error": "Cube not registered with user account"}), 401
 
     # Check Content-Type header
@@ -51,12 +59,25 @@ def task_control(cube_uuid: str):
     # Start action logic
     if action == "start":
         timer.start()
+        logger.info(f"Task '{current_task}' started via cube", extra={
+            'user_id': uid,
+            'endpoint': '/api/task/control',
+            'method': 'POST',
+            'action': 'start'
+        })
         return jsonify({"message": f"{current_task} task started"}), 200
 
     # Stop action logic
     if action == "stop":
         timer.stop()
         save_session(uid, current_task, elapsed_time)
+        logger.info(f"Task '{current_task}' stopped, {elapsed_time}s elapsed", extra={
+            'user_id': uid,
+            'endpoint': '/api/task/control',
+            'method': 'POST',
+            'action': 'stop',
+            'elapsed_seconds': elapsed_time
+        })
         if elapsed_time <= task_time:
             min = elapsed_time // 60
             sec = elapsed_time % 60
@@ -75,6 +96,13 @@ def task_control(cube_uuid: str):
     # Reset action logic
     if action == "reset":
         timer.reset(task_time)
+        logger.info(f"Task '{current_task}' reset via cube", extra={
+            'user_id': uid,
+            'endpoint': '/api/task/control',
+            'method': 'POST',
+            'action': 'reset',
+            'task_time': task_time
+        })
         return jsonify({"message": f"{current_task} task reset",
                         "task_name": current_task,
                         "task_time": task_time,

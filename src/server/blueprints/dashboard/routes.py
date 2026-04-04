@@ -2,9 +2,12 @@ import json
 import time
 from . import dashboard_bp
 from src.server.decorators.auth import login_required
+from src.server.logging_config import get_logger
 from src.server.utils.validation import require_json_content_type, validate_preset
 from flask import render_template, redirect, url_for, current_app, Response, jsonify, request
 from src.server.utils.repository import get_all_task_presets, get_task_preset, set_current_task, update_task_preset, get_current_task, get_session
+
+logger = get_logger(__name__)
 
 
 @dashboard_bp.route("/")
@@ -17,8 +20,19 @@ def home(uid: str):
         tasks = []
         for index, preset in enumerate(presets, start=1):
             tasks.append({"id": index, "name": preset})
+        logger.info(f"Dashboard loaded", extra={
+            'user_id': uid,
+            'endpoint': '/',
+            'method': 'GET',
+            'preset_count': len(presets)
+        })
         return render_template("dashboard.html", tasks=tasks)
 
+    logger.warning(f"Dashboard access without authentication", extra={
+        'endpoint': '/',
+        'method': 'GET',
+        'error_type': 'no_auth'
+    })
     return redirect(url_for("auth.login"))
 
 

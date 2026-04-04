@@ -41,6 +41,7 @@ def mock_firebase_init():
 def client(mock_firebase_init, mock_firestore_client, monkeypatch):
     """Flask test client fixture with TESTING enabled."""
     monkeypatch.setenv("CUBE_API_KEY", "test-key")
+    monkeypatch.setenv("APP_TYPE", "api")
 
     app_module = importlib.import_module("run")
     app = app_module.create_app()

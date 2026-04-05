@@ -16,17 +16,20 @@ def mock_firestore_client():
         # Create mock collections
         mock_user_profiles = MagicMock()
         mock_cubes = MagicMock()
+        mock_session_history = MagicMock()
 
         # Set up the db to return mock collections
         mock_db.return_value.collection.side_effect = lambda name: {
             'user_profiles': mock_user_profiles,
-            'cubes': mock_cubes
+            'cubes': mock_cubes,
+            'session_history': mock_session_history
         }.get(name, MagicMock())
 
         yield {
             'db': mock_db,
             'user_profiles': mock_user_profiles,
-            'cubes': mock_cubes
+            'cubes': mock_cubes,
+            'session_history': mock_session_history
         }
 
 
@@ -69,6 +72,7 @@ def repo(mock_firestore_client):
 
     module.user_profiles = mock_firestore_client['user_profiles']
     module.cubes = mock_firestore_client['cubes']
+    module.session_history = mock_firestore_client['session_history']
 
     return module
 

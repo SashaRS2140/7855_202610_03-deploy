@@ -8,7 +8,7 @@
 ## 1. Sprint Board Screenshots
 *Provide screenshots of your Sprint 3 board filtered by each team member.*
 - **Parry:** 
-  -   ![alt text](docs/image-9.png)
+  -   ![alt text](image-9.png)
 - **Sasha:** 
   -   ![alt text](image-8.png)
 - **Kale:** 

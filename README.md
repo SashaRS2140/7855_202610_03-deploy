@@ -134,3 +134,19 @@ curl http://localhost:5001/health    # API service health check
 | api_reset_timer           | /api/timer/reset                | Reset web timer to selected preset task time.                           | JWT Token     |
 | api_login                 | /login                          | JSON API endpoint for login. Returns a JWT token.                       | None          |
 | api_signup                | /signup                         | JSON API endpoint for new user registration.                            | None          |
+
+### Environment Variables
+
+Below are detailed descriptions of the environment variable required to implement this application.
+A .env.example file is included as a template to help developers create the required .env file.
+
+| Variable                 | Description                                                | Options                                 |
+|--------------------------|------------------------------------------------------------|-----------------------------------------|
+| FLASK_SECRET_KEY         | SECRET_KEY is used to sign session tokens and CSRF tokens. | None                                    |
+| FIREBASE_WEB_API_KEY     | Firebase Web API Key for client authentication.            | None                                    |
+| FIREBASE_SERVICE_ACCOUNT | Path to Firebase service account key file (for admin SDK). | None                                    |
+| FIREBASE_PROJECT_ID      | Firebase Project ID.                                       | None                                    |
+| CUBE_API_KEY             | API key for ESP32 CUBE device authentication.              | None                                    |
+| APP_TYPE                 | Application type - determines which routes are registered. | web (all routes), api (API routes only) |
+| FLASK_ENV                | Flask environment mode.                                    | development, production                 |
+| LOG_LEVEL                | Log level - controls verbosity.                            | DEBUG, INFO, WARNING, ERROR, CRITICAL   |

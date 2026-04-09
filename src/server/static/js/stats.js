@@ -1,3 +1,5 @@
+const API_BASE = "";
+
 const POLLING_INTERVAL = 5000; // 30 seconds
 
 class SessionStats {
@@ -39,7 +41,7 @@ class SessionStats {
             monthsInfo.push({ year, month, dateObj: d });
 
             promises.push(
-                fetch(`/sessions/calendar?year=${year}&month=${month}`)
+                fetch(`${API_BASE}/sessions/calendar?year=${year}&month=${month}`)
                     .then(res => res.json())
                     .catch(() => ({}))
             );
@@ -77,7 +79,7 @@ class SessionStats {
         if (!card) return;
 
         try {
-            const res = await fetch('/session/latest');
+            const res = await fetch(`${API_BASE}/session/latest`);
             if (!res.ok) {
                 card.innerHTML = '<p style="color:#999;">No recent session yet.</p>';
                 return;
@@ -260,7 +262,7 @@ class SessionStats {
 
                 // Fetch fresh data from API
                 try {
-                    const res = await fetch(`/sessions/calendar?year=${y}&month=${m + 1}`);
+                    const res = await fetch(`${API_BASE}/sessions/calendar?year=${y}&month=${m + 1}`);
                     if (!res.ok) throw new Error("Network response was not ok");
 
                     const data = await res.json();

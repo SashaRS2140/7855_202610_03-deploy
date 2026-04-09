@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 @api_profile_bp.get("/profile")
 @require_jwt
 def api_get_profile(uid: str):
-    """Return all the current user's profile data."""
+    """Get all the current user's profile data."""
 
     # Get all profile data
     profile_data = get_profile(uid)
@@ -33,6 +33,7 @@ def api_get_profile(uid: str):
 @api_profile_bp.route("/profile/user_info/<field>", methods=["GET"])
 @require_jwt
 def api_get_user_info(uid: str, field: str):
+    """Get the user's user information. (ie. first_name, last_name, etc.)"""
 
     # Return all user data if passed "all"
     if field == "all":
@@ -75,6 +76,7 @@ def api_get_user_info(uid: str, field: str):
 @api_profile_bp.put("/profile/user_info")
 @require_jwt
 def api_update_user_info(uid: str):
+    """Update user information. (ie. first_name, last_name, etc.)"""
 
     # Check Content-Type header
     content_error = require_json_content_type()
@@ -119,7 +121,7 @@ def api_update_user_info(uid: str):
 @api_profile_bp.post("/profile/cube")
 @require_jwt
 def api_save_cube(uid: str):
-    """Register a CUBE UUID with your user account."""
+    """Register a CUBE UUID with a user account."""
 
     # Check Content-Type header
     content_error = require_json_content_type()

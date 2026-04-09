@@ -77,9 +77,10 @@ def api_set_task(uid: str):
     return jsonify({"current_task": task_name}), 200
 
 
-@api_session_bp.get("/session/latest")
+@api_session_bp.get("/sessions/latest")
 @require_jwt
 def api_get_latest_session(uid: str):
+    """Get the latest session data form the session history database."""
 
     latest_session = get_session(uid)
     if not latest_session:
@@ -172,8 +173,8 @@ def api_get_sessions_range(uid: str):
 
 @api_session_bp.get('/sessions/calendar')
 @require_jwt
-def sessions_calendar(uid: str):
-    """Return session data aggregated by day for calendar heatmap."""
+def api_get_sessions_calendar(uid: str):
+    """Get session data aggregated by day for calendar heatmap."""
 
     year = request.args.get("year", default=datetime.now().year, type=int)
     month = request.args.get("month", default=datetime.now().month, type=int)

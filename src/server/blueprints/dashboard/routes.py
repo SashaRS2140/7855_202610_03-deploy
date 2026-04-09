@@ -147,7 +147,7 @@ def session_latest(uid: str):
     }), 200
 
 
-# changed to api implementation #
+# replace with api_get_sessions_calendar #
 @dashboard_bp.get('/sessions/calendar')
 @login_required
 def sessions_calendar(uid: str):

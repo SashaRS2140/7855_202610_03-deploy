@@ -13,10 +13,10 @@ logger = get_logger(__name__)
 ##########################################################################
 
 
-# This end-point is currently device only (no user auth required)
 @api_cube_bp.post("/task/control")
 @require_api_key
-def task_control(cube_uuid: str):
+def api_task_control(cube_uuid: str):
+    """Interface between hardware cube, Firestore database, and timer service."""
 
     # Get timer object
     timer = current_app.timer

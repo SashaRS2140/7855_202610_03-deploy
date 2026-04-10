@@ -111,3 +111,92 @@ Test service endpoints:
 curl http://localhost:5000/health    # Web service health check
 curl http://localhost:5001/health    # API service health check
 ```
+
+### Architecture
+Below is a block diagram showing system components and data flow.
+
+```mermaid
+flowchart TD
+
+    subgraph Client Layer
+        A(Web Application)
+        B(ESP32 Cube Application)
+    end
+    
+    subgraph Service Layer
+        C(Session Service)
+        D(Authentication Service)
+        E(Cube Interface Service)
+        F(Profile Service)
+        G(Timer Service)
+        H(Preset Task Service)
+    end
+
+    subgraph Data Layer
+        I(Database Interface)
+        J(User Profile Database)
+        K(Cube Database)
+        L(Session History Database)
+        M(Firebase Authentication Service)
+    end
+ 
+    A <-->|request data read/write| C
+    A <-->|request data read/write| F
+    A <-->|request data read/write| H
+    A  -->|timer cmds| G
+    A <-->|request JWT Token| D
+    B <-->|Tx: elapsed time
+           Rx: task config| E
+
+    C <--> space <-->|request data read/write| I
+    E <-->|request data read/write| I
+    E  -->|timer cmds| G
+    F <-->|request data read/write| I
+    H <-->|request data read/write| I
+
+    D <-->|request JWT Token| M
+    I <-->|read/write data| J
+    I <-->|read/write data| K
+    I <-->|read/write data| L
+
+    style space opacity:0;
+```
+
+### API Specifications
+
+| Method                    | Route                           | Description                                                             | Auth Required |
+|---------------------------|---------------------------------|-------------------------------------------------------------------------|---------------|
+| api_task_control          | /api/task/control               | Interface between hardware cube, Firestore database, and timer service. | CUBE_API_KEY  |
+| api_get_profile           | /api/profile                    | Get all the current user's profile data.                                | JWT Token     |
+| api_get_user_info         | /api/profile/user_info/<field>  | Get the user's user information. (ie. first_name, last_name, etc.)      | JWT Token     |
+| api_update_user_info      | /api/profile/user_info          | Update user information. (ie. first_name, last_name, etc.)              | JWT Token     |
+| api_save_cube             | /api/profile/cube               | Register a CUBE UUID with a user account.                               | JWT Token     |
+| api_get_preset            | /api/profile/preset/<task_name> | Get preset task configurations.                                         | JWT Token     |
+| api_create_preset         | /api/profile/preset             | Create new preset task configuration.                                   | JWT Token     |
+| api_update_preset         | /api/profile/preset             | Update preset task configuration.                                       | JWT Token     |
+| api_delete_preset         | /api/profile/preset             | Delete preset task configuration.                                       | JWT Token     |
+| api_get_task              | /api/task/current               | Get the current active task name.                                       | JWT Token     |
+| api_set_task              | /api/task/current               | Set the current active task.                                            | JWT Token     |
+| api_get_latest_session    | /api/sessions/latest            | Get the latest session data form the session history database.          | JWT Token     |
+| api_get_sessions          | /api/sessions                   | Get paginated session list for a user.                                  | JWT Token     |
+| api_get_sessions_range    | /api/sessions/range             | Get sessions within a date range.                                       | JWT Token     |
+| api_get_sessions_calendar | /api/sessions/calendar          | Get session data aggregated by day for calendar heatmap.                | JWT Token     |
+| api_reset_timer           | /api/timer/reset                | Reset web timer to selected preset task time.                           | JWT Token     |
+| api_login                 | /login                          | JSON API endpoint for login. Returns a JWT token.                       | None          |
+| api_signup                | /signup                         | JSON API endpoint for new user registration.                            | None          |
+
+### Environment Variables
+
+Below are detailed descriptions of the environment variable required to implement this application.
+A .env.example file is included as a template to help developers create the required .env file.
+
+| Variable                 | Description                                                | Options                                 |
+|--------------------------|------------------------------------------------------------|-----------------------------------------|
+| FLASK_SECRET_KEY         | SECRET_KEY is used to sign session tokens and CSRF tokens. | None                                    |
+| FIREBASE_WEB_API_KEY     | Firebase Web API Key for client authentication.            | None                                    |
+| FIREBASE_SERVICE_ACCOUNT | Path to Firebase service account key file (for admin SDK). | None                                    |
+| FIREBASE_PROJECT_ID      | Firebase Project ID.                                       | None                                    |
+| CUBE_API_KEY             | API key for ESP32 CUBE device authentication.              | None                                    |
+| APP_TYPE                 | Application type - determines which routes are registered. | web (all routes), api (API routes only) |
+| FLASK_ENV                | Flask environment mode.                                    | development, production                 |
+| LOG_LEVEL                | Log level - controls verbosity.                            | DEBUG, INFO, WARNING, ERROR, CRITICAL   |

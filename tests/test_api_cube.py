@@ -226,6 +226,21 @@ class TestTaskControlStop:
         mock_firestore_client['user_profiles'].document.assert_called_with(UID)
         assert mock_firestore_client['user_profiles'].document.return_value.get.call_count == 2
 
+    def test_returns_400_with_invalid_task_time(self, client, repo, mock_firestore_client):
+        """Returns 400 error due to invalid task time."""
+        setup_cube_doc(mock_firestore_client)
+        setup_user_doc(mock_firestore_client)
+
+        response = client.post(URL, json={"action": "stop", "elapsed_seconds": 0}, headers=HEADERS)
+
+        assert response.status_code == 400
+        assert response.get_json()["error"] == "Elapsed time must be a positive non-zero integer."
+        client.application.timer.stop.assert_called_once()
+        mock_firestore_client['cubes'].document.assert_called_with('test-key')
+        mock_firestore_client['cubes'].document.return_value.get.assert_called_once()
+        mock_firestore_client['user_profiles'].document.assert_called_with(UID)
+        assert mock_firestore_client['user_profiles'].document.return_value.get.call_count == 2
+
     def test_saves_session_to_subcollection_on_stop(self, client, repo, mock_firestore_client):
         """Writes a session document to session_history/{uid}/sessions on stop."""
         setup_cube_doc(mock_firestore_client)

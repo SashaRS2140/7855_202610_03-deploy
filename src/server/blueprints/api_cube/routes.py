@@ -2,7 +2,7 @@ from . import api_cube_bp
 from flask import request, jsonify, current_app
 from src.server.decorators.auth import require_api_key
 from src.server.logging_config import get_logger
-from src.server.utils.validation import require_json_content_type
+from src.server.utils.validation import require_json_content_type, parse_time
 from src.server.utils.repository import get_cube_user, get_current_task, save_session, get_task_preset
 
 logger = get_logger(__name__)
@@ -13,10 +13,10 @@ logger = get_logger(__name__)
 ##########################################################################
 
 
-# This end-point is currently device only (no user auth required)
 @api_cube_bp.post("/task/control")
 @require_api_key
-def task_control(cube_uuid: str):
+def api_task_control(cube_uuid: str):
+    """Interface between hardware cube, Firestore database, and timer service."""
 
     # Get timer object
     timer = current_app.timer
@@ -51,8 +51,7 @@ def task_control(cube_uuid: str):
 
     task_data = get_task_preset(uid, current_task)
     task_time = task_data.get("task_time")
-    tt_min = task_time // 60
-    tt_sec = task_time % 60
+    tt_min, tt_sec = parse_time(task_time)
 
     task_color = task_data.get("task_color")
 
@@ -79,15 +78,15 @@ def task_control(cube_uuid: str):
             'elapsed_seconds': elapsed_time
         })
         if elapsed_time <= task_time:
-            min = elapsed_time // 60
-            sec = elapsed_time % 60
+            min, sec = parse_time(elapsed_time)
+            if not min and not sec:
+                return jsonify({"error": "Elapsed time must be a positive non-zero integer."}), 400
             return jsonify({"message": f"{current_task} task stopped. "
                                        f"{min}m:{sec}s of session time logged."
                             }), 200
         else:
             extra_time = elapsed_time - task_time
-            min = extra_time // 60
-            sec = extra_time % 60
+            min, sec = parse_time(extra_time)
             return jsonify({"message": f"{current_task} task stopped. "
                                        f"{tt_min}m:{tt_sec}s of session time + "
                                        f"{min}m:{sec}s of extra session time logged."

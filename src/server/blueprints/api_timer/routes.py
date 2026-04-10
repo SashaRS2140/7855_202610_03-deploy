@@ -17,6 +17,7 @@ logger = get_logger(__name__)
 @api_timer_bp.post("/timer/reset")
 @require_jwt
 def api_reset_timer(uid: str):
+    """Reset web timer to selected preset task time."""
 
     # Get timer object
     timer = current_app.timer

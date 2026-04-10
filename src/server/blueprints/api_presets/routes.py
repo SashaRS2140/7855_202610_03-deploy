@@ -82,7 +82,7 @@ def api_get_preset(uid: str, task_name: str):
 @api_presets_bp.post("/profile/preset")
 @require_jwt
 def api_create_preset(uid: str):
-    """Create new preset task configuration from a JSON body."""
+    """Create new preset task configuration."""
 
     # Extract preset data from JSON
     data = extract_preset_data()
@@ -122,7 +122,7 @@ def api_create_preset(uid: str):
 @api_presets_bp.put("/profile/preset")
 @require_jwt
 def api_update_preset(uid: str):
-    """Update preset task configuration from a JSON body."""
+    """Update preset task configuration."""
 
     #Extract preset data from JSON
     data = extract_preset_data()

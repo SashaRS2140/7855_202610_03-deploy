@@ -75,25 +75,3 @@ def repo(mock_firestore_client):
     module.session_history = mock_firestore_client['session_history']
 
     return module
-
-
-@pytest.fixture
-def bypass_auth(monkeypatch):
-    def fake_require_jwt(f):
-        def wrapper(*args, **kwargs):
-            return f(*args, uid="test_user_123", **kwargs)
-        return wrapper
-
-    monkeypatch.setattr(
-        "src.server.decorators.auth.require_jwt",
-        fake_require_jwt
-    )
-    def fake_require_jwt(f):
-        def wrapper(*args, **kwargs):
-            return f(*args, uid="test_user_123", **kwargs)
-        return wrapper
-
-    monkeypatch.setattr(
-        "src.server.decorators.auth.require_jwt",
-        fake_require_jwt
-    )

@@ -116,7 +116,9 @@ curl http://localhost:5001/health    # API service health check
 Below is a block diagram showing system components and data flow.
 
 ```mermaid
-flowchart TD
+%%{init: {"flowchart": {"defaultRenderer": "elk"}}}%%
+flowchart-elk TD
+
     subgraph Client Layer
         A(Web Application)
         B(ESP32 Cube Application)
@@ -152,13 +154,12 @@ flowchart TD
     I  -->|timer cmds| K
     J <-->|request data read/write| F
     L <-->|request data read/write| F
+    
 
     H <-->|request JWT Token| O
     F <-->|read/write data| G
     F <-->|read/write data| M
     F <-->|read/write data| N
-    
-
 ```
 
 ### API Specifications

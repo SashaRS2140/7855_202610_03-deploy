@@ -112,6 +112,55 @@ curl http://localhost:5000/health    # Web service health check
 curl http://localhost:5001/health    # API service health check
 ```
 
+### Architecture
+Below is a block diagram showing system components and data flow.
+
+```mermaid
+flowchart TD
+    subgraph Client Layer
+        A(Web Application)
+        B(ESP32 Cube Application)
+    end
+
+    subgraph Service Layer
+        E(Session Service)
+        H(Authentication Service)
+        I(Cube Interface Service)
+        J(Profile Service)
+        K(Timer Service)
+        L(Preset Task Service)
+    end
+
+    subgraph Data Layer
+        F(Database Interface)
+        G(User Profile Database)
+        M(Cube Database)
+        N(Session History Database)
+        O(Firebase Authentication Service)
+    end
+
+    B <-->|Tx: elapsed time
+           Rx: task config| I
+    A <-->|request data read/write| E
+    A <-->|request data read/write| J
+    A <-->|request data read/write| L
+    A  -->|timer cmds| K
+    A <-->|request JWT Token| H
+
+    E <-->|request data read/write| F
+    I <-->|request data read/write| F
+    I  -->|timer cmds| K
+    J <-->|request data read/write| F
+    L <-->|request data read/write| F
+
+    H <-->|request JWT Token| O
+    F <-->|read/write data| G
+    F <-->|read/write data| M
+    F <-->|read/write data| N
+    
+
+```
+
 ### API Specifications
 
 | Method                    | Route                           | Description                                                             | Auth Required |

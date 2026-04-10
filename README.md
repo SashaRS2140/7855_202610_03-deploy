@@ -116,50 +116,50 @@ curl http://localhost:5001/health    # API service health check
 Below is a block diagram showing system components and data flow.
 
 ```mermaid
-%%{init: {"flowchart": {"defaultRenderer": "elk"}}}%%
-flowchart-elk TD
+flowchart TD
 
     subgraph Client Layer
         A(Web Application)
         B(ESP32 Cube Application)
     end
-
+    
     subgraph Service Layer
-        E(Session Service)
-        H(Authentication Service)
-        I(Cube Interface Service)
-        J(Profile Service)
-        K(Timer Service)
-        L(Preset Task Service)
+        C(Session Service)
+        D(Authentication Service)
+        E(Cube Interface Service)
+        F(Profile Service)
+        G(Timer Service)
+        H(Preset Task Service)
     end
 
     subgraph Data Layer
-        F(Database Interface)
-        G(User Profile Database)
-        M(Cube Database)
-        N(Session History Database)
-        O(Firebase Authentication Service)
+        I(Database Interface)
+        J(User Profile Database)
+        K(Cube Database)
+        L(Session History Database)
+        M(Firebase Authentication Service)
     end
-
+ 
+    A <-->|request data read/write| C
+    A <-->|request data read/write| F
+    A <-->|request data read/write| H
+    A  -->|timer cmds| G
+    A <-->|request JWT Token| D
     B <-->|Tx: elapsed time
-           Rx: task config| I
-    A <-->|request data read/write| E
-    A <-->|request data read/write| J
-    A <-->|request data read/write| L
-    A  -->|timer cmds| K
-    A <-->|request JWT Token| H
+           Rx: task config| E
 
-    E <-->|request data read/write| F
-    I <-->|request data read/write| F
-    I  -->|timer cmds| K
-    J <-->|request data read/write| F
-    L <-->|request data read/write| F
-    
+    C <--> space <-->|request data read/write| I
+    E <-->|request data read/write| I
+    E  -->|timer cmds| G
+    F <-->|request data read/write| I
+    H <-->|request data read/write| I
 
-    H <-->|request JWT Token| O
-    F <-->|read/write data| G
-    F <-->|read/write data| M
-    F <-->|read/write data| N
+    D <-->|request JWT Token| M
+    I <-->|read/write data| J
+    I <-->|read/write data| K
+    I <-->|read/write data| L
+
+    style space opacity:0;
 ```
 
 ### API Specifications

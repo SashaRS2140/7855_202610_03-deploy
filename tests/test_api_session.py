@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 UID = "test_user_123"
 
 URL_TASK_CURRENT   = "http://localhost:5000/api/task/current"
-URL_SESSION_LATEST = "http://localhost:5000/api/session/latest"
+URL_SESSION_LATEST = "http://localhost:5000/api/sessions/latest"
 URL_SESSIONS       = "http://localhost:5000/api/sessions"
 URL_SESSIONS_RANGE = "http://localhost:5000/api/sessions/range"
 URL_SESSIONS_CAL   = "http://localhost:5000/api/sessions/calendar"

@@ -43,9 +43,9 @@ def stream_timer(uid: str):
     timer = current_app.timer
 
     def format_mmss(seconds):
-        minutes, secs = parse_time(seconds)
-        #minutes = seconds // 60
-        #secs = seconds % 60
+        #minutes, secs = parse_time(seconds)
+        minutes = seconds // 60
+        secs = seconds % 60
         return f"{minutes:02d}:{secs:02d}"
 
     def event_stream():

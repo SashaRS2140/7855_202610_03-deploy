@@ -50,37 +50,16 @@ class CustomJsonFormatter(logging.Formatter):
                 'message': record.getMessage(),
             }
 
-            # Add extra fields if present (request context, user info, etc.)
-            # Use try/except to handle non-serializable objects
-            # AND filter sensitive data
-            if hasattr(record, 'user_id'):
-                log_obj['user_id'] = self._sanitize_value('user_id', record.user_id)
-            if hasattr(record, 'endpoint'):
-                log_obj['endpoint'] = self._sanitize_value('endpoint', record.endpoint)
-            if hasattr(record, 'method'):
-                log_obj['method'] = self._sanitize_value('method', record.method)
-            if hasattr(record, 'status_code'):
-                log_obj['status_code'] = self._sanitize_value('status_code', record.status_code)
-            if hasattr(record, 'duration_ms'):
-                log_obj['duration_ms'] = self._sanitize_value('duration_ms', record.duration_ms)
-            if hasattr(record, 'ip_address'):
-                log_obj['ip_address'] = self._sanitize_value('ip_address', record.ip_address)
-            if hasattr(record, 'error_type'):
-                log_obj['error_type'] = self._sanitize_value('error_type', record.error_type)
-
-            # Explicitly include startup metadata fields when provided via extra={...}
-            if hasattr(record, 'host'):
-                log_obj['host'] = self._sanitize_value('host', record.host)
-            if hasattr(record, 'port'):
-                log_obj['port'] = self._sanitize_value('port', record.port)
-            if hasattr(record, 'app_type'):
-                log_obj['app_type'] = self._sanitize_value('app_type', record.app_type)
-            if hasattr(record, 'debug'):
-                log_obj['debug'] = self._sanitize_value('debug', record.debug)
-            if hasattr(record, 'log_level'):
-                log_obj['log_level'] = self._sanitize_value('log_level', record.log_level)
-            if hasattr(record, 'service_account_path'):
-                log_obj['service_account_path'] = self._sanitize_value('service_account_path', record.service_account_path)
+            # Add extra fields if present (request context, user info, startup metadata, etc.)
+            # Use try/except to handle non-serializable objects and filter sensitive data.
+            extra_fields = [
+                'user_id', 'endpoint', 'method', 'status_code', 'duration_ms',
+                'ip_address', 'error_type', 'host', 'port', 'app_type', 'debug',
+                'log_level', 'service_account_path'
+            ]
+            for key in extra_fields:
+                if hasattr(record, key):
+                    log_obj[key] = self._sanitize_value(key, getattr(record, key))
 
             # Pretty-print in development, compact in production
             if self.is_dev:

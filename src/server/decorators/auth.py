@@ -2,8 +2,9 @@ import os
 import hmac
 from functools import wraps
 from firebase_admin import auth
-from flask import request, jsonify, redirect, url_for, session
+from flask import request, redirect, url_for, session
 from src.server.logging_config import get_logger
+from src.server.utils.api_response import api_error
 
 logger = get_logger(__name__)
 
@@ -32,23 +33,25 @@ def require_jwt(f):
         auth_header = request.headers.get("Authorization")
 
         if not auth_header:
-            logger.warning("Missing Authorization header for JWT-protected endpoint", extra={
-                'endpoint': request.path,
-                'method': request.method,
-                'error_type': 'missing_authorization_header',
-                'auth_type': 'jwt'
-            })
-            return jsonify({"error": "Missing Authorization header"}), 401
+            return api_error(
+                "Missing Authorization header",
+                status=401,
+                error_type="missing_authorization_header",
+                extra={
+                    'auth_type': 'jwt'
+                }
+            )
 
         # Check for "Bearer " prefix
         if not auth_header.startswith("Bearer "):
-            logger.warning("Invalid Authorization header format", extra={
-                'endpoint': request.path,
-                'method': request.method,
-                'error_type': 'invalid_authorization_format',
-                'auth_type': 'jwt'
-            })
-            return jsonify({"error": "Invalid Authorization header format"}), 401
+            return api_error(
+                "Invalid Authorization header format",
+                status=401,
+                error_type="invalid_authorization_format",
+                extra={
+                    'auth_type': 'jwt'
+                }
+            )
 
         token = auth_header.split(" ")[1]
 
@@ -59,13 +62,14 @@ def require_jwt(f):
             # Inject uid into the route function
             return f(*args, uid=uid, **kwargs)
         except Exception:
-            logger.warning("Invalid or expired JWT token", extra={
-                'endpoint': request.path,
-                'method': request.method,
-                'error_type': 'invalid_or_expired_token',
-                'auth_type': 'jwt'
-            })
-            return jsonify({"error": "Invalid or expired token"}), 401
+            return api_error(
+                "Invalid or expired token",
+                status=401,
+                error_type="invalid_or_expired_token",
+                extra={
+                    'auth_type': 'jwt'
+                }
+            )
     return decorated_function
 
 
@@ -81,34 +85,35 @@ def require_api_key(f):
         expected_key = os.environ.get("CUBE_API_KEY")
 
         if not expected_key:
-            logger.error("API key protection not configured", extra={
-                'endpoint': request.path,
-                'method': request.method,
-                'error_type': 'api_key_not_configured'
-            })
-            return jsonify({"error": "API key not configured on server"}), 500
+            return api_error(
+                "API key not configured on server",
+                status=500,
+                error_type="api_key_not_configured"
+            )
 
         # Get the provided key from request headers
         provided_key = request.headers.get("X-API-Key")
 
         if not provided_key:
-            logger.warning("Missing X-API-Key header", extra={
-                'endpoint': request.path,
-                'method': request.method,
-                'error_type': 'missing_api_key',
-                'auth_type': 'api_key'
-            })
-            return jsonify({"error": "Missing X-API-Key header"}), 401
+            return api_error(
+                "Missing X-API-Key header",
+                status=401,
+                error_type="missing_api_key",
+                extra={
+                    'auth_type': 'api_key'
+                }
+            )
 
         # Compare keys (constant-time comparison to prevent timing attacks)
         if not hmac.compare_digest(provided_key, expected_key):
-            logger.warning("Unauthorized API key access attempt", extra={
-                'endpoint': request.path,
-                'method': request.method,
-                'error_type': 'invalid_api_key',
-                'auth_type': 'api_key'
-            })
-            return jsonify({"error": "Unauthorized"}), 401
+            return api_error(
+                "Unauthorized",
+                status=401,
+                error_type="invalid_api_key",
+                extra={
+                    'auth_type': 'api_key'
+                }
+            )
 
         # Security: X-API-Key header should contain the actual cube_uuid
         # Not the API key itself. Extract from request if provided.

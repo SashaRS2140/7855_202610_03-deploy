@@ -1,11 +1,16 @@
 import re
-from flask import jsonify, request
+from flask import request
+from src.server.utils.api_response import api_error
 
 
 def require_json_content_type():
     """Ensure the request is JSON; returns an error response tuple if not."""
     if not request.is_json:
-        return jsonify({"error": "Content-Type must be application/json"}), 415
+        return api_error(
+            "Content-Type must be application/json",
+            status=415,
+            error_type="invalid_content_type"
+        )
     return None
 
 

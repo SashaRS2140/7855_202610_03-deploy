@@ -30,12 +30,16 @@ class CustomJsonFormatter(logging.Formatter):
         self.is_dev = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
 
     def _sanitize_value(self, key, value):
+        # If the log field key is sensitive, replace the value with a redacted marker.
+        # This prevents secrets from being written into structured logs.
         """Return sanitized value if key is sensitive, otherwise return original."""
         if isinstance(key, str) and key.lower() in self.SENSITIVE_FIELDS:
             return "[REDACTED]"
         return value
 
     def format(self, record):
+        # Convert a Python log record into a structured JSON object.
+        # Includes default fields and any additional contextual fields added by filters.
         """Format log record as JSON with context and security filtering."""
         try:
             log_obj = {
@@ -64,6 +68,20 @@ class CustomJsonFormatter(logging.Formatter):
             if hasattr(record, 'error_type'):
                 log_obj['error_type'] = self._sanitize_value('error_type', record.error_type)
 
+            # Explicitly include startup metadata fields when provided via extra={...}
+            if hasattr(record, 'host'):
+                log_obj['host'] = self._sanitize_value('host', record.host)
+            if hasattr(record, 'port'):
+                log_obj['port'] = self._sanitize_value('port', record.port)
+            if hasattr(record, 'app_type'):
+                log_obj['app_type'] = self._sanitize_value('app_type', record.app_type)
+            if hasattr(record, 'debug'):
+                log_obj['debug'] = self._sanitize_value('debug', record.debug)
+            if hasattr(record, 'log_level'):
+                log_obj['log_level'] = self._sanitize_value('log_level', record.log_level)
+            if hasattr(record, 'service_account_path'):
+                log_obj['service_account_path'] = self._sanitize_value('service_account_path', record.service_account_path)
+
             # Pretty-print in development, compact in production
             if self.is_dev:
                 return json.dumps(log_obj, indent=2, default=str)
@@ -82,6 +100,8 @@ class CustomJsonFormatter(logging.Formatter):
 
 
 def setup_logging(app=None):
+    # Configure the root logger and attach handlers for console and file output.
+    # This must be called once at startup before any application logging occurs.
     """
     Setup structured logging for the Flask application.
     Call this early in your application initialization.
@@ -129,6 +149,8 @@ def setup_logging(app=None):
 
 
 def get_logger(name):
+    # Return a named logger instance for the current module.
+    # Named loggers allow log records to be grouped by source module.
     """
     Get a logger instance with the specified name.
     Use: logger = get_logger(__name__)
@@ -143,6 +165,8 @@ class RequestContextFilter(logging.Filter):
     """
 
     def filter(self, record):
+        # Add Flask request-specific context to the log record when a request is active.
+        # This enriches logs with endpoint, HTTP method, client IP, and optionally user_id.
         """Add request context to log record if available."""
         try:
             from flask import request, has_request_context, session

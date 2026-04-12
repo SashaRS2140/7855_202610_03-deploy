@@ -22,7 +22,8 @@ class CustomJsonFormatter(logging.Formatter):
     SENSITIVE_FIELDS = {
         'token', 'jwt', 'authorization', 'x-api-key', 'api_key', 'secret',
         'password', 'passwd', 'pwd', 'apikey', 'access_token', 'refresh_token',
-        'key', 'private_key', 'secret_key', 'firebase', 'credentials'
+        'key', 'private_key', 'secret_key', 'firebase', 'credentials',
+        'ip_address'
     }
 
     def __init__(self):
@@ -50,22 +51,26 @@ class CustomJsonFormatter(logging.Formatter):
                 'message': record.getMessage(),
             }
 
-            # Add extra fields if present (request context, user info, startup metadata, etc.)
-            # Use try/except to handle non-serializable objects and filter sensitive data.
-            extra_fields = [
-                'user_id', 'endpoint', 'method', 'status_code', 'duration_ms',
-                'ip_address', 'error_type', 'host', 'port', 'app_type', 'debug',
-                'log_level', 'service_account_path'
-            ]
-            for key in extra_fields:
-                if hasattr(record, key):
-                    log_obj[key] = self._sanitize_value(key, getattr(record, key))
+            # Add extra fields from the log record.
+            default_record_attrs = {
+                'name', 'msg', 'args', 'levelname', 'levelno', 'pathname',
+                'filename', 'module', 'exc_info', 'exc_text', 'stack_info',
+                'lineno', 'funcName', 'created', 'msecs', 'relativeCreated',
+                'thread', 'threadName', 'processName', 'process', 'message',
+                'asctime'
+            }
+
+            for key, value in record.__dict__.items():
+                if key not in default_record_attrs and not key.startswith('_'):
+                    log_obj[key] = self._sanitize_value(key, value)
 
             # Pretty-print in development, compact in production
-            if self.is_dev:
-                return json.dumps(log_obj, indent=2, default=str)
-            else:
-                return json.dumps(log_obj, separators=(',', ':'), default=str)
+            return json.dumps(
+                log_obj,
+                indent=2 if self.is_dev else None,
+                separators=(',', ':') if not self.is_dev else None,
+                default=str
+            )
         except Exception as e:
             # Fallback if JSON formatting fails
             return json.dumps({

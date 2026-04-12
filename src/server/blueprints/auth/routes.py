@@ -1,4 +1,5 @@
 import requests
+import re
 import time
 from . import auth_bp
 from config import Config
@@ -10,6 +11,12 @@ from flask import request, render_template, redirect, url_for, session, jsonify,
 from src.server.utils.validation import validate_login_data, require_json_content_type
 
 logger = get_logger(__name__)
+
+
+def _sanitize_invalid_json_body(raw_text: str, max_length: int = 200) -> str:
+    preview = raw_text.strip().replace("\n", " ").replace("\r", " ")
+    preview = re.sub(r'(?i)"password"\s*:\s*"[^"]*"', '"password":"[REDACTED]"', preview)
+    return preview[:max_length]
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -28,6 +35,12 @@ def login():
     password = request.form.get("password")
 
     if not email or not password:
+        logger.warning("Login attempt missing credentials", extra={
+            'endpoint': '/login',
+            'method': 'POST',
+            'error_type': 'missing_credentials',
+            'user_email': email if email else None
+        })
         return render_template("login.html", error="Email and password are required")
 
     # Use Firebase Identity REST API to authenticate
@@ -88,8 +101,15 @@ def signup():
 
     # Validate input data
     data = request.form.to_dict()
+    email = data.get("email")
     error = validate_login_data(data)
     if error:
+        logger.warning("Signup validation failed", extra={
+            'endpoint': '/signup',
+            'method': 'POST',
+            'error_type': 'validation_failed',
+            'user_email': email
+        })
         return render_template("signup.html", error=error)
 
     # Extract input data
@@ -145,12 +165,27 @@ def api_login():
     # Extract data from JSON
     data = request.get_json()
     if not data:
+        invalid_body = request.get_data(as_text=True)
+        logger.warning("API login received invalid JSON", extra={
+            'endpoint': '/api/login',
+            'method': 'POST',
+            'error_type': 'invalid_json',
+            'content_type': request.content_type,
+            'body_length': len(invalid_body),
+            'body_preview': _sanitize_invalid_json_body(invalid_body)
+        })
         return jsonify({"error": "Invalid JSON"}), 400
 
     email = data.get("email")
     password = data.get("password")
 
     if not email or not password:
+        logger.warning("API login attempt missing credentials", extra={
+            'endpoint': '/api/login',
+            'method': 'POST',
+            'error_type': 'missing_credentials',
+            'user_email': email if email else None
+        })
         return jsonify({"error": "Email and password are required"}), 400
 
     # Send login credentials to Firestore Authentication Service for verification
@@ -200,11 +235,26 @@ def api_signup():
     # Extract data from JSON
     data = request.get_json()
     if not data:
+        invalid_body = request.get_data(as_text=True)
+        logger.warning("API signup received invalid JSON", extra={
+            'endpoint': '/api/signup',
+            'method': 'POST',
+            'error_type': 'invalid_json',
+            'content_type': request.content_type,
+            'body_length': len(invalid_body),
+            'body_preview': _sanitize_invalid_json_body(invalid_body)
+        })
         return jsonify({"error": "Invalid JSON"}), 400
 
     # Validate input data
     error = validate_login_data(data)
     if error:
+        logger.warning("API signup validation failed", extra={
+            'endpoint': '/api/signup',
+            'method': 'POST',
+            'error_type': 'validation_failed',
+            'user_email': data.get('email')
+        })
         return jsonify({"error": error}), 400
 
     # Extract input data
@@ -214,11 +264,23 @@ def api_signup():
     # Create user via Firebase Authentication Service
     (user, error) = create_firebase_user(email, password)
     if error:
+        logger.warning("API signup failed", extra={
+            'endpoint': '/api/signup',
+            'method': 'POST',
+            'error_type': 'user_creation_failed',
+            'user_email': email
+        })
         return jsonify({"error": error}), 400
 
     # Save new user information to database
     uid = user.uid
     user_info = {"email": email, "role": "user"}
     save_user_info(uid, user_info)
+
+    logger.info("API signup successful", extra={
+        'user_id': uid,
+        'endpoint': '/api/signup',
+        'method': 'POST'
+    })
 
     return jsonify({"message": "User created successfully", "uid": uid}), 201

@@ -2,6 +2,7 @@ from . import api_timer_bp
 from flask import request, jsonify, current_app
 from src.server.decorators.auth import require_jwt
 from src.server.logging_config import get_logger
+from src.server.utils.api_response import api_error
 from src.server.utils.validation import require_json_content_type
 from src.server.utils.repository import get_task_preset
 
@@ -30,12 +31,20 @@ def api_reset_timer(uid: str):
     # parsing data from json
     data = request.get_json()
     if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
+        return api_error(
+            "Invalid JSON",
+            status=400,
+            error_type="invalid_json"
+        )
 
     # checking parsed data if valid
     task_name = data.get("task_name")
     if not task_name:
-        return jsonify({"error": "task name required"}), 400
+        return api_error(
+            "task name required",
+            status=400,
+            error_type="missing_task_name"
+        )
 
     # parsing preset data using task name
     preset_data = get_task_preset(uid, task_name)

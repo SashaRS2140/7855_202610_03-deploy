@@ -2,6 +2,7 @@ from . import api_cube_bp
 from flask import request, jsonify, current_app
 from src.server.decorators.auth import require_api_key
 from src.server.logging_config import get_logger
+from src.server.utils.api_response import api_error
 from src.server.utils.validation import require_json_content_type, parse_time
 from src.server.utils.repository import get_cube_user, get_current_task, save_session, get_task_preset
 
@@ -26,12 +27,11 @@ def api_task_control(cube_uuid: str):
     # Extract associated user account from CUBE UUID
     uid = get_cube_user(cube_uuid)
     if not uid:
-        logger.warning(f"Task control attempted with unregistered cube '{cube_uuid}'", extra={
-            'endpoint': '/api/task/control',
-            'method': 'POST',
-            'error_type': 'unregistered_cube'
-        })
-        return jsonify({"error": "Cube not registered with user account"}), 401
+        return api_error(
+            "Cube not registered with user account",
+            status=401,
+            error_type="unregistered_cube"
+        )
 
     # Check Content-Type header
     content_error = require_json_content_type()
@@ -42,7 +42,11 @@ def api_task_control(cube_uuid: str):
     data = request.get_json()
     print("\n data: ", data)
     if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
+        return api_error(
+            "Invalid JSON",
+            status=400,
+            error_type="invalid_json"
+        )
 
     action = data.get("action")
     elapsed_time = data.get("elapsed_seconds")
@@ -50,7 +54,11 @@ def api_task_control(cube_uuid: str):
     # Load Current task information
     current_task = get_current_task(uid)
     if not current_task:
-        return jsonify({"error": "Current task not set"}), 400
+        return api_error(
+            "Current task not set",
+            status=400,
+            error_type="no_current_task"
+        )
 
     task_data = get_task_preset(uid, current_task)
     task_time = task_data.get("task_time")
@@ -83,7 +91,11 @@ def api_task_control(cube_uuid: str):
         if elapsed_time <= task_time:
             min, sec = parse_time(elapsed_time)
             if not min and not sec:
-                return jsonify({"error": "Elapsed time must be a positive non-zero integer."}), 400
+                return api_error(
+                    "Elapsed time must be a positive non-zero integer.",
+                    status=400,
+                    error_type="invalid_elapsed_time"
+                )
             return jsonify({"message": f"{current_task} task stopped. "
                                        f"{min}m:{sec}s of session time logged."
                             }), 200

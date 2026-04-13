@@ -23,3 +23,6 @@ venv.bak/
 .idea/
 
 serviceAccountKey.json
+
+logs/
+.log

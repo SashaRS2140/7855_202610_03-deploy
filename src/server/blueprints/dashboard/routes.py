@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from . import dashboard_bp
 from src.server.decorators.auth import login_required
@@ -74,6 +75,59 @@ def stream_timer(uid: str):
             time.sleep(1)
 
     return Response(event_stream(), mimetype="text/event-stream")
+
+
+@dashboard_bp.post("/internal/timer-event")
+def internal_timer_event():
+    secret = os.getenv("INTERNAL_SHARED_SECRET")
+    if not secret:
+        return jsonify({"error": "Internal callback not configured"}), 503
+
+    provided = request.headers.get("X-INTERNAL-SECRET")
+    if not provided or provided != secret:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(silent=True) or {}
+    action = data.get("action")
+
+    timer = current_app.timer
+
+    if action == "reset":
+        try:
+            target_duration = int(data.get("target_duration"))
+        except (TypeError, ValueError):
+            return jsonify({"error": "target_duration required"}), 400
+        if target_duration < 0:
+            target_duration = 0
+        timer.stop()
+        timer.reset(target_duration)
+        return jsonify({"ok": True}), 200
+
+    if action == "start":
+        target_duration = data.get("target_duration")
+        if target_duration is not None:
+            try:
+                target_duration = int(target_duration)
+            except (TypeError, ValueError):
+                target_duration = None
+        if isinstance(target_duration, int) and target_duration >= 0 and target_duration != timer.get_target():
+            timer.stop()
+            timer.reset(target_duration)
+        timer.start()
+        return jsonify({"ok": True}), 200
+
+    if action == "stop":
+        try:
+            elapsed = int(data.get("elapsed"))
+        except (TypeError, ValueError):
+            return jsonify({"error": "elapsed required"}), 400
+        if elapsed < 0:
+            elapsed = 0
+        timer.stop()
+        timer.set_elapsed(elapsed)
+        return jsonify({"ok": True}), 200
+
+    return jsonify({"error": "Unknown action"}), 400
 
 
 #--- TEMP WEB API ---#

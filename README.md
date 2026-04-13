@@ -200,3 +200,5 @@ A .env.example file is included as a template to help developers create the requ
 | APP_TYPE                 | Application type - determines which routes are registered. | web (all routes), api (API routes only) |
 | FLASK_ENV                | Flask environment mode.                                    | development, production                 |
 | LOG_LEVEL                | Log level - controls verbosity.                            | DEBUG, INFO, WARNING, ERROR, CRITICAL   |
+| INTERNAL_SHARED_SECRET   | Shared secret securing API→web internal timer callbacks.   | None                                    |
+| WEB_INTERNAL_URL         | API container URL to reach web container internally.       | e.g. http://127.0.0.1:5000              |

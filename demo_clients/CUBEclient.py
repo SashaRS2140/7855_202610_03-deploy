@@ -25,7 +25,7 @@ class CubeSimulatorGUI:
         self.root.configure(bg=BG_COLOR)
 
         # ---- Cube Identity ----
-        self.cube_uuid =  "60425bf2a120a1bcb4247cad8aab2449a3c196620c2388e2cf1a90c5437540dd"
+        self.cube_uuid =  "test-cube-uuid-001"
 
         # ---- State ----
         self.state = "stopped"

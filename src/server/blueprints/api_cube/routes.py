@@ -1,3 +1,6 @@
+import os
+
+import requests
 from . import api_cube_bp
 from flask import request, jsonify, current_app
 from src.server.decorators.auth import require_api_key
@@ -6,6 +9,33 @@ from src.server.utils.validation import require_json_content_type, parse_time
 from src.server.utils.repository import get_cube_user, get_current_task, save_session, get_task_preset
 
 logger = get_logger(__name__)
+
+def _notify_web_timer_event(*, action: str, uid: str, task_name: str, target_duration: int | None = None, elapsed: int | None = None):
+    secret = os.getenv("INTERNAL_SHARED_SECRET")
+    if not secret:
+        return
+
+    base = os.getenv("WEB_INTERNAL_URL", "http://127.0.0.1:5000").rstrip("/")
+    url = f"{base}/internal/timer-event"
+
+    payload: dict = {"action": action, "uid": uid, "task_name": task_name}
+    if target_duration is not None:
+        payload["target_duration"] = target_duration
+    if elapsed is not None:
+        payload["elapsed"] = elapsed
+
+    try:
+        requests.post(
+            url,
+            json=payload,
+            headers={"X-INTERNAL-SECRET": secret, "Content-Type": "application/json"},
+            timeout=1.0,
+        )
+    except Exception as e:
+        logger.warning(f"Failed to notify web timer event: {e}", extra={
+            'endpoint': '/api/task/control',
+            'action': action,
+        })
 
 
 ##########################################################################
@@ -58,6 +88,7 @@ def api_task_control(cube_uuid: str):
     # Start action logic
     if action == "start":
         timer.start()
+        _notify_web_timer_event(action="start", uid=uid, task_name=current_task, target_duration=task_time)
         logger.info(f"Task '{current_task}' started via cube", extra={
             'user_id': uid,
             'endpoint': '/api/task/control',
@@ -69,23 +100,25 @@ def api_task_control(cube_uuid: str):
     # Stop action logic
     if action == "stop":
         timer.stop()
-        save_session(uid, current_task, elapsed_time)
-        logger.info(f"Task '{current_task}' stopped, {elapsed_time}s elapsed", extra={
+        authoritative_elapsed = timer.get_elapsed()
+        _notify_web_timer_event(action="stop", uid=uid, task_name=current_task, target_duration=task_time, elapsed=authoritative_elapsed)
+        save_session(uid, current_task, authoritative_elapsed)
+        logger.info(f"Task '{current_task}' stopped, {authoritative_elapsed}s elapsed", extra={
             'user_id': uid,
             'endpoint': '/api/task/control',
             'method': 'POST',
             'action': 'stop',
-            'elapsed_seconds': elapsed_time
+            'elapsed_seconds': authoritative_elapsed
         })
-        if elapsed_time <= task_time:
-            min, sec = parse_time(elapsed_time)
+        if authoritative_elapsed <= task_time:
+            min, sec = parse_time(authoritative_elapsed)
             if not min and not sec:
                 return jsonify({"error": "Elapsed time must be a positive non-zero integer."}), 400
             return jsonify({"message": f"{current_task} task stopped. "
                                        f"{min}m:{sec}s of session time logged."
                             }), 200
         else:
-            extra_time = elapsed_time - task_time
+            extra_time = authoritative_elapsed - task_time
             min, sec = parse_time(extra_time)
             return jsonify({"message": f"{current_task} task stopped. "
                                        f"{tt_min}m:{tt_sec}s of session time + "
@@ -95,6 +128,7 @@ def api_task_control(cube_uuid: str):
     # Reset action logic
     if action == "reset":
         timer.reset(task_time)
+        _notify_web_timer_event(action="reset", uid=uid, task_name=current_task, target_duration=task_time, elapsed=0)
         logger.info(f"Task '{current_task}' reset via cube", extra={
             'user_id': uid,
             'endpoint': '/api/task/control',

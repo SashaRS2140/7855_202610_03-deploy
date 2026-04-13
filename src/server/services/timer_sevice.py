@@ -34,6 +34,21 @@ class CountupTimer:
             self.running = False
             logger.info(f"Timer stopped at {self.elapsed_at_stop}s")
 
+    def set_elapsed(self, elapsed_seconds: int):
+        with self.lock:
+            try:
+                elapsed = int(elapsed_seconds)
+            except (TypeError, ValueError):
+                return
+            if elapsed < 0:
+                elapsed = 0
+
+            self.elapsed_at_stop = elapsed
+
+            # If running, re-anchor start_time to match the provided elapsed.
+            if self.running:
+                self.start_time = time.time() - self.elapsed_at_stop
+
     def get_elapsed(self):
         with self.lock:
             if self.running and self.start_time:

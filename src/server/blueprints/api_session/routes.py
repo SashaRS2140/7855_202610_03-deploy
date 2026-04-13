@@ -3,6 +3,7 @@ from datetime import datetime
 from flask import request, jsonify
 from src.server.decorators.auth import require_jwt
 from src.server.logging_config import get_logger
+from src.server.utils.api_response import api_error
 from src.server.utils.validation import require_json_content_type
 from src.server.utils.repository import get_session, set_current_task, get_current_task, get_task_preset, get_sessions, get_sessions_by_date_range
 
@@ -22,13 +23,11 @@ def api_get_task(uid: str):
     current_task = get_current_task(uid)
 
     if not current_task:
-        logger.warning(f"Current task not set", extra={
-            'user_id': uid,
-            'endpoint': '/api/task/current',
-            'method': 'GET',
-            'error_type': 'no_current_task'
-        })
-        return jsonify({"error": "Current task not set"}), 400
+        return api_error(
+            "Current task not set",
+            status=400,
+            error_type="no_current_task"
+        )
     
     logger.info(f"Retrieved current task: {current_task}", extra={
         'user_id': uid,
@@ -53,17 +52,32 @@ def api_set_task(uid: str):
     # Parsing data from json
     data = request.get_json()
     if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
+        return api_error(
+            "Invalid JSON",
+            status=400,
+            error_type="invalid_json"
+        )
 
     # Checking
     task_name = data.get("task_name").strip().title()
     if not task_name:
-        return jsonify({"error": "task name required"}), 400
+        return api_error(
+            "task name required",
+            status=400,
+            error_type="missing_task_name"
+        )
 
     preset_data = get_task_preset(uid, task_name)
 
     if not preset_data:
-        return jsonify({"error": "Preset not found"}), 404
+        return api_error(
+            "Preset not found",
+            status=404,
+            error_type="preset_not_found",
+            extra={
+                'task_name': task_name
+            }
+        )
 
     set_current_task(uid, task_name)
     
@@ -84,13 +98,11 @@ def api_get_latest_session(uid: str):
 
     latest_session = get_session(uid)
     if not latest_session:
-        logger.warning(f"No session history found", extra={
-            'user_id': uid,
-            'endpoint': '/api/session/latest',
-            'method': 'GET',
-            'error_type': 'no_session_history'
-        })
-        return jsonify({"error": "No recorded session history."}), 400
+        return api_error(
+            "No recorded session history.",
+            status=400,
+            error_type="no_session_history"
+        )
 
     task = latest_session.get("task")
     elapsed_time = latest_session.get("elapsed_time")
@@ -149,13 +161,11 @@ def api_get_sessions_range(uid: str):
     end = request.args.get("end")
 
     if not start or not end:
-        logger.warning(f"Date range query missing parameters", extra={
-            'user_id': uid,
-            'endpoint': '/api/sessions/range',
-            'method': 'GET',
-            'error_type': 'missing_params'
-        })
-        return jsonify({"error": "start and end dates required (YYYY-MM-DD)"}), 400
+        return api_error(
+            "start and end dates required (YYYY-MM-DD)",
+            status=400,
+            error_type="missing_params"
+        )
 
     sessions = get_sessions_by_date_range(uid, start, end)
     

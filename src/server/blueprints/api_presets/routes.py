@@ -2,6 +2,7 @@ from . import api_presets_bp
 from flask import request, jsonify
 from src.server.decorators.auth import require_jwt
 from src.server.logging_config import get_logger
+from src.server.utils.api_response import api_error
 from src.server.utils.validation import normalize_task_color, require_json_content_type, validate_preset
 from src.server.utils.repository import delete_task_preset, update_task_preset, get_all_task_presets, get_task_preset
 
@@ -22,12 +23,20 @@ def extract_preset_data():
     # Extract data from JSON
     data = request.get_json(silent=True) or {}
     if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
+        return api_error(
+            "Invalid JSON",
+            status=400,
+            error_type="invalid_json"
+        )
 
     # Validate input data
     error = validate_preset(data)
     if error:
-        return jsonify({"error": error}), 400
+        return api_error(
+            error,
+            status=400,
+            error_type="validation_failed"
+        )
 
     return data
 
@@ -44,13 +53,11 @@ def api_get_preset(uid: str, task_name: str):
     if task_name == "All":
         presets = get_all_task_presets(uid)
         if not presets:
-            logger.warning(f"No presets configured for user", extra={
-                'user_id': uid,
-                'endpoint': '/api/profile/preset/All',
-                'method': 'GET',
-                'error_type': 'no_presets'
-            })
-            return jsonify({"error": "No presets configured."}), 404
+            return api_error(
+                "No presets configured.",
+                status=404,
+                error_type="no_presets"
+            )
         logger.info(f"Retrieved all presets for user", extra={
             'user_id': uid,
             'endpoint': '/api/profile/preset/All',
@@ -62,14 +69,14 @@ def api_get_preset(uid: str, task_name: str):
     # Return preset data
     preset_data = get_task_preset(uid, task_name)
     if not preset_data:
-        logger.warning(f"Preset not found: {task_name}", extra={
-            'user_id': uid,
-            'endpoint': '/api/profile/preset/{task_name}',
-            'method': 'GET',
-            'task_name': task_name,
-            'error_type': 'preset_not_found'
-        })
-        return jsonify({"error": "Preset not found"}), 404
+        return api_error(
+            "Preset not found",
+            status=404,
+            error_type="preset_not_found",
+            extra={
+                'task_name': task_name
+            }
+        )
     logger.info(f"Retrieved preset: {task_name}", extra={
         'user_id': uid,
         'endpoint': '/api/profile/preset/{task_name}',
@@ -90,15 +97,27 @@ def api_create_preset(uid: str):
     # Organize preset task data
     task_name = (data.get("task_name") or "").strip().title()
     if not task_name:
-        return jsonify({"error": "task name required"}), 400
+        return api_error(
+            "task name required",
+            status=400,
+            error_type="missing_task_name"
+        )
 
     task_time = data.get("task_time")
     if not task_time:
-        return jsonify({"error": "task time required"}), 400
+        return api_error(
+            "task time required",
+            status=400,
+            error_type="missing_task_time"
+        )
 
     task_color = normalize_task_color(data.get("task_color"))
     if not task_color:
-        return jsonify({"error": "task color required"}), 400
+        return api_error(
+            "task color required",
+            status=400,
+            error_type="missing_task_color"
+        )
 
     preset_data = {
         "task_time": task_time,
@@ -130,12 +149,23 @@ def api_update_preset(uid: str):
     # Prepare updated preset task data (only include provided fields)
     task_name = (data.get("task_name") or "").strip().title()
     if not task_name:
-        return jsonify({"error": "Task name required"}), 400
+        return api_error(
+            "Task name required",
+            status=400,
+            error_type="missing_task_name"
+        )
 
     # Check for existing preset
     preset_data = get_task_preset(uid, task_name)
     if not preset_data:
-        return jsonify({"error": "Task not found"}), 404
+        return api_error(
+            "Task not found",
+            status=404,
+            error_type="preset_not_found",
+            extra={
+                'task_name': task_name
+            }
+        )
 
     task_time = data.get("task_time")
     task_color = data.get("task_color")
@@ -174,16 +204,31 @@ def api_delete_preset(uid: str):
     # Extract data from JSON
     data = request.get_json(silent=True) or {}
     if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
+        return api_error(
+            "Invalid JSON",
+            status=400,
+            error_type="invalid_json"
+        )
 
     task_name = (data.get("task_name") or "").strip().title()
     if not task_name:
-        return jsonify({"error": "task name required"}), 400
+        return api_error(
+            "task name required",
+            status=400,
+            error_type="missing_task_name"
+        )
 
     preset_data = get_task_preset(uid, task_name)
 
     if not preset_data:
-        return jsonify({"error": "Preset not found"}), 404
+        return api_error(
+            "Preset not found",
+            status=404,
+            error_type="preset_not_found",
+            extra={
+                'task_name': task_name
+            }
+        )
 
     delete_task_preset(uid, task_name)
     

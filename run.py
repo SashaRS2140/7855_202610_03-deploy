@@ -1,5 +1,5 @@
 from src.server import create_app
-from src.server.logging_config import setup_logging
+from src.server.logging_config import setup_logging, get_logger
 from dotenv import load_dotenv
 import os
 from functools import wraps
@@ -8,10 +8,10 @@ load_dotenv()
 
 # Initialize logging early
 setup_logging()
+logger = get_logger(__name__)
 
 # Create the application instance at module level (required for gunicorn)
 app = create_app()
-
 
 # Add health check endpoint
 @app.route('/health')
@@ -21,12 +21,21 @@ def health():
     return {'status': 'healthy'}, 200
 
 
-if __name__ == "__main__":
-    # Determine configuration based on environment
+if __name__ == "__main__":# Determine configuration based on environment
     app_type = os.getenv('APP_TYPE', 'web')
     port = 5000 if app_type == 'web' else 5001
     debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     
+    logger.info("Application startup complete", extra={
+        "host": "0.0.0.0",
+        "port": int(port),
+        "app_type": app_type,
+        "debug": debug,
+        "log_level": os.getenv("LOG_LEVEL", "DEBUG"),
+        "service_account_path": app.config.get("SERVICE_ACCOUNT_PATH")
+    })
+
     # Host '0.0.0.0' makes the server accessible to other devices (like your phone)
     # on the same Wi-Fi network.
+    print("app.url map", app.url_map)
     app.run(host='0.0.0.0', port=int(port), debug=debug)

@@ -2,6 +2,7 @@ from . import api_profile_bp
 from flask import request, jsonify
 from src.server.decorators.auth import require_jwt
 from src.server.logging_config import get_logger
+from src.server.utils.api_response import api_error
 from src.server.utils.validation import require_json_content_type, validate_user_info
 from src.server.utils.repository import save_user_info, save_cube_uuid, get_user_info, get_all_user_info, get_profile
 
@@ -39,12 +40,11 @@ def api_get_user_info(uid: str, field: str):
     if field == "all":
         user_data = get_all_user_info(uid)
         if not user_data:
-            logger.warning(f"No user info found", extra={
-                'user_id': uid,
-                'endpoint': '/api/profile/user_info/all',
-                'method': 'GET'
-            })
-            return jsonify({"error": "No information added."}), 404
+            return api_error(
+                "No information added.",
+                status=404,
+                error_type="no_information"
+            )
         logger.info(f"Retrieved all user info", extra={
             'user_id': uid,
             'endpoint': '/api/profile/user_info/all',
@@ -55,13 +55,14 @@ def api_get_user_info(uid: str, field: str):
     # Return user data
     user_data = get_user_info(uid, field)
     if not user_data:
-        logger.warning(f"User info field not found: {field}", extra={
-            'user_id': uid,
-            'endpoint': '/api/profile/user_info/{field}',
-            'method': 'GET',
-            'field': field
-        })
-        return jsonify({"error": "No information added."}), 404
+        return api_error(
+            "No information added.",
+            status=404,
+            error_type="no_information",
+            extra={
+                'field': field
+            }
+        )
     
     logger.info(f"Retrieved user info field: {field}", extra={
         'user_id': uid,
@@ -86,12 +87,20 @@ def api_update_user_info(uid: str):
     # Extract data from JSON
     data = request.get_json(silent=True) or {}
     if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
+        return api_error(
+            "Invalid JSON",
+            status=400,
+            error_type="invalid_json"
+        )
 
     # Validate input data
     error = validate_user_info(data)
     if error:
-        return jsonify({"error": error}), 400
+        return api_error(
+            error,
+            status=400,
+            error_type="validation_failed"
+        )
 
     # Prepare updated user info values (only include provided fields)
     first_name = data.get("first_name")
@@ -131,11 +140,19 @@ def api_save_cube(uid: str):
     # Extract data from JSON
     data = request.get_json(silent=True) or {}
     if not data:
-        return jsonify({"error": "Invalid JSON"}), 400
+        return api_error(
+            "Invalid JSON",
+            status=400,
+            error_type="invalid_json"
+        )
 
     cube_uuid = data.get("cube_uuid")
     if not cube_uuid:
-        return jsonify({"error": "Cube uuid required"}), 400
+        return api_error(
+            "Cube uuid required",
+            status=400,
+            error_type="missing_cube_uuid"
+        )
 
     # Save cube uuid
     save_cube_uuid(uid, cube_uuid)

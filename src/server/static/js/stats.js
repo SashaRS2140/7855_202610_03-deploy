@@ -79,7 +79,7 @@ class SessionStats {
         if (!card) return;
 
         try {
-            const res = await fetch(`${API_BASE}/session/latest`);
+            const res = await fetch(`${API_BASE}/sessions/latest`);
             if (!res.ok) {
                 card.innerHTML = '<p style="color:#999;">No recent session yet.</p>';
                 return;

@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from . import dashboard_bp
 from src.server.decorators.auth import login_required
@@ -76,6 +77,59 @@ def stream_timer(uid: str):
     return Response(event_stream(), mimetype="text/event-stream")
 
 
+@dashboard_bp.post("/internal/timer-event")
+def internal_timer_event():
+    secret = os.getenv("INTERNAL_SHARED_SECRET")
+    if not secret:
+        return jsonify({"error": "Internal callback not configured"}), 503
+
+    provided = request.headers.get("X-INTERNAL-SECRET")
+    if not provided or provided != secret:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(silent=True) or {}
+    action = data.get("action")
+
+    timer = current_app.timer
+
+    if action == "reset":
+        try:
+            target_duration = int(data.get("target_duration"))
+        except (TypeError, ValueError):
+            return jsonify({"error": "target_duration required"}), 400
+        if target_duration < 0:
+            target_duration = 0
+        timer.stop()
+        timer.reset(target_duration)
+        return jsonify({"ok": True}), 200
+
+    if action == "start":
+        target_duration = data.get("target_duration")
+        if target_duration is not None:
+            try:
+                target_duration = int(target_duration)
+            except (TypeError, ValueError):
+                target_duration = None
+        if isinstance(target_duration, int) and target_duration >= 0 and target_duration != timer.get_target():
+            timer.stop()
+            timer.reset(target_duration)
+        timer.start()
+        return jsonify({"ok": True}), 200
+
+    if action == "stop":
+        try:
+            elapsed = int(data.get("elapsed"))
+        except (TypeError, ValueError):
+            return jsonify({"error": "elapsed required"}), 400
+        if elapsed < 0:
+            elapsed = 0
+        timer.stop()
+        timer.set_elapsed(elapsed)
+        return jsonify({"ok": True}), 200
+
+    return jsonify({"error": "Unknown action"}), 400
+
+
 #--- TEMP WEB API ---#
 
 # replace with api_set_task & api_reset_timer #
@@ -130,62 +184,6 @@ def get_preset(uid: str, task_name: str):
         "task_color": preset_data.get("task_color"),
     }), 200
 
-
-# replace with api_get_session_latest #
-@dashboard_bp.get('/session/latest')
-@login_required
-def session_latest(uid: str):
-    latest_session = get_session(uid)
-    if not latest_session:
-        return jsonify({"error": "No recorded session history."}), 400
-
-    return jsonify({
-        "task": latest_session.get("task"),
-        "elapsed_time": latest_session.get("elapsed_time"),
-        "timestamp": latest_session.get("timestamp"),
-        "task_color": latest_session.get("task_color"),
-    }), 200
-
-
-# replace with api_get_sessions_calendar #
-@dashboard_bp.get('/sessions/calendar')
-@login_required
-def sessions_calendar(uid: str):
-    """Return session data aggregated by day for calendar heatmap."""
-    from datetime import datetime
-    from src.server.utils.repository import get_sessions
-
-    year = request.args.get("year", default=datetime.now().year, type=int)
-    month = request.args.get("month", default=datetime.now().month, type=int)
-
-    sessions = get_sessions(uid, limit=365)
-
-    # Aggregate by date (filtered to requested month/year only)
-    daily_totals = {}
-
-    for session in sessions:
-        ts = session.get("timestamp", "")[:10]  # YYYY-MM-DD
-        try:
-            session_year = int(ts[:4])
-            session_month = int(ts[5:7])
-            
-            # Only include sessions from the requested month
-            if session_year == year and session_month == month:
-                if ts not in daily_totals:
-                    daily_totals[ts] = {"count": 0, "total_time": 0}
-
-                daily_totals[ts]["count"] += 1
-                daily_totals[ts]["total_time"] += session.get("elapsed_time", 0)
-        except (ValueError, IndexError):
-            # Skip malformed timestamps
-            continue
-
-    return jsonify({
-        "year": year,
-        "month": month,
-        "daily_data": daily_totals,
-        "max_sessions": max([d["count"] for d in daily_totals.values()]) if daily_totals else 1
-    }), 200
 
 
 # replace with api_create_preset #

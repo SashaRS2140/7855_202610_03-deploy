@@ -216,6 +216,9 @@ class TestTaskControlStop:
         setup_cube_doc(mock_firestore_client)
         setup_user_doc(mock_firestore_client)
 
+        # Mock the elapsed time to an integer
+        client.application.timer.get_elapsed.return_value = 300
+
         response = client.post(URL, json={"action": "stop", "elapsed_seconds": 300}, headers=HEADERS)
 
         assert response.status_code == 200
@@ -230,6 +233,9 @@ class TestTaskControlStop:
         """Returns 400 error due to invalid task time."""
         setup_cube_doc(mock_firestore_client)
         setup_user_doc(mock_firestore_client)
+
+        # Mock the elapsed time to an integer
+        client.application.timer.get_elapsed.return_value = 0
 
         response = client.post(URL, json={"action": "stop", "elapsed_seconds": 0}, headers=HEADERS)
 
@@ -246,6 +252,9 @@ class TestTaskControlStop:
         setup_cube_doc(mock_firestore_client)
         setup_user_doc(mock_firestore_client)
 
+        # Mock the elapsed time to an integer
+        client.application.timer.get_elapsed.return_value = 300
+
         client.post(URL, json={"action": "stop", "elapsed_seconds": 300}, headers=HEADERS)
 
         mock_firestore_client['session_history'].document.assert_called_with(UID)
@@ -258,6 +267,9 @@ class TestTaskControlStop:
         """Returns 200 with overtime breakdown message when elapsed exceeds task time."""
         setup_cube_doc(mock_firestore_client)
         setup_user_doc(mock_firestore_client)
+
+        # Mock the elapsed time to an integer
+        client.application.timer.get_elapsed.return_value = 900
 
         response = client.post(URL, json={"action": "stop", "elapsed_seconds": 900}, headers=HEADERS)
 
@@ -275,6 +287,9 @@ class TestTaskControlStop:
         """Writes a session document to session_history/{uid}/sessions even when overtime."""
         setup_cube_doc(mock_firestore_client)
         setup_user_doc(mock_firestore_client)
+
+        # Mock the elapsed time to an integer
+        client.application.timer.get_elapsed.return_value = 900
 
         client.post(URL, json={"action": "stop", "elapsed_seconds": 900}, headers=HEADERS)
 

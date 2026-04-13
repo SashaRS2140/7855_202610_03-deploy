@@ -51,6 +51,7 @@ services:
       - FLASK_APP=run.py
       - APP_TYPE=api
       - LOG_LEVEL=DEBUG
+      - WEB_INTERNAL_URL=http://web:5000
     volumes:
       - .:/app
       - ./logs:/app/logs

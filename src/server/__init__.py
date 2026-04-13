@@ -22,20 +22,24 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # Determine app type: 'web' for UI routes, 'api' for REST endpoints
+    # Determine app type: 'web' for the main app (UI + API), 'api' for REST-only
     app_type = os.getenv('APP_TYPE', 'web')
+    api_blueprints = (
+        api_cube_bp,
+        api_presets_bp,
+        api_profile_bp,
+        api_session_bp,
+        api_timer_bp,
+    )
 
-    # Register blueprints based on APP_TYPE
-    if app_type == 'api':
-        # API-only mode: register ONLY API endpoints (for cube device communication)
-        app.register_blueprint(api_cube_bp)
-        app.register_blueprint(api_presets_bp)
-        app.register_blueprint(api_profile_bp)
-        app.register_blueprint(api_session_bp)
-        app.register_blueprint(api_timer_bp)
-    else:
-        # Web mode (default): register ONLY web routes (UI, auth, dashboard)
-        # API calls from web will proxy to the API container via HTTP
+    # Register API blueprints for both app modes when they need to be exposed.
+    # In api mode we mount only the REST surface; in web mode we expose the same
+    # endpoints alongside the UI so `/api/*` is reachable from the main app.
+    for blueprint in api_blueprints:
+        app.register_blueprint(blueprint)
+
+    if app_type != 'api':
+        # Web mode (default): register the UI routes alongside the API surface.
         app.register_blueprint(auth_bp)
         app.register_blueprint(presets_bp)
         app.register_blueprint(sessions_bp)

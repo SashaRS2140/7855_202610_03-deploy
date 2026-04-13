@@ -17,6 +17,8 @@ logger = get_logger(__name__)
 @api_cube_bp.post("/task/control")
 @require_api_key
 def api_task_control(cube_uuid: str):
+
+    print("Received task control request from cube:", cube_uuid)
     """Interface between hardware cube, Firestore database, and timer service."""
 
     # Get timer object
@@ -38,6 +40,7 @@ def api_task_control(cube_uuid: str):
 
     # Extract data from JSON
     data = request.get_json()
+    print("\n data: ", data)
     if not data:
         return api_error(
             "Invalid JSON",

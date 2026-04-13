@@ -37,4 +37,5 @@ if __name__ == "__main__":# Determine configuration based on environment
 
     # Host '0.0.0.0' makes the server accessible to other devices (like your phone)
     # on the same Wi-Fi network.
+    print("app.url map", app.url_map)
     app.run(host='0.0.0.0', port=int(port), debug=debug)

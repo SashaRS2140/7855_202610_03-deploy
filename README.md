@@ -113,6 +113,66 @@ flowchart TD
    docker compose down
    ```
 
+## Render Deployment (2 Services)
+
+This project is designed to run as **two Render Web Services** from the same repo:
+- **web**: UI + full app routes (`APP_TYPE=web`)
+- **api**: REST API routes (`APP_TYPE=api`) for `/api/*` and device access
+
+### 1) Create the two Render Web Services
+
+Create **two** Web Services in Render that both connect to this GitHub repo:
+- **Service A (web)**: name it something like `breathing-cube-web`
+- **Service B (api)**: name it something like `breathing-cube-api`
+
+For both services:
+- Use **Docker** deployment (Render will build using the repo `Dockerfile`)
+- Set the **Start Command** to bind to Render’s `$PORT`:
+
+```bash
+gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120 --access-logfile - --error-logfile - run:app
+```
+
+### 2) Configure environment variables (Render dashboard)
+
+Set these environment variables in **both** services unless noted otherwise:
+
+- **Required (secrets / identifiers)**:
+  - `FLASK_SECRET_KEY`
+  - `FIREBASE_WEB_API_KEY`
+  - `FIREBASE_PROJECT_ID`
+  - `CUBE_API_KEY`
+  - `INTERNAL_SHARED_SECRET`
+
+- **Runtime / logging**:
+  - `FLASK_ENV=production`
+  - `LOG_LEVEL=INFO` (or `DEBUG` temporarily)
+
+- **Service-specific**:
+  - **web service**: `APP_TYPE=web`
+  - **api service**:
+    - `APP_TYPE=api`
+    - `WEB_INTERNAL_URL=https://<YOUR_WEB_SERVICE_HOSTNAME>` (set this to the **web** service URL in Render)
+
+### 3) Add Firebase Admin credentials as a Render Secret File
+
+This app expects a Firebase Admin service account JSON file via `FIREBASE_SERVICE_ACCOUNT`.
+
+1. In Render, add a **Secret File** containing your Firebase Admin JSON.
+2. Mount it at a known path (default is /etc/secrets/filename.txt ):
+   - Mount path: `/etc/secrets/serviceAccountKey.json`
+3. Set this env var in **both** services:
+   - `FIREBASE_SERVICE_ACCOUNT=/etc/secrets/serviceAccountKey.json`
+
+### 4) Deploy and verify
+
+- Deploy both services.
+- Check health endpoints:
+  - Web: `https://<WEB_SERVICE>/health`
+  - API: `https://<API_SERVICE>/health`
+
+If the API needs to call back into the web service (internal timer callbacks), ensure `WEB_INTERNAL_URL` is set correctly on the **api** service.
+
 ## API Specifications
 
 | Method                    | Route                           | Description                                                             | Auth Required |

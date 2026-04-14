@@ -1,6 +1,6 @@
 const API_BASE = "";
 
-const POLLING_INTERVAL = 5000; // 30 seconds
+const POLLING_INTERVAL = 60000; // 60 seconds
 
 class SessionStats {
     constructor() {

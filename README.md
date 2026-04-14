@@ -6,8 +6,10 @@ Now imagine being able to step away from that noise, even for a few minutes, and
 
 The BreathingCube is an IoT-enabled device designed to help individuals integrate meditation into busy daily life. Through guided ambient lighting patterns and subtle sound cues, it encourages intentional breathing and mindfulness practice, helping calm the nervous system and restore a sense of presence.
 
-**Course:** Software Systems
-**Status:** In Development
+### Course: 
+COMP 7855 Software Systems
+### Status: 
+In Development
 
 ## Features 
 ### Musts
@@ -22,7 +24,7 @@ The BreathingCube is an IoT-enabled device designed to help individuals integrat
 - Store Previous Session information
 
 ### Coulds
-- Server Hosted Web App Accesible Online
+- Server Hosted Web App Accessible Online
 - Colors Change Based on Time of Day
 - Store Data Based on User
 
@@ -41,78 +43,7 @@ This is application/product project for a meditation cube.
 3. Bryce Reid
 4. Kale Wyse
 
-## Testing
-
-### Unit Tests
-Run application unit tests (Flask routes, utilities, validation):
-```bash
-pytest tests/
-```
-
-Run a specific test file:
-```bash
-pytest tests/test_api_cube.py -v
-```
-
-### Container & Deployment Tests
-Comprehensive containerization testing with pytest + docker-py. Tests verify Docker image builds, runtime health, security compliance, and production readiness.
-
-**Prerequisites:**
-- Docker Desktop installed and running
-- `docker-compose` available
-- Python environment with dependencies installed (`pip install -r requirements.txt`)
-
-**Run all container tests:**
-```bash
-pytest tests/test_container_*.py -v
-```
-
-**Run specific container test category:**
-```bash
-# Build & image validation
-pytest tests/test_container_build.py -v
-
-# Runtime & service health
-pytest tests/test_container_runtime.py -v
-
-# Security & compliance
-pytest tests/test_container_security.py -v
-
-# Production readiness (gunicorn, logging, performance)
-pytest tests/test_container_production.py -v
-```
-
-**Run all tests (unit + container):**
-```bash
-pytest tests/ -v
-```
-
-### Local Development with Docker
-
-Start services locally:
-```bash
-docker compose up --build
-```
-
-Stop services:
-```bash
-docker compose down
-```
-
-View logs:
-```bash
-docker compose logs -f cube-web      # Web service logs
-docker compose logs -f cube-api      # API service logs
-docker compose logs -f               # All service logs
-```
-
-Test service endpoints:
-```bash
-curl http://localhost:5000/health    # Web service health check
-curl http://localhost:5001/health    # API service health check
-```
-
-### Architecture
+## Architecture
 Below is a block diagram showing system components and data flow.
 
 ```mermaid
@@ -162,7 +93,27 @@ flowchart TD
     style space opacity:0;
 ```
 
-### API Specifications
+## Docker Quickstart Instructions
+
+1. Use requirements.txt to manage the dependencies required to run the application:
+    ```bash
+   pip install -r requirements.txt
+   ```
+2. Generate a new private serviceAccountKey.json file from your Firebase project settings and include the file in the root project directory.
+3. Use the .env.example file and Environment Variables documentation below to set up the local python environment.
+4. Ensure Docker Desktop is installed and running:
+   - Download from https://www.docker.com/products/docker-desktop
+   - Verify with: `docker --version`
+5. Build and start the Docker containers:
+   ```bash
+   docker compose up --build
+   ```
+6. Stop the Docker containers with `Ctrl+C` or:
+   ```bash
+   docker compose down
+   ```
+
+## API Specifications
 
 | Method                    | Route                           | Description                                                             | Auth Required |
 |---------------------------|---------------------------------|-------------------------------------------------------------------------|---------------|
@@ -185,7 +136,7 @@ flowchart TD
 | api_login                 | /login                          | JSON API endpoint for login. Returns a JWT token.                       | None          |
 | api_signup                | /signup                         | JSON API endpoint for new user registration.                            | None          |
 
-### Environment Variables
+## Environment Variables
 
 Below are detailed descriptions of the environment variable required to implement this application.
 A .env.example file is included as a template to help developers create the required .env file.
